@@ -2,6 +2,8 @@ package com.morningguard.app.ui.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.content.Context
+import com.morningguard.app.auth.GoogleSignInHelper
 import com.morningguard.data.auth.AuthRepository
 import com.morningguard.data.auth.AuthState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,6 +24,7 @@ data class AuthUiState(
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
+    private val googleSignInHelper: GoogleSignInHelper,
 ) : ViewModel() {
 
     private val _local = MutableStateFlow(AuthUiState())
@@ -47,5 +50,16 @@ class AuthViewModel @Inject constructor(
 
     fun signOut() {
         viewModelScope.launch { authRepository.signOut() }
+    }
+
+    fun signInWithGoogle(context: Context) {
+        viewModelScope.launch {
+            googleSignInHelper.requestIdToken(context)
+                .onSuccess { token ->
+                    authRepository.signInWithGoogle(token)
+                        .onFailure { _local.value = AuthUiState(error = it.message) }
+                }
+                .onFailure { _local.value = AuthUiState(error = it.message) }
+        }
     }
 }

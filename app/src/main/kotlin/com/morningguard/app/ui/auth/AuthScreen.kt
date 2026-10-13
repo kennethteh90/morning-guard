@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -23,6 +24,7 @@ import com.morningguard.data.auth.AuthState
 @Composable
 fun AuthScreen(onBack: () -> Unit, viewModel: AuthViewModel = hiltViewModel()) {
     var email by rememberSaveable { mutableStateOf("") }
+    val context = LocalContext.current
     val authState by viewModel.authState.collectAsStateWithLifecycle()
     val local by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -55,6 +57,12 @@ fun AuthScreen(onBack: () -> Unit, viewModel: AuthViewModel = hiltViewModel()) {
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text("Send magic link")
+                }
+                Button(
+                    onClick = { viewModel.signInWithGoogle(context) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Sign in with Google")
                 }
             }
         }
