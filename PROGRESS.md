@@ -12,3 +12,4 @@
 - **Published** open-source repo: https://github.com/kennethteh90/morning-guard (`main` initial commit).
 - **Added** Google Sign-In via Credential Manager + morning window hour controls in settings.
 - **Next:** Confirm GitHub Actions CI/CD on remote; configure Supabase/Sentry/Google secrets for production auth.
+- **CI/CD verified:** GitHub Actions `CI` and `Release` workflows green on `main` (cimg/android container).
