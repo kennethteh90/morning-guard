@@ -31,6 +31,22 @@ fun SettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = hiltViewMo
         Text("Settings", style = MaterialTheme.typography.headlineSmall)
         Text("Morning window: ${settings.morningWindow.startHour}:${settings.morningWindow.startMinute} – " +
             "${settings.morningWindow.endHour}:${settings.morningWindow.endMinute}")
+        Button(
+            onClick = {
+                viewModel.updateWindow(
+                    settings.morningWindow.copy(startHour = (settings.morningWindow.startHour + 23) % 24),
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text("Start hour −1 (now ${settings.morningWindow.startHour})") }
+        Button(
+            onClick = {
+                viewModel.updateWindow(
+                    settings.morningWindow.copy(endHour = (settings.morningWindow.endHour + 1) % 24),
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text("End hour +1 (now ${settings.morningWindow.endHour})") }
 
         Text("Alarm enabled")
         Switch(
