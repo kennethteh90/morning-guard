@@ -19,8 +19,13 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Configure Android SDK
+        run: echo "sdk.dir=${ANDROID_SDK_ROOT}" >> local.properties
+
+      - name: Install SDK packages
+        run: |
+          yes | sdkmanager --licenses >/dev/null
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
       - name: Build release APK
         run: chmod +x gradlew && ./gradlew assembleRelease --stacktrace
@@ -29,7 +34,7 @@ jobs:
         id: version
         run: |
           VERSION=$(grep versionMajor version.properties | cut -d= -f2).$(grep versionMinor version.properties | cut -d= -f2).$(grep versionPatch version.properties | cut -d= -f2)
-          echo "name=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "name=${VERSION}.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
