@@ -1,0 +1,22 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "morning_guard_v1",
+    "entities": [
+      {
+        "tableName": "captured_notifications",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `packageName` TEXT NOT NULL, `title` TEXT NOT NULL, `text` TEXT NOT NULL, `postedAtEpochMs` INTEGER NOT NULL, `category` TEXT)",
+        "fields": [
+          { "fieldPath": "id", "columnName": "id", "affinity": "INTEGER", "notNull": true },
+          { "fieldPath": "packageName", "columnName": "packageName", "affinity": "TEXT", "notNull": true },
+          { "fieldPath": "title", "columnName": "title", "affinity": "TEXT", "notNull": true },
+          { "fieldPath": "text", "columnName": "text", "affinity": "TEXT", "notNull": true },
+          { "fieldPath": "postedAtEpochMs", "columnName": "postedAtEpochMs", "affinity": "INTEGER", "notNull": true },
+          { "fieldPath": "category", "columnName": "category", "affinity": "TEXT", "notNull": false }
+        ],
+        "primaryKey": { "autoGenerate": true, "columnNames": ["id"] }
+      }
+    ]
+  }
+}

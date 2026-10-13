@@ -1,0 +1,3 @@
+-keepattributes SourceFile,LineNumberTable
+-keep class com.morningguard.** { *; }
+-dontwarn org.slf4j.**

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Morning Guard</string>
+    <string name="notification_listener_label">Morning Guard notification collector</string>
+    <string name="digest_channel_name">Morning digest</string>
+    <string name="digest_channel_description">Aggregated notifications held during your morning goal</string>
+    <string name="alarm_channel_name">Morning alarm</string>
+    <string name="alarm_channel_description">Optional wake-up alarm</string>
+</resources>
