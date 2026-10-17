@@ -32,10 +32,7 @@ jobs:
 
       - name: Test MorningGuardCore
         working-directory: ios/MorningGuardCore
-        run: |
-          swift test --build-system xcodebuild \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
-            -sdk iphonesimulator
+        run: swift test
 
       - name: Build for iOS Simulator
         run: |
