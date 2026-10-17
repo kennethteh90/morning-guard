@@ -62,7 +62,7 @@ public struct MorningGateEvaluator: Sendable {
         return calendar
     }
 
-    static func dateKey(for date: Date, calendar: Calendar) -> String {
+    public static func dateKey(for date: Date, calendar: Calendar) -> String {
         let components = calendar.dateComponents([.year, .month, .day], from: date)
         let year = components.year ?? 0
         let month = components.month ?? 0
