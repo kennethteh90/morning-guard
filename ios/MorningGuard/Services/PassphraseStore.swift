@@ -36,7 +36,7 @@ final class PassphraseStore: Sendable {
     }
 
     func setPassphrase(_ passphrase: String, policy: EmergencyBypassPolicy) throws {
-        guard policy.validateLength(passphrase) else {
+        guard policy.validateLength(passphrase: passphrase) else {
             throw PassphraseStoreError.invalidLength
         }
         let stored = Self.hash(passphrase: passphrase)
