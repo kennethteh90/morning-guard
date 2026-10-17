@@ -1,0 +1,3 @@
+#include "MorningGuard-Shared.xcconfig"
+
+SWIFT_COMPILATION_MODE = wholemodule
