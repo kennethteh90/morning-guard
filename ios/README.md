@@ -10,10 +10,15 @@ SwiftUI app and Screen Time extensions for Morning Guard. The Xcode project is g
 
 ## Generate and open
 
+**Device testing:** see [DEVICE-TESTING.md](DEVICE-TESTING.md).
+
 ```bash
-./ios/scripts/generate-xcodeproj.sh
-open ios/MorningGuard.xcodeproj
+./ios/scripts/run-simulator.sh          # build + install + launch (no Xcode UI needed)
+./ios/scripts/open-for-device.sh        # physical iPhone
+# or: open ios/MorningGuard.xcodeproj
 ```
+
+**⌘R only works when Xcode is the frontmost app** (not Cursor/Terminal). Click the Xcode window, then Run (▶) or ⌘R.
 
 In Xcode:
 
@@ -28,7 +33,7 @@ In Xcode:
 | MorningGuard | `com.morningguard.app` | Main SwiftUI app |
 | MorningGuardMonitor | `com.morningguard.app.monitor` | Device Activity Monitor — applies/clears shields from app group state |
 | MorningGuardShieldConfig | `com.morningguard.app.shieldconfig` | Branded shield UI |
-| MorningGuardShieldAction | `com.morningguard.app.shieldaction` | Opens `morningguard://goal` from the shield |
+| MorningGuardShieldAction | `com.morningguard.app.shieldaction` | Shield button dismisses; open Morning Guard from the Home Screen |
 
 Shared logic lives in the local Swift package **MorningGuardCore** (`ios/MorningGuardCore`).
 
@@ -46,6 +51,10 @@ Development signing often works before approval; allow several weeks for product
 cd ios/MorningGuardCore && swift test
 ```
 
+## Bible proxy (optional)
+
+Set `BIBLE_PROXY_BASE_URL` in `ios/Config/Local.xcconfig` (see `Local.xcconfig.example`). Licensed translations (NIV/NKJV/NLT) use App Attest on a **device**; WEB/KJV work on Simulator without attestation. See [`workers/bible-cache/README.md`](../workers/bible-cache/README.md).
+
 ## Privacy
 
-See [docs/ios/PRIVACY-SCREEN-TIME.md](../docs/ios/PRIVACY-SCREEN-TIME.md).
+`PrivacyInfo.xcprivacy` declares UserDefaults (`CA92.1`). Settings links the hosted privacy policy. Screen Time copy: [docs/ios/PRIVACY-SCREEN-TIME.md](../docs/ios/PRIVACY-SCREEN-TIME.md).

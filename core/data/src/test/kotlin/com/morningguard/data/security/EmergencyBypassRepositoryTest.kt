@@ -6,8 +6,9 @@ import com.morningguard.domain.security.EmergencyBypassPolicy
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import kotlinx.coroutines.flow.flowOf
+import java.time.ZoneId
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -19,6 +20,7 @@ class EmergencyBypassRepositoryTest {
         settingsRepository,
         hasher,
         EmergencyBypassPolicy(bypassDurationMs = 3_600_000L),
+        ZoneId.of("UTC"),
     )
 
     @Test
@@ -34,5 +36,34 @@ class EmergencyBypassRepositoryTest {
         val result = repository.attemptBypass("long-passphrase")
         assertTrue(result.isSuccess)
         coVerify(atLeast = 2) { settingsRepository.updateGoalProgress(any()) }
+    }
+
+    @Test
+    fun `legacy passphrase format is rejected`() = runTest {
+        coEvery { settingsRepository.currentGoalStore() } returns GoalProgressStore(
+            emergencyPassphraseHash = "deadbeef",
+            emergencyPassphraseSalt = "cafebabe",
+        )
+
+        val result = repository.attemptBypass("any-passphrase")
+        assertTrue(result.isFailure)
+        assertEquals(
+            EmergencyBypassRepository.LEGACY_PASSPHRASE_MESSAGE,
+            result.exceptionOrNull()?.message,
+        )
+    }
+
+    @Test
+    fun `lockout rejects bypass even with correct passphrase`() = runTest {
+        val stored = hasher.hash("long-passphrase")
+        val lockedUntil = System.currentTimeMillis() + EmergencyBypassPolicy.LOCKOUT_DURATION_MS
+        coEvery { settingsRepository.currentGoalStore() } returns GoalProgressStore(
+            emergencyPassphraseHash = stored,
+            failedAttempts = 5,
+            lockedUntilEpochMs = lockedUntil,
+        )
+
+        val result = repository.attemptBypass("long-passphrase")
+        assertTrue(result.isFailure)
     }
 }

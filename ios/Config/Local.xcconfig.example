@@ -1,0 +1,9 @@
+// Copy to Local.xcconfig (gitignored) and set your Apple Developer Team ID.
+// Find Team ID: developer.apple.com/account → Membership details, or Xcode → Settings → Accounts.
+//
+// DEVELOPMENT_TEAM = ABCDE12345
+//
+// Bible proxy (same as Android local.properties — see workers/bible-cache/README.md)
+// xcconfig treats "//" in URLs as a comment — use https:/$()/ instead of https://
+// BIBLE_PROXY_BASE_URL = https:/$()/morning-guard-bible-cache.your-subdomain.workers.dev
+// Licensed translations use App Attest on device (no proxy token in the app).

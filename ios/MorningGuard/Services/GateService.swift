@@ -52,6 +52,7 @@ final class GateService {
         guard !progress.isComplete else { return }
         let updated = progress.withOnScreenSeconds(progress.onScreenSeconds + 1)
         settingsStore.updateGoalProgress { $0.withProgress(updated) }
+        settingsStore.recordGoalScreenSeconds(dateKey: updated.dateKey, seconds: updated.onScreenSeconds)
         tryAutoComplete(progress: updated, currentSteps: nil)
     }
 
@@ -68,6 +69,7 @@ final class GateService {
         let merged = progress.withStepsAccumulated(max(progress.stepsAccumulated, delta))
         if merged != progress {
             settingsStore.updateGoalProgress { $0.withProgress(merged) }
+            settingsStore.recordGoalStepsForDate(dateKey: merged.dateKey, steps: merged.stepsAccumulated)
             tryAutoComplete(progress: merged, currentSteps: totalToday)
         }
     }
@@ -83,8 +85,27 @@ final class GateService {
 
     func markComplete() {
         guard let progress = settingsStore.goalProgressStore.progress, !progress.isComplete else { return }
-        let completed = progress.withCompleted(at: Self.nowMs())
-        settingsStore.updateGoalProgress { $0.withProgress(completed) }
+        let config = settingsStore.userSettings.morningGoal
+        let now = Self.nowMs()
+        if config.type == .stepCount {
+            let completed = progress.withCompleted(at: now)
+            settingsStore.updateGoalProgress { $0.withProgress(completed) }
+            settingsStore.recordMorningOutcome(
+                dateKey: progress.dateKey,
+                outcome: .goalCompleted,
+                trackGoalTime: false,
+                stepsOnGoal: progress.stepsAccumulated
+            )
+        } else {
+            var completedConfig = config
+            if config.type == .bibleChapter {
+                settingsStore.advanceBibleReadingAfterComplete()
+                completedConfig = settingsStore.userSettings.morningGoal
+            }
+            let completed = progress.withCompleted(at: now).withConfig(completedConfig)
+            settingsStore.updateGoalProgress { $0.withProgress(completed) }
+            settingsStore.recordMorningOutcome(dateKey: progress.dateKey, outcome: .goalCompleted)
+        }
         refresh()
     }
 
@@ -116,10 +137,16 @@ final class GateService {
     }
 
     private static func evaluate(settingsStore: SettingsStore, evaluator: MorningGateEvaluator) -> GateEvaluation {
-        evaluator.evaluate(
+        let nowMs = Int64(Date().timeIntervalSince1970 * 1000)
+        let peaceUntil = PeaceSessionPolicy.activeUntil(
+            storedUntilEpochMs: settingsStore.goalProgressStore.peaceSessionUntilEpochMs,
+            nowMs: nowMs
+        )
+        return evaluator.evaluate(
             window: settingsStore.userSettings.morningWindow,
             progress: settingsStore.goalProgressStore.progress,
-            emergencyBypassActiveUntilEpochMs: settingsStore.goalProgressStore.emergencyBypassUntilEpochMs
+            emergencyBypassActiveUntilEpochMs: settingsStore.goalProgressStore.emergencyBypassUntilEpochMs,
+            peaceSessionUntilEpochMs: peaceUntil
         )
     }
 

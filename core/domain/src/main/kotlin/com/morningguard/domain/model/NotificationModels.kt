@@ -10,6 +10,8 @@ data class CapturedNotification(
     val text: String,
     val postedAtEpochMs: Long,
     val category: String? = null,
+    /** Stable system notification key from the listener when captured. */
+    val notificationKey: String? = null,
 )
 
 @Serializable

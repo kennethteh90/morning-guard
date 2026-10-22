@@ -10,24 +10,12 @@ public enum ShieldSessionPolicy {
         gateState == .locked && isAuthorized && hasSelection
     }
 
-    /// Device Activity Monitor: main app mirrors `shieldsActive` when gate + auth + selection align.
-    public static func shouldApplyShieldsFromSharedState(
-        shieldsActive: Bool,
-        hasSelection: Bool
-    ) -> Bool {
-        shieldsActive && hasSelection
+    public static func shouldClearShields(gateState: GateState) -> Bool {
+        gateState != .locked
     }
 
-    /// When the scheduled morning interval ends, extensions should clear shields (app may re-apply if still locked).
-    public static func shouldClearShieldsOnIntervalEnd(shieldsActive: Bool) -> Bool {
-        true
-    }
-
-    /// Re-apply after usage threshold events while the gate session is still active.
-    public static func shouldReapplyAfterEvent(
-        shieldsActive: Bool,
-        hasSelection: Bool
-    ) -> Bool {
-        shieldsActive && hasSelection
+    /// Re-apply after usage threshold events while the gate is still locked.
+    public static func shouldReapplyAfterEvent(gateState: GateState, hasSelection: Bool) -> Bool {
+        gateState == .locked && hasSelection
     }
 }

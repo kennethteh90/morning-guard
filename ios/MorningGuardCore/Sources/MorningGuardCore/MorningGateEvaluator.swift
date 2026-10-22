@@ -30,7 +30,8 @@ public struct MorningGateEvaluator: Sendable {
     public func evaluate(
         window: MorningWindow,
         progress: MorningGoalProgress?,
-        emergencyBypassActiveUntilEpochMs: Int64?
+        emergencyBypassActiveUntilEpochMs: Int64?,
+        peaceSessionUntilEpochMs: Int64? = nil
     ) -> GateEvaluation {
         let nowDate = now()
         let nowMs = Int64(nowDate.timeIntervalSince1970 * 1000)
@@ -39,6 +40,10 @@ public struct MorningGateEvaluator: Sendable {
 
         if let bypassUntil = emergencyBypassActiveUntilEpochMs, nowMs < bypassUntil {
             return GateEvaluation(state: .unlocked, dateKey: dateKey, reason: "emergency_bypass")
+        }
+
+        if let peaceUntil = peaceSessionUntilEpochMs, nowMs < peaceUntil {
+            return GateEvaluation(state: .locked, dateKey: dateKey, reason: "peace_session")
         }
 
         if let progress, progress.dateKey == dateKey, progress.isComplete {

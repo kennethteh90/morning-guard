@@ -13,8 +13,7 @@ final class DeviceActivityMonitorExtension: DeviceActivityMonitor {
 
     override func intervalDidEnd(for activity: DeviceActivityName) {
         super.intervalDidEnd(for: activity)
-        // Scheduled morning window ended; remove shields. App re-applies on next refresh if still locked.
-        applier.clear()
+        refreshShields()
     }
 
     override func eventDidReachThreshold(
@@ -24,7 +23,7 @@ final class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         super.eventDidReachThreshold(event, activity: activity)
         let state = SharedShieldStateReader.load()
         if ShieldSessionPolicy.shouldReapplyAfterEvent(
-            shieldsActive: state.shieldsActive,
+            gateState: state.gateState,
             hasSelection: state.hasSelection
         ), let selection = state.selection {
             applier.apply(selection: selection)
@@ -33,12 +32,18 @@ final class DeviceActivityMonitorExtension: DeviceActivityMonitor {
 
     private func refreshShields() {
         let state = SharedShieldStateReader.load()
-        guard ShieldSessionPolicy.shouldApplyShieldsFromSharedState(
-            shieldsActive: state.shieldsActive,
-            hasSelection: state.hasSelection
-        ), let selection = state.selection else {
+        if ShieldSessionPolicy.shouldClearShields(gateState: state.gateState) {
+            applier.clear()
             return
         }
-        applier.apply(selection: selection)
+        if ShieldSessionPolicy.shouldApplyShields(
+            gateState: state.gateState,
+            isAuthorized: true,
+            hasSelection: state.hasSelection
+        ), let selection = state.selection {
+            applier.apply(selection: selection)
+        } else {
+            applier.clear()
+        }
     }
 }

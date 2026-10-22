@@ -10,7 +10,7 @@ public struct MorningGoalConfig: Codable, Sendable, Equatable {
 
     public init(
         type: GoalType,
-        bibleTranslation: String = "niv",
+        bibleTranslation: String = "web",
         bibleBook: String = "John",
         bibleChapter: Int = 1,
         focusMinutes: Int = 5,

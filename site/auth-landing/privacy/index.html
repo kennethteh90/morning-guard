@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Privacy policy for the Morning Guard Android app." />
+    <title>Privacy policy — Morning Guard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles/site.css" />
+  </head>
+  <body>
+    <header class="site-header" id="site-header">
+      <a class="brand" href="/">Morning Guard</a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="/#showcase">Screenshots</a>
+        <a href="/#features">Features</a>
+        <a href="/privacy/" aria-current="page">Privacy</a>
+      </nav>
+      <a
+        class="button button-sm header-cta"
+        href="https://play.google.com/store/apps/details?id=com.morningguard.app"
+        rel="noopener"
+        >Get the app</a
+      >
+    </header>
+
+    <main class="narrow policy">
+      <h1>Privacy policy</h1>
+      <p class="updated">Last updated: 21 October 2026</p>
+      <p>
+        Morning Guard (“we”, “the app”) is an Android application (<code>com.morningguard.app</code>)
+        that helps you complete a morning goal before other apps’ notifications appear in your status
+        bar. This policy describes what information the app processes, where it stays, and what
+        optional cloud services you can use.
+      </p>
+      <p>
+        By using Morning Guard you agree to this policy. If you do not agree, uninstall the app and
+        delete any account you created for cloud sync.
+      </p>
+
+      <h2>Summary</h2>
+      <ul>
+        <li>
+          <strong>Notification access</strong> is core to the app. We read app name, title, and text
+          for notifications we hold, store them on your device, and show them in an in-app digest.
+          We do <strong>not</strong> upload notification bodies to our servers.
+        </li>
+        <li>
+          <strong>Sign-in and cloud sync are optional.</strong> You can use local-only storage without
+          an account.
+        </li>
+        <li>
+          <strong>Health Connect step counts</strong> are read on-device only when you choose a step
+          goal.
+        </li>
+        <li>
+          <strong>Crash and error reports</strong> may be sent to Sentry when enabled in your build,
+          without notification text or highlight notes.
+        </li>
+      </ul>
+
+      <h2>Information we process</h2>
+
+      <h3>Notifications (Notification Listener access)</h3>
+      <p>
+        When you grant Notification access, Morning Guard can read metadata and content from
+        notifications posted by other apps. For notifications we hold during your morning gate, we
+        process:
+      </p>
+      <ul>
+        <li>Posting app (package name and display name)</li>
+        <li>Notification title and text (and related fields needed to show a digest entry)</li>
+        <li>Timestamps and identifiers needed to manage the digest</li>
+      </ul>
+      <p>
+        This data is stored locally in the app database on your phone. It is used to build the digest
+        after your goal and to enforce your morning gate. We do not sync raw notification text to
+        Supabase or other backends.
+      </p>
+      <p>
+        Alarms and apps you explicitly allow (including default exceptions such as phone calls and
+        messaging apps per app policy) are not held the same way. You must confirm an in-app
+        disclosure before opening system notification access settings.
+      </p>
+
+      <h3>Installed applications (bypass list)</h3>
+      <p>
+        To let you choose apps that may bypass the morning gate, the app reads the list of installed
+        packages and labels on your device. This list is used locally for the bypass picker and is not
+        uploaded as an inventory to our servers.
+      </p>
+
+      <h3>Health and fitness (Health Connect)</h3>
+      <p>
+        If you set a step-based morning goal, Morning Guard reads step count data through
+        <strong>Health Connect</strong> (or related platform APIs on older Android versions where
+        applicable). Step data is aggregated on-device to verify goal completion and is not uploaded
+        for cloud sync.
+      </p>
+
+      <h3>Account and email (optional)</h3>
+      <p>
+        If you choose cloud sync, you sign in with a magic link sent to your email address. Authentication
+        is handled by <strong>Supabase Auth</strong> (hosted Postgres and GoTrue). Your email is stored
+        in Supabase as part of your auth user record. We use it only to authenticate you and operate
+        sync.
+      </p>
+
+      <h3>Bible reading, highlights, and notes (optional cloud sync)</h3>
+      <p>
+        Passages may be fetched from public Bible APIs and/or our Bible proxy service to display text in
+        the app. If you create highlights or notes:
+      </p>
+      <ul>
+        <li>In <strong>local-only</strong> mode, highlights and notes stay on your device.</li>
+        <li>
+          In <strong>cloud sync</strong> mode, highlight metadata and notes may be stored in Supabase
+          Postgres under row-level security tied to your user id. Notes may be encrypted on-device
+          before upload when you enable note encryption in Settings.
+        </li>
+      </ul>
+
+      <h3>Settings, streaks, and gate history</h3>
+      <p>
+        Morning window times, goal preferences, bypass packages, and completion history are stored
+        locally. Selected settings and streak-related data may sync to Supabase when you are signed in
+        and not in local-only mode.
+      </p>
+
+      <h3>Emergency bypass passphrase</h3>
+      <p>
+        If you configure an emergency bypass, only a salted cryptographic hash of your passphrase is
+        stored on-device. The passphrase itself is not uploaded.
+      </p>
+
+      <h3>Diagnostics (Sentry)</h3>
+      <p>
+        Production builds may include the Sentry SDK. When a DSN is configured at build time, the app
+        may send crash reports, non-fatal errors (for example sync failures), and technical
+        breadcrumbs to Sentry. We configure monitoring to avoid logging notification content, email
+        addresses, or highlight note text. See
+        <a href="https://sentry.io/privacy/" rel="noopener">Sentry’s privacy policy</a>.
+      </p>
+
+      <h3>Local encrypted backup (optional)</h3>
+      <p>
+        You may export an encrypted backup file that you control. That file can include settings and
+        other data you select; it is protected by a password you choose and is not uploaded by the app
+        unless you manually share it.
+      </p>
+
+      <h2>How we use information</h2>
+      <ul>
+        <li>Operate the morning gate, digest, alarms, and goals you configure</li>
+        <li>Optional authentication and sync of highlights and stats you opt into</li>
+        <li>Improve stability and fix bugs via crash reporting when enabled</li>
+        <li>Comply with law and protect users where required</li>
+      </ul>
+      <p>We do not sell your personal information.</p>
+
+      <h2>Legal bases (EEA/UK users)</h2>
+      <p>
+        Where GDPR applies, we rely on <strong>performance of a contract</strong> (providing the app),
+        <strong>consent</strong> (notification access, Health Connect, optional sign-in), and
+        <strong>legitimate interests</strong> (security and crash diagnostics), balanced against your
+        rights.
+      </p>
+
+      <h2>Third-party services</h2>
+      <ul>
+        <li>
+          <strong>Supabase</strong> — authentication and optional cloud database sync.
+          <a href="https://supabase.com/privacy" rel="noopener">Supabase privacy</a>.
+        </li>
+        <li>
+          <strong>Sentry</strong> — optional crash and error monitoring.
+          <a href="https://sentry.io/privacy/" rel="noopener">Sentry privacy</a>.
+        </li>
+        <li>
+          <strong>Bible content providers</strong> — scripture text requests (API Bible, bible-api.com,
+          or our Cloudflare Worker proxy). Requests include passage references, not your notification
+          data.
+        </li>
+        <li>
+          <strong>Google Play</strong> — distribution; subject to Google’s policies when you install or
+          update via Play.
+        </li>
+      </ul>
+
+      <h2>Retention</h2>
+      <ul>
+        <li>Notification digest entries remain on-device until you dismiss them or clear app data.</li>
+        <li>Cloud data remains until you delete your account or we delete inactive accounts per backend policy.</li>
+        <li>Sentry retains events per our Sentry project settings.</li>
+      </ul>
+
+      <h2>Security</h2>
+      <p>
+        Cloud traffic uses HTTPS. Supabase rows are protected with row-level security. Sensitive note
+        fields may use client-side encryption before sync. No mobile app can guarantee security against
+        a compromised or rooted device; use a device passcode and keep Android updated.
+      </p>
+
+      <h2>Your choices and rights</h2>
+      <ul>
+        <li>
+          <strong>Local-only mode</strong> — avoid sign-in; data stays on your phone (Settings /
+          onboarding).
+        </li>
+        <li>
+          <strong>Revoke access</strong> — disable Notification access or Health Connect permissions in
+          Android settings at any time.
+        </li>
+        <li>
+          <strong>Delete account</strong> — Morning Guard → Account → Delete account (removes the auth
+          user and clears local session data tied to sync).
+        </li>
+        <li>
+          <strong>Export</strong> — use encrypted local backup where available in Settings.</li>
+        <li>
+          <strong>Contact us</strong> — for access, correction, or deletion requests where applicable,
+          email
+          <a href="mailto:kenneth@codingagents.cc">kenneth@codingagents.cc</a>.
+        </li>
+      </ul>
+
+      <h2>Children</h2>
+      <p>
+        Morning Guard is not directed at children under 13 (or the minimum age in your country). We do
+        not knowingly collect personal information from children.
+      </p>
+
+      <h2>International transfers</h2>
+      <p>
+        Supabase and Sentry may process data in the United States or other regions where their
+        infrastructure runs. Transfers rely on appropriate safeguards offered by those providers.
+      </p>
+
+      <h2>Changes</h2>
+      <p>
+        We may update this policy. We will post the new date at the top of this page. Material changes
+        may also be reflected in the app or Play listing before they take effect.
+      </p>
+
+      <h2>Contact</h2>
+      <p>
+        Questions about this policy:
+        <a href="mailto:kenneth@codingagents.cc">kenneth@codingagents.cc</a>
+      </p>
+      <p><a class="button secondary" href="/">Back to home</a></p>
+    </main>
+
+    <footer class="site-footer">
+      <p><a href="/">Morning Guard</a> · <a href="/privacy/">Privacy policy</a></p>
+    </footer>
+  </body>
+</html>

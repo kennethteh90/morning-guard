@@ -7,9 +7,6 @@ struct MorningGoalView: View {
 
     let onCompleted: () -> Void
 
-    @State private var bibleContent: BibleChapterContent?
-    @State private var bibleLoading = false
-    @State private var bibleError: String?
     @State private var todaySteps: Int?
     @State private var tickerTask: Task<Void, Never>?
 
@@ -22,20 +19,12 @@ struct MorningGoalView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                header
-                switch config.type {
-                case .bibleChapter:
-                    bibleBody
-                case .timedFocus:
-                    timedFocusBody
-                case .stepCount:
-                    stepBody
-                }
-                completionFooter
+        Group {
+            if config.type == .bibleChapter {
+                bibleGoalLayout
+            } else {
+                nonBibleLayout
             }
-            .padding(MGTheme.standardPadding)
         }
         .background(MGTheme.background)
         .navigationTitle("Morning goal")
@@ -56,6 +45,92 @@ struct MorningGoalView: View {
         }
     }
 
+    private var bibleGoalLayout: some View {
+        VStack(spacing: 0) {
+            if appState.gateService.evaluation.state == .inactive {
+                outsideWindowBanner
+                    .padding(.horizontal, MGTheme.standardPadding)
+                    .padding(.top, 8)
+            }
+            header
+                .padding(.horizontal, MGTheme.standardPadding)
+                .padding(.top, 8)
+            BibleReadingScreen(
+                browseOnly: false,
+                showsGoalProgress: true,
+                elapsedSeconds: progress?.onScreenSeconds ?? 0,
+                requiredSeconds: 60
+            )
+            completionFooter
+                .padding(MGTheme.standardPadding)
+            if MGDebugFlags.showDebugPanels {
+                goalDebugFooter
+                    .padding(.horizontal, MGTheme.standardPadding)
+                    .padding(.bottom, MGTheme.standardPadding)
+            }
+        }
+    }
+
+    private var nonBibleLayout: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                if appState.gateService.evaluation.state == .inactive {
+                    outsideWindowBanner
+                }
+                header
+                switch config.type {
+                case .timedFocus:
+                    timedFocusBody
+                case .stepCount:
+                    stepBody
+                case .bibleChapter:
+                    EmptyView()
+                }
+                completionFooter
+                if MGDebugFlags.showDebugPanels {
+                    goalDebugFooter
+                }
+            }
+            .padding(MGTheme.standardPadding)
+        }
+    }
+
+    private var outsideWindowBanner: some View {
+        MGCard {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Outside morning window")
+                    .font(.headline)
+                Text("Reading still works here. The home screen only offers the morning goal while the gate is locked.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if MGDebugFlags.showDebugPanels {
+                    Button("Activate test window") {
+                        appState.debugActivateTestWindow()
+                    }
+                    .buttonStyle(.bordered)
+                }
+            }
+        }
+    }
+
+    private var goalDebugFooter: some View {
+        MGCard {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Debug")
+                    .font(.caption.bold())
+                Text("Gate: \(appState.gateService.evaluation.state.rawValue) (\(appState.gateService.evaluation.reason))")
+                    .font(.caption2.monospaced())
+                Text("Can complete: \(appState.gateService.canComplete(currentSteps: todaySteps))")
+                    .font(.caption2.monospaced())
+                HStack {
+                    Button("Test window") { appState.debugActivateTestWindow() }
+                    Button("Complete goal") { appState.debugForceCompleteGoal() }
+                }
+                .buttonStyle(.bordered)
+            }
+        }
+    }
+
     private var header: some View {
         MGCard {
             VStack(alignment: .leading, spacing: 6) {
@@ -63,24 +138,6 @@ struct MorningGoalView: View {
                     .font(MGTheme.titleFont)
                 Text(headerSubtitle)
                     .foregroundStyle(.secondary)
-            }
-        }
-    }
-
-    private var bibleBody: some View {
-        Group {
-            if bibleLoading {
-                ProgressView("Loading chapter…")
-            } else if let error = bibleError {
-                Text(error).foregroundStyle(.red)
-            } else if let bibleContent {
-                Text(bibleContent.reference)
-                    .font(.headline)
-                ForEach(bibleContent.paragraphs, id: \.self) { paragraph in
-                    Text(paragraph)
-                        .font(.body)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
             }
         }
     }
@@ -139,7 +196,7 @@ struct MorningGoalView: View {
     private var headerSubtitle: String {
         switch config.type {
         case .bibleChapter:
-            return "\(config.bibleBook) \(config.bibleChapter) — stay on this screen for 60 seconds."
+            return "Stay on this screen while you read. Chapter \(config.bibleChapter) of \(BibleCanon.chapterCount(bookName: config.bibleBook))."
         case .timedFocus:
             return "\(config.focusMinutes) minutes with Morning Guard open."
         case .stepCount:
@@ -169,29 +226,11 @@ struct MorningGoalView: View {
 
     private func onAppearWork() async {
         _ = appState.gateService.startGoalIfNeeded()
-        if config.type == .bibleChapter {
-            await loadBible()
-        }
         if config.type == .stepCount {
             try? await appState.healthKitStepReader.requestAuthorization()
             await refreshSteps()
         }
         startTickerIfNeeded()
-    }
-
-    private func loadBible() async {
-        bibleLoading = true
-        bibleError = nil
-        defer { bibleLoading = false }
-        do {
-            bibleContent = try await appState.bibleClient.loadChapter(
-                translation: config.bibleTranslation,
-                book: config.bibleBook,
-                chapter: config.bibleChapter
-            )
-        } catch {
-            bibleError = error.localizedDescription
-        }
     }
 
     private func refreshSteps() async {
@@ -201,7 +240,7 @@ struct MorningGoalView: View {
             appState.gateService.syncStepCount(steps)
             appState.shieldController.refreshShields()
         } catch {
-            bibleError = error.localizedDescription
+            // HealthKit errors are shown in step body when needed.
         }
     }
 

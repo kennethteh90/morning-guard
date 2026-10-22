@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Morning Guard Demo</string>
+    <string name="notification_listener_label">Morning Guard Demo</string>
+</resources>

@@ -33,14 +33,26 @@ if (localPropsFile.exists()) {
 fun prop(name: String, default: String = ""): String =
     localProps.getProperty(name) ?: System.getenv(name) ?: default
 
+val releaseStoreFile = prop("RELEASE_STORE_FILE").let { path ->
+    if (path.isBlank()) null else rootProject.file(path)
+}
+val releaseStorePassword = prop("RELEASE_STORE_PASSWORD")
+val releaseKeyAlias = prop("RELEASE_KEY_ALIAS")
+val releaseKeyPassword = prop("RELEASE_KEY_PASSWORD")
+val hasReleaseSigning = releaseStoreFile != null &&
+    releaseStoreFile.isFile &&
+    releaseStorePassword.isNotBlank() &&
+    releaseKeyAlias.isNotBlank() &&
+    releaseKeyPassword.isNotBlank()
+
 android {
     namespace = "com.morningguard.app"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.morningguard.app"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = appVersionCode
         versionName = appVersionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -49,6 +61,37 @@ android {
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"${prop("SUPABASE_ANON_KEY")}\"")
         buildConfigField("String", "SENTRY_DSN", "\"${prop("SENTRY_DSN")}\"")
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"${prop("GOOGLE_WEB_CLIENT_ID")}\"")
+        buildConfigField("String", "BIBLE_PROXY_BASE_URL", "\"${prop("BIBLE_PROXY_BASE_URL")}\"")
+        buildConfigField("String", "PLAY_CLOUD_PROJECT_NUMBER", "\"${prop("PLAY_CLOUD_PROJECT_NUMBER")}\"")
+        buildConfigField("String", "PRIVACY_POLICY_URL", "\"${prop("PRIVACY_POLICY_URL")}\"")
+        buildConfigField("boolean", "SCREENSHOT_MODE", "false")
+        buildConfigField("boolean", "DEMO_MODE", "false")
+    }
+
+    flavorDimensions += "distribution"
+    productFlavors {
+        create("full") {
+            dimension = "distribution"
+        }
+        create("demo") {
+            dimension = "distribution"
+            applicationIdSuffix = ".demo"
+            versionNameSuffix = "-demo"
+            buildConfigField("boolean", "DEMO_MODE", "true")
+            resValue("string", "app_name", "Morning Guard Demo")
+            resValue("string", "notification_listener_label", "Morning Guard Demo")
+        }
+    }
+
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = releaseStoreFile
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
     }
 
     buildTypes {
@@ -58,9 +101,21 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         debug {
             isMinifyEnabled = false
+        }
+        create("screenshot") {
+            initWith(getByName("debug"))
+            matchingFallbacks += listOf("debug")
+            isDebuggable = true
+            isMinifyEnabled = false
+            applicationIdSuffix = ".screenshot"
+            versionNameSuffix = "-screenshot"
+            buildConfigField("boolean", "SCREENSHOT_MODE", "true")
         }
     }
 
@@ -85,6 +140,16 @@ android {
     }
 }
 
+afterEvaluate {
+    tasks.matching { it.name == "bundleRelease" }.configureEach {
+        doFirst {
+            if (prop("PRIVACY_POLICY_URL").isBlank()) {
+                throw GradleException("PRIVACY_POLICY_URL must be set for release app bundles")
+            }
+        }
+    }
+}
+
 dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:data"))
@@ -99,25 +164,33 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation("androidx.compose.material:material-icons-extended")
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.okhttp)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
 
     implementation(platform(libs.supabase.bom))
     implementation(libs.supabase.auth)
+    implementation(libs.supabase.postgrest)
     implementation(libs.ktor.client.android)
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services)
     implementation(libs.googleid)
+    implementation(libs.androidx.health.connect)
 
     implementation(libs.sentry.android)
+    implementation(libs.play.integrity)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockk)
+    testImplementation(libs.robolectric)
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+    testImplementation(libs.androidx.test.core)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

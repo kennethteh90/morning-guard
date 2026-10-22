@@ -12,5 +12,6 @@
 *.apk
 *.aab
 ios/MorningGuardCore/.build/
+ios/Config/Local.xcconfig
 *.keystore
 !debug.keystore

@@ -28,6 +28,18 @@ class MorningGateEvaluatorTest {
     }
 
     @Test
+    fun `locked overnight window before goal complete`() {
+        val earlyMorning = ZonedDateTime.of(2026, 10, 13, 2, 30, 0, 0, zoneId).toInstant().toEpochMilli()
+        val evaluator = MorningGateEvaluator(zoneId = zoneId) { earlyMorning }
+        val result = evaluator.evaluate(
+            MorningWindow(startHour = 1, endHour = 10),
+            MorningGoalProgress(dateKey = dateKey, config = MorningGoalConfig(type = GoalType.TIMED_FOCUS)),
+            null,
+        )
+        assertEquals(GateState.LOCKED, result.state)
+    }
+
+    @Test
     fun `locked during morning window without completion`() {
         val evaluator = MorningGateEvaluator(zoneId = zoneId) { sampleInstant }
         val result = evaluator.evaluate(
@@ -47,5 +59,37 @@ class MorningGateEvaluatorTest {
             emergencyBypassActiveUntilEpochMs = sampleInstant + 1000L,
         )
         assertEquals(GateState.UNLOCKED, result.state)
+    }
+
+    @Test
+    fun `peace session locks even when goal already complete today`() {
+        val evaluator = MorningGateEvaluator(zoneId = zoneId) { sampleInstant }
+        val progress = MorningGoalProgress(
+            dateKey = dateKey,
+            config = MorningGoalConfig(type = GoalType.BIBLE_CHAPTER),
+            completedAtEpochMs = sampleInstant,
+        )
+        val result = evaluator.evaluate(
+            MorningWindow(startHour = 6, endHour = 9),
+            progress,
+            emergencyBypassActiveUntilEpochMs = null,
+            peaceSessionUntilEpochMs = sampleInstant + 3_600_000L,
+        )
+        assertEquals(GateState.LOCKED, result.state)
+        assertEquals("peace_session", result.reason)
+    }
+
+    @Test
+    fun `peace session locks outside morning window`() {
+        val afternoon = ZonedDateTime.of(2026, 10, 13, 14, 0, 0, 0, zoneId).toInstant().toEpochMilli()
+        val evaluator = MorningGateEvaluator(zoneId = zoneId) { afternoon }
+        val result = evaluator.evaluate(
+            MorningWindow(startHour = 6, endHour = 9),
+            null,
+            emergencyBypassActiveUntilEpochMs = null,
+            peaceSessionUntilEpochMs = afternoon + 3_600_000L,
+        )
+        assertEquals(GateState.LOCKED, result.state)
+        assertEquals("peace_session", result.reason)
     }
 }

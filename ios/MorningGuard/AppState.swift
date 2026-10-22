@@ -11,8 +11,12 @@ final class AppState {
     let deviceActivityScheduler: DeviceActivityScheduler
     let passphraseStore: PassphraseStore
     let bibleClient: BibleClient
+    let noteEncryption: NoteEncryptionService
+    let bibleHighlightStore: BibleHighlightStore
+    let localBackupRepository: LocalBackupRepository
     let healthKitStepReader: HealthKitStepReader
     let alarmScheduler: MorningAlarmScheduler
+    let peaceSessionService: PeaceSessionService
 
     private let emergencyPolicy = EmergencyBypassPolicy()
     private var gateRefreshTask: Task<Void, Never>?
@@ -25,13 +29,21 @@ final class AppState {
         self.settingsStore = settings
         self.gateService = gate
         self.shieldController = ShieldController(settingsStore: settings, gateService: gate)
+        self.peaceSessionService = PeaceSessionService(settingsStore: settings, gateService: gate)
         self.deviceActivityScheduler = DeviceActivityScheduler()
         self.passphraseStore = PassphraseStore()
         self.bibleClient = BibleClient()
+        let noteEncryption = NoteEncryptionService()
+        self.noteEncryption = noteEncryption
+        self.bibleHighlightStore = BibleHighlightStore(noteEncryption: noteEncryption)
+        self.localBackupRepository = LocalBackupRepository(
+            settingsStore: settings,
+            highlightStore: self.bibleHighlightStore,
+            noteEncryption: noteEncryption
+        )
         self.healthKitStepReader = HealthKitStepReader()
         self.alarmScheduler = MorningAlarmScheduler()
 
-        settings.syncEmergencyHashFromKeychain(passphraseStore.storedHash())
         gate.refresh()
         shieldController.refreshShields()
         deviceActivityScheduler.reschedule(for: settings.userSettings.morningWindow)
@@ -47,8 +59,63 @@ final class AppState {
     }
 
     func refreshGateAndShields() {
+        peaceSessionService.reconcileStoredPeaceSession()
         gateService.refresh()
         shieldController.refreshAuthorizationStatus()
+        shieldController.refreshShields()
+    }
+
+    func startOrExtendPeaceSession() {
+        peaceSessionService.startOrExtendOneHour()
+        shieldController.refreshShields()
+    }
+
+    func endPeaceSession() {
+        peaceSessionService.endPeaceSession()
+        shieldController.refreshShields()
+    }
+
+    func applyDebugWindowPreset(_ preset: DebugWindowPreset) {
+        guard MGDebugFlags.showDebugPanels else { return }
+        updateMorningWindow(preset.window())
+    }
+
+    func debugResetTodayGoal() {
+        guard MGDebugFlags.showDebugPanels else { return }
+        settingsStore.updateGoalProgress { store in
+            var copy = store
+            copy.progress = nil
+            copy.peaceSessionUntilEpochMs = nil
+            return copy
+        }
+        refreshGateAndShields()
+    }
+
+    func debugResetOnboarding() {
+        guard MGDebugFlags.showDebugPanels else { return }
+        settingsStore.updateUserSettings { $0.withOnboardingCompleted(false) }
+    }
+
+    func debugActivateTestWindow() {
+        applyDebugWindowPreset(.includingNow)
+    }
+
+    func debugForceCompleteGoal() {
+        guard MGDebugFlags.showDebugPanels else { return }
+        _ = gateService.startGoalIfNeeded()
+        guard let progress = settingsStore.goalProgressStore.progress, !progress.isComplete else { return }
+        let nowMs = Int64(Date().timeIntervalSince1970 * 1000)
+        settingsStore.updateGoalProgress { store in
+            var copy = store
+            guard var p = copy.progress else { return store }
+            p.onScreenSeconds = max(p.onScreenSeconds, 60)
+            if settingsStore.userSettings.morningGoal.type == .stepCount {
+                p.stepsAccumulated = max(p.stepsAccumulated, settingsStore.userSettings.morningGoal.stepTarget)
+            }
+            copy.progress = p
+            return copy
+        }
+        gateService.markComplete()
         shieldController.refreshShields()
     }
 
@@ -66,6 +133,42 @@ final class AppState {
         refreshGateAndShields()
     }
 
+    func setBibleTranslation(_ translationId: String) {
+        let normalized = BibleTranslations.normalizeId(translationId)
+        settingsStore.updateUserSettings { settings in
+            var copy = settings
+            copy.morningGoal.bibleTranslation = normalized
+            return copy
+        }
+    }
+
+    func setBibleReading(book: String, chapter: Int) {
+        let normalizedBook = BibleCanon.normalizeBook(bookName: book)
+        let clampedChapter = max(1, min(chapter, BibleCanon.chapterCount(bookName: normalizedBook)))
+        settingsStore.updateUserSettings { settings in
+            var copy = settings
+            copy.morningGoal.bibleBook = normalizedBook
+            copy.morningGoal.bibleChapter = clampedChapter
+            return copy
+        }
+    }
+
+    func setBibleBook(_ book: String) {
+        let chapter = settingsStore.userSettings.morningGoal.bibleChapter
+        setBibleReading(book: book, chapter: chapter)
+    }
+
+    func stepBibleChapter(delta: Int) {
+        let goal = settingsStore.userSettings.morningGoal
+        let next: (String, Int)
+        if delta > 0 {
+            next = BibleCanon.advance(bookName: goal.bibleBook, chapter: goal.bibleChapter)
+        } else {
+            next = BibleCanon.previous(bookName: goal.bibleBook, chapter: goal.bibleChapter)
+        }
+        setBibleReading(book: next.0, chapter: next.1)
+    }
+
     func updateAlarm(_ alarm: AlarmSettings) {
         settingsStore.updateUserSettings { $0.withAlarm(alarm) }
         Task { await alarmScheduler.apply(alarm: alarm) }
@@ -73,8 +176,6 @@ final class AppState {
 
     func setEmergencyPassphrase(_ passphrase: String) throws {
         try passphraseStore.setPassphrase(passphrase, policy: emergencyPolicy)
-        let hash = passphraseStore.storedHash()
-        settingsStore.setEmergencyPassphraseHash(hash)
     }
 
     func attemptEmergencyBypass(passphrase: String) throws -> Int64 {
@@ -82,7 +183,7 @@ final class AppState {
         if emergencyPolicy.isLocked(lockedUntilEpochMs: store.lockedUntilEpochMs) {
             throw PassphraseStoreError.locked
         }
-        guard let stored = passphraseStore.storedHash() ?? store.emergencyPassphraseHash else {
+        guard let stored = passphraseStore.storedHash() else {
             throw PassphraseStoreError.notConfigured
         }
         guard PassphraseStore.isModernFormat(stored) else {
@@ -111,6 +212,13 @@ final class AppState {
             return copy
         }
         gateService.activateEmergencyBypass(expiresAtMs: expires)
+        let dateKey = MorningGateEvaluator.dateKey(for: Date(), calendar: Calendar.current)
+        let trackGoalTime = settingsStore.userSettings.morningGoal.type != .stepCount
+        settingsStore.recordMorningOutcome(
+            dateKey: dateKey,
+            outcome: .emergencyBypass,
+            trackGoalTime: trackGoalTime
+        )
         shieldController.refreshShields()
         return expires
     }

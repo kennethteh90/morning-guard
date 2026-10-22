@@ -1,16 +1,88 @@
 import Foundation
-
-struct BibleChapterContent: Equatable, Sendable {
-    var reference: String
-    var plainText: String
-    var paragraphs: [String]
-}
+import MorningGuardCore
 
 struct BibleClient: Sendable {
+    private let openBible: OpenBibleClient
+    private let proxy: BibleProxyClient
+
+    init(session: URLSession = .shared, baseURL: URL? = nil) {
+        openBible = OpenBibleClient(session: session, baseURL: baseURL)
+        proxy = BibleProxyClient(session: session)
+    }
+
+    func loadChapter(translation: String, book: String, chapter: Int) async throws -> BibleChapterPassage {
+        let fallbackReference = "\(book) \(chapter)"
+        guard let option = BibleTranslations.find(id: translation) else {
+            return try await openBible.loadChapter(
+                translation: BibleTranslations.defaultId,
+                book: book,
+                chapter: chapter
+            )
+        }
+
+        switch option.source {
+        case .apiBible:
+            return try await loadLicensedViaProxy(
+                translation: BibleTranslations.normalizeId(translation),
+                book: book,
+                chapter: chapter,
+                label: option.chipLabel
+            )
+        case .openBible:
+            if BibleProxyConfig.isConfigured {
+                do {
+                    let viaProxy = try await proxy.loadChapter(
+                        translation: BibleTranslations.normalizeId(translation),
+                        book: book,
+                        chapter: chapter
+                    )
+                    if !Self.paragraphsLackVerseMarkers(viaProxy.blocks) {
+                        return viaProxy
+                    }
+                } catch {
+                    // Fall through to bible-api.com.
+                }
+            }
+            return try await openBible.loadChapter(
+                translation: BibleTranslations.normalizeId(translation),
+                book: book,
+                chapter: chapter
+            )
+        }
+    }
+
+    private func loadLicensedViaProxy(
+        translation: String,
+        book: String,
+        chapter: Int,
+        label: String
+    ) async throws -> BibleChapterPassage {
+        if let hint = BibleProxyConfig.missingPieceMessage {
+            throw NSError(
+                domain: "BibleClient",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey:
+                    "\(hint) Licensed translations (\(label)) load through the Morning Guard Bible proxy."]
+            )
+        }
+        return try await proxy.loadChapter(translation: translation, book: book, chapter: chapter)
+    }
+
+    private static func paragraphsLackVerseMarkers(_ blocks: [BiblePassageBlock]) -> Bool {
+        let text = blocks.compactMap { block -> String? in
+            if case .paragraph(let value) = block { return value }
+            return nil
+        }.joined(separator: "\n")
+        if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return true }
+        return text.range(of: #"(\[\d+\]|\d+\.)"#, options: .regularExpression) == nil
+    }
+}
+
+private struct OpenBibleClient: Sendable {
     private let session: URLSession
     private let baseURL: URL
 
-    init(session: URLSession = .shared, baseURL: URL? = nil) {
+    init(session: URLSession, baseURL: URL?) {
         self.session = session
         if let baseURL {
             self.baseURL = baseURL
@@ -22,16 +94,37 @@ struct BibleClient: Sendable {
         }
     }
 
-    func loadChapter(translation: String, book: String, chapter: Int) async throws -> BibleChapterContent {
+    func loadChapter(translation: String, book: String, chapter: Int) async throws -> BibleChapterPassage {
+        let openTranslation = Self.openBibleTranslationId(for: translation)
+        do {
+            return try await fetchChapter(book: book, chapter: chapter, translation: openTranslation)
+        } catch let error as URLError where error.code == .badServerResponse && openTranslation != nil {
+            return try await fetchChapter(book: book, chapter: chapter, translation: nil)
+        }
+    }
+
+    private static func openBibleTranslationId(for translation: String) -> String? {
+        let id = translation.lowercased()
+        switch id {
+        case "niv", "nkjv", "nlt", "esv":
+            return nil
+        case "web", "":
+            return nil
+        default:
+            return id
+        }
+    }
+
+    private func fetchChapter(book: String, chapter: Int, translation: String?) async throws -> BibleChapterPassage {
         let bookSlug = book.lowercased().replacingOccurrences(of: " ", with: "+")
         let path = "\(bookSlug)+\(chapter)"
-        var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)
-        if translation.lowercased() != "web" {
+        var base = baseURL.absoluteString
+        if base.hasSuffix("/") { base.removeLast() }
+        var components = URLComponents(string: "\(base)/\(path)")
+        if let translation, translation.lowercased() != "web" {
             components?.queryItems = [URLQueryItem(name: "translation", value: translation.lowercased())]
         }
-        guard let url = components?.url else {
-            throw URLError(.badURL)
-        }
+        guard let url = components?.url else { throw URLError(.badURL) }
 
         let (data, response) = try await session.data(from: url)
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
@@ -40,20 +133,22 @@ struct BibleClient: Sendable {
 
         let decoded = try JSONDecoder().decode(OpenBibleResponse.self, from: data)
         let fallbackReference = "\(book) \(chapter)"
-        let reference = decoded.reference.isEmpty ? fallbackReference : decoded.reference
         let body: String
-        if let text = decoded.text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty {
+        if !decoded.verses.isEmpty {
+            body = decoded.verses.map { verse in
+                let text = verse.text.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: "\n", with: " ")
+                return "\(verse.verse). \(text)"
+            }.joined(separator: "\n")
+        } else if let text = decoded.text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty {
             body = text
         } else {
-            body = decoded.verses.map { "\($0.verse). \($0.text.trimmingCharacters(in: .whitespacesAndNewlines))" }
-                .joined(separator: "\n")
+            body = "(content unavailable offline)"
         }
-        let fullText = body.isEmpty ? "(content unavailable offline)" : body
-        let paragraphs = fullText
-            .components(separatedBy: "\n\n")
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-        return BibleChapterContent(reference: reference, plainText: fullText, paragraphs: paragraphs)
+        let reference = decoded.reference.isEmpty ? fallbackReference : decoded.reference
+        return BiblePassageFormatter.parseChapterBody(
+            body: "\(reference)\n\n\(body)",
+            fallbackReference: fallbackReference
+        )
     }
 }
 

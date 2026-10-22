@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "appName": "Morning Guard",
+  "generatedBy": "default",
+  "features": [
+    {
+      "id": "morning_gate",
+      "summary": "Holds non-alarm notifications during the morning window until the user completes a goal."
+    },
+    {
+      "id": "digest",
+      "summary": "Aggregates held alerts into one calm digest; alarms and bypass apps still get through."
+    },
+    {
+      "id": "goals",
+      "summary": "Verifiable morning goals: Bible chapter, timed focus, or step count."
+    },
+    {
+      "id": "stats",
+      "summary": "Streaks and history for completed mornings."
+    }
+  ],
+  "slides": [
+    {
+      "id": "slide_home",
+      "scene": "home",
+      "title": "Protect your morning",
+      "subtitle": "Hold notifications until you finish your goal",
+      "rawFile": "home.png"
+    },
+    {
+      "id": "slide_digest",
+      "scene": "digest",
+      "title": "One calm digest",
+      "subtitle": "Alarms and bypass apps still get through",
+      "rawFile": "digest.png"
+    },
+    {
+      "id": "slide_goal",
+      "scene": "goal",
+      "title": "Choose your goal",
+      "subtitle": "Bible chapter, focus timer, or steps",
+      "rawFile": "goal.png"
+    },
+    {
+      "id": "slide_stats",
+      "scene": "stats",
+      "title": "See your progress",
+      "subtitle": "Streaks and completed mornings at a glance",
+      "rawFile": "stats.png"
+    }
+  ],
+  "studio": {
+    "presetId": "play_phone",
+    "templateId": "forest_dawn",
+    "showDeviceFrame": true,
+    "panoramic": true
+  }
+}

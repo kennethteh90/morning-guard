@@ -12,7 +12,7 @@ struct GoalSuccessView: View {
                 .accessibilityHidden(true)
             Text("Morning goal complete")
                 .font(.largeTitle.bold())
-            Text("Your selected apps are unlocked for today. Have a grounded morning.")
+            Text("Your selected apps are unlocked for today. On Home you can start a peace break to shield them again for one hour.")
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal, MGTheme.standardPadding)

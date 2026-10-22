@@ -22,8 +22,10 @@ SwiftUI app and Screen Time extensions live under [`ios/`](ios/). See [`ios/READ
 
 1. Install Android SDK 35 and JDK 17.
 2. Copy `local.properties.example` to `local.properties` and set `sdk.dir`.
-3. Optional: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SENTRY_DSN`, `GOOGLE_WEB_CLIENT_ID`, `API_BIBLE_KEY` (for NIV/NKJV/NLT via [API.Bible](https://api.bible/) when not using the proxy).
-4. Optional shared Bible cache: deploy [`workers/bible-cache`](workers/bible-cache/README.md), set `BIBLE_PROXY_BASE_URL` (and `BIBLE_PROXY_TOKEN` if the worker requires it). The app uses the proxy first and falls back to direct APIs.
+3. Optional: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SENTRY_DSN`, `GOOGLE_WEB_CLIENT_ID`.
+4. **Bible chapters:** deploy [`workers/bible-cache`](workers/bible-cache/README.md), set worker secrets (`API_BIBLE_KEY`, Play Integrity / App Attest config, optional legacy `BIBLE_PROXY_TOKEN` during rollout). In `local.properties` set `BIBLE_PROXY_BASE_URL` and `PLAY_CLOUD_PROJECT_NUMBER` (Android). The app never embeds `API_BIBLE_KEY`. Open translations (WEB/KJV) use the proxy without client secrets; NIV/NKJV/NLT require Play Integrity (Android) or App Attest on device (iOS). Without the proxy, only free [bible-api.com](https://bible-api.com) translations work from the phone.
+
+   **Verse numbering gaps:** Some licensed translations (e.g. NIV) omit verses that are not in their base text (John 5:4 is a common example). API.Bible supplies a verse marker with no body; the app skips empty verses, so chapter view may jump (e.g. 3 → 5). That matches the translation, not a sync bug. Open translations such as WEB/KJV may still show those verses.
 5. Open in Android Studio or run:
 
 ```bash
@@ -70,12 +72,20 @@ The app requests OTP with `redirectUrl = morningguard://auth` so links prefer op
 
 Cloud schema (stats/highlights sync): see [`docs/supabase/SETUP.md`](docs/supabase/SETUP.md) and [`supabase/migrations/`](supabase/migrations/).
 
+## Google Play
+
+Launch checklist: [`site/play-store-launch/index.html`](site/play-store-launch/index.html) (markdown). Play Console fill-in: [`docs/play-console-fill-in.md`](docs/play-console-fill-in.md). **Agent handoff (Grok):** [`docs/grok-play-console-handoff.md`](docs/grok-play-console-handoff.md). Public site + privacy policy: deploy [`site/auth-landing`](site/auth-landing/README.md) to `https://morning-guard.codingagents.cc` (`PRIVACY_POLICY_URL=https://morning-guard.codingagents.cc/privacy/`).
+
+Store screenshots (plan → `screenshot` build capture → [`screenshot-studio`](site/screenshot-studio/)): [`docs/store-screenshots.md`](docs/store-screenshots.md) — run `./scripts/store-screenshots/orchestrate.sh` with a device connected (`--ai` optional).
+
+Upload **AAB** from `app/build/outputs/bundle/release/` (see checklist). CI uploads the same bundle as a GitHub Actions artifact on merge to `main`.
+
 ## CI / CD
 
 - **CI** (`.github/workflows/ci.yml`): `test`, `detekt`, `lint` on PRs and pushes; `assembleRelease` on `main`.
-- **Release** (`.github/workflows/release.yml`): GitHub Release with APK and `CHANGELOG.md` on merge to `main`.
+- **Release** (`.github/workflows/release.yml`): signed `bundleRelease` + **AAB artifact** (`app-release-bundle`) on merge to `main`.
 
-### GitHub Actions secrets (optional, for signed release APKs with Supabase baked in)
+### GitHub Actions secrets (optional, for signed release builds with Supabase baked in)
 
 Set repository secrets (Settings → Secrets and variables → Actions), or from your machine (values from your local `local.properties`, never commit them):
 

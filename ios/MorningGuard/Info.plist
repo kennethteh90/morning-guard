@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>BIBLE_API_BASE_URL</key>
+	<string>https://bible-api.com/</string>
+	<key>BIBLE_PROXY_BASE_URL</key>
+	<string>$(BIBLE_PROXY_BASE_URL)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -18,8 +22,6 @@
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
-	<key>CFBundleVersion</key>
-	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -31,14 +33,20 @@
 			</array>
 		</dict>
 	</array>
-	<key>BIBLE_API_BASE_URL</key>
-	<string>https://bible-api.com/</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>MORNING_GUARD_SCREENSHOT_MODE</key>
+	<false/>
 	<key>NSFamilyControlsUsageDescription</key>
 	<string>Morning Guard uses Screen Time to shield apps you choose during your morning window.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Morning Guard reads your step count to verify step-based morning goals.</string>
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>Morning Guard can remind you when your morning window begins.</string>
+	<key>PRIVACY_POLICY_URL</key>
+	<string>https://morning-guard.codingagents.cc/privacy/</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>

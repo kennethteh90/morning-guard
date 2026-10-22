@@ -8,6 +8,7 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.morningguard.app.MainActivity
 import com.morningguard.app.R
+import com.morningguard.app.platform.AppDisplayNameResolver
 import com.morningguard.domain.model.DigestSummary
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -16,6 +17,7 @@ import javax.inject.Singleton
 @Singleton
 class DigestNotificationManager @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val appDisplayNameResolver: AppDisplayNameResolver,
 ) {
     private val notificationManager =
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -37,7 +39,10 @@ class DigestNotificationManager @Inject constructor(
             return
         }
 
-        val intent = Intent(context, MainActivity::class.java)
+        val intent = Intent(context, MainActivity::class.java).apply {
+            putExtra(EXTRA_OPEN_DIGEST, true)
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
         val pendingIntent = PendingIntent.getActivity(
             context,
             0,
@@ -45,17 +50,19 @@ class DigestNotificationManager @Inject constructor(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
-        val content = if (summary.count == 1) {
-            "${summary.latestTitle}: ${summary.latestText}"
-        } else {
-            "${summary.count} notifications held — latest from ${summary.latestPackage}"
-        }
+        val latestApp = appDisplayNameResolver.labelFor(summary.latestPackage)
+        val content = context.resources.getQuantityString(
+            R.plurals.digest_held_count,
+            summary.count,
+            summary.count,
+            latestApp,
+        )
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(context.getString(R.string.app_name))
             .setContentText(content)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(content))
+            .setVisibility(NotificationCompat.VISIBILITY_SECRET)
             .setContentIntent(pendingIntent)
             .setOngoing(true)
             .build()
@@ -70,5 +77,6 @@ class DigestNotificationManager @Inject constructor(
     companion object {
         const val CHANNEL_ID = "morning_guard_digest"
         const val DIGEST_NOTIFICATION_ID = 1001
+        const val EXTRA_OPEN_DIGEST = "com.morningguard.app.extra.OPEN_DIGEST"
     }
 }

@@ -9,6 +9,7 @@ enum PassphraseStoreError: LocalizedError {
     case invalidPassphrase
     case locked
     case keychainFailure(OSStatus)
+    case cryptoFailure
 
     var errorDescription: String? {
         switch self {
@@ -22,6 +23,8 @@ enum PassphraseStoreError: LocalizedError {
             return "Too many failed attempts. Try again in 15 minutes."
         case .keychainFailure(let status):
             return "Keychain error (\(status))."
+        case .cryptoFailure:
+            return "Could not secure the passphrase."
         }
     }
 }
@@ -39,7 +42,7 @@ final class PassphraseStore: Sendable {
         guard policy.validateLength(passphrase: passphrase) else {
             throw PassphraseStoreError.invalidLength
         }
-        let stored = Self.hash(passphrase: passphrase)
+        let stored = try Self.hash(passphrase: passphrase)
         try writeKeychainString(stored)
     }
 
@@ -51,9 +54,10 @@ final class PassphraseStore: Sendable {
         try deleteKeychainItem()
     }
 
-    static func hash(passphrase: String) -> String {
-        let salt = randomSaltHex(byteCount: 16)
-        let derived = deriveKey(passphrase: passphrase, saltHex: salt, iterations: iterations)
+    static func hash(passphrase: String) throws -> String {
+        let salt = try randomSaltHex(byteCount: 16)
+        let derived = try deriveKey(passphrase: passphrase, saltHex: salt, iterations: iterations)
+        guard !derived.isEmpty else { throw PassphraseStoreError.cryptoFailure }
         return "\(storagePrefix)$\(iterations)$\(salt)$\(derived)"
     }
 
@@ -64,7 +68,8 @@ final class PassphraseStore: Sendable {
               let iterations = Int(parts[1]) else { return false }
         let salt = parts[2]
         let expected = parts[3]
-        let actual = deriveKey(passphrase: passphrase, saltHex: salt, iterations: iterations)
+        let actual = (try? deriveKey(passphrase: passphrase, saltHex: salt, iterations: iterations)) ?? ""
+        if actual.isEmpty { return false }
         return constantTimeEquals(actual, expected)
     }
 
@@ -77,13 +82,13 @@ final class PassphraseStore: Sendable {
     private static let iterations = 120_000
     private static let keyLengthBits = 256
 
-    private static func deriveKey(passphrase: String, saltHex: String, iterations: Int) -> String {
+    private static func deriveKey(passphrase: String, saltHex: String, iterations: Int) throws -> String {
         let salt = hexToBytes(saltHex)
-        let derived = pbkdf2SHA256(password: Data(passphrase.utf8), salt: salt, iterations: iterations)
+        let derived = try pbkdf2SHA256(password: Data(passphrase.utf8), salt: salt, iterations: iterations)
         return derived.map { String(format: "%02x", $0) }.joined()
     }
 
-    private static func pbkdf2SHA256(password: Data, salt: Data, iterations: Int) -> Data {
+    private static func pbkdf2SHA256(password: Data, salt: Data, iterations: Int) throws -> Data {
         var derived = [UInt8](repeating: 0, count: keyLengthBits / 8)
         let status = password.withUnsafeBytes { passwordBytes in
             salt.withUnsafeBytes { saltBytes in
@@ -100,13 +105,14 @@ final class PassphraseStore: Sendable {
                 )
             }
         }
-        guard status == kCCSuccess else { return Data() }
+        guard status == kCCSuccess else { throw PassphraseStoreError.cryptoFailure }
         return Data(derived)
     }
 
-    private static func randomSaltHex(byteCount: Int) -> String {
+    private static func randomSaltHex(byteCount: Int) throws -> String {
         var bytes = [UInt8](repeating: 0, count: byteCount)
-        _ = SecRandomCopyBytes(kSecRandomDefault, byteCount, &bytes)
+        let status = SecRandomCopyBytes(kSecRandomDefault, byteCount, &bytes)
+        guard status == errSecSuccess else { throw PassphraseStoreError.cryptoFailure }
         return bytes.map { String(format: "%02x", $0) }.joined()
     }
 

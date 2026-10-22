@@ -1,0 +1,8 @@
+# Copy to ~/.sentryclirc or ./.sentryclirc (do not commit real tokens).
+[defaults]
+url = https://sentry.io/
+org = kenneth-t3
+project = morning-guard
+
+[auth]
+# token = sntrys_…

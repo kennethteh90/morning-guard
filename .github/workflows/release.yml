@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   release:
@@ -15,23 +15,49 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Configure Android SDK path
-        run: echo "sdk.dir=${ANDROID_HOME}" >> local.properties
-
-      - name: Build release APK
-        run: ./gradlew assembleRelease --stacktrace
-
-      - name: Read version
-        id: version
+      - name: Decode release keystore
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
         run: |
-          VERSION=$(grep versionMajor version.properties | cut -d= -f2).$(grep versionMinor version.properties | cut -d= -f2).$(grep versionPatch version.properties | cut -d= -f2)
-          echo "name=${VERSION}.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+          if [ -n "$RELEASE_KEYSTORE_BASE64" ]; then
+            echo "$RELEASE_KEYSTORE_BASE64" | base64 -d > /tmp/morning-guard-release.keystore
+          fi
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Configure local.properties
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
+          BIBLE_PROXY_BASE_URL: ${{ secrets.BIBLE_PROXY_BASE_URL }}
+          PLAY_CLOUD_PROJECT_NUMBER: ${{ secrets.PLAY_CLOUD_PROJECT_NUMBER }}
+          PRIVACY_POLICY_URL: ${{ secrets.PRIVACY_POLICY_URL }}
+          RELEASE_STORE_FILE: /tmp/morning-guard-release.keystore
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          {
+            echo "sdk.dir=${ANDROID_HOME}"
+            [ -n "$SUPABASE_URL" ] && echo "SUPABASE_URL=$SUPABASE_URL"
+            [ -n "$SUPABASE_ANON_KEY" ] && echo "SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY"
+            [ -n "$SENTRY_DSN" ] && echo "SENTRY_DSN=$SENTRY_DSN"
+            [ -n "$GOOGLE_WEB_CLIENT_ID" ] && echo "GOOGLE_WEB_CLIENT_ID=$GOOGLE_WEB_CLIENT_ID"
+            [ -n "$BIBLE_PROXY_BASE_URL" ] && echo "BIBLE_PROXY_BASE_URL=$BIBLE_PROXY_BASE_URL"
+            [ -n "$PLAY_CLOUD_PROJECT_NUMBER" ] && echo "PLAY_CLOUD_PROJECT_NUMBER=$PLAY_CLOUD_PROJECT_NUMBER"
+            [ -n "$PRIVACY_POLICY_URL" ] && echo "PRIVACY_POLICY_URL=$PRIVACY_POLICY_URL"
+            [ -f /tmp/morning-guard-release.keystore ] && echo "RELEASE_STORE_FILE=$RELEASE_STORE_FILE"
+            [ -n "$RELEASE_STORE_PASSWORD" ] && echo "RELEASE_STORE_PASSWORD=$RELEASE_STORE_PASSWORD"
+            [ -n "$RELEASE_KEY_ALIAS" ] && echo "RELEASE_KEY_ALIAS=$RELEASE_KEY_ALIAS"
+            [ -n "$RELEASE_KEY_PASSWORD" ] && echo "RELEASE_KEY_PASSWORD=$RELEASE_KEY_PASSWORD"
+          } > local.properties
+
+      - name: Build release App Bundle
+        run: ./gradlew bundleRelease --stacktrace
+
+      - name: Upload release App Bundle
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: v${{ steps.version.outputs.name }}
-          name: Morning Guard v${{ steps.version.outputs.name }}
-          body_path: CHANGELOG.md
-          files: app/build/outputs/apk/release/*.apk
-          generate_release_notes: true
+          name: app-release-bundle
+          path: app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error

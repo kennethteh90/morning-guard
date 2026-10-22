@@ -32,17 +32,22 @@ final class ShieldSessionPolicyTests: XCTestCase {
         )
     }
 
-    func testSharedStateRequiresActiveFlagAndSelection() {
+    func testClearWhenNotLocked() {
+        XCTAssertTrue(ShieldSessionPolicy.shouldClearShields(gateState: .unlocked))
+        XCTAssertTrue(ShieldSessionPolicy.shouldClearShields(gateState: .inactive))
+        XCTAssertFalse(ShieldSessionPolicy.shouldClearShields(gateState: .locked))
+    }
+
+    func testPeaceSessionStaysLockedAfterIntervalWouldEnd() {
+        XCTAssertFalse(ShieldSessionPolicy.shouldClearShields(gateState: .locked))
         XCTAssertTrue(
-            ShieldSessionPolicy.shouldApplyShieldsFromSharedState(shieldsActive: true, hasSelection: true)
-        )
-        XCTAssertFalse(
-            ShieldSessionPolicy.shouldApplyShieldsFromSharedState(shieldsActive: false, hasSelection: true)
+            ShieldSessionPolicy.shouldApplyShields(gateState: .locked, isAuthorized: true, hasSelection: true)
         )
     }
 
-    func testIntervalEndAlwaysClears() {
-        XCTAssertTrue(ShieldSessionPolicy.shouldClearShieldsOnIntervalEnd(shieldsActive: true))
-        XCTAssertTrue(ShieldSessionPolicy.shouldClearShieldsOnIntervalEnd(shieldsActive: false))
+    func testReapplyOnlyWhenLockedWithSelection() {
+        XCTAssertTrue(ShieldSessionPolicy.shouldReapplyAfterEvent(gateState: .locked, hasSelection: true))
+        XCTAssertFalse(ShieldSessionPolicy.shouldReapplyAfterEvent(gateState: .unlocked, hasSelection: true))
+        XCTAssertFalse(ShieldSessionPolicy.shouldReapplyAfterEvent(gateState: .locked, hasSelection: false))
     }
 }

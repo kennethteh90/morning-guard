@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Morning Guard — Screenshot Studio</title>
+  <link rel="stylesheet" href="studio.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="panel" aria-label="Project settings">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"></div>
+        <div>
+          <h1>Screenshot Studio</h1>
+          <p>App Store &amp; Play-ready frames</p>
+        </div>
+      </div>
+
+      <h2>Export preset</h2>
+      <select id="presetSelect" aria-label="Store size preset"></select>
+      <p class="hint">Same idea as AppScreens: one layout, many store dimensions. Switch preset and re-export.</p>
+
+      <h2>Template</h2>
+      <select id="templateSelect" aria-label="Visual template"></select>
+
+      <div class="check">
+        <input type="checkbox" id="showFrame" checked />
+        <label for="showFrame">Device frame (phone mockup)</label>
+      </div>
+      <div class="check">
+        <input type="checkbox" id="panoramic" checked />
+        <label for="panoramic">Panoramic band across slides</label>
+      </div>
+
+      <h2>Slides</h2>
+      <ul id="slideList" class="slide-list"></ul>
+      <div class="row" style="margin-top: 0.5rem">
+        <button type="button" class="btn" id="btnAddSlide">Add slide</button>
+        <button type="button" class="btn btn-ghost" id="btnRemoveSlide">Remove</button>
+      </div>
+      <button type="button" class="btn btn-ghost" id="btnResetCopy" style="width: 100%; margin-top: 0.5rem">
+        Reset default copy
+      </button>
+
+      <details class="evidence">
+        <summary>How this relates to AppScreens</summary>
+        <ul>
+          <li><strong>Design once, export many sizes</strong> — AppScreens markets a responsive engine so one project adapts to iPhone, iPad, Android, and more (<a href="https://appscreens.com/" target="_blank" rel="noopener">appscreens.com</a>).</li>
+          <li><strong>Templates + device frames</strong> — Their editor layers titles, backgrounds, and real/clay/3D device mockups on a canvas.</li>
+          <li><strong>Workflow</strong> — Pick layout → import raw screenshots → customize → download PNGs (they also offer localization and direct App Store Connect / Play upload on paid tiers).</li>
+          <li><strong>This studio</strong> — Offline, repo-local tool: Morning Guard colors, default ASO copy, presets for common Apple/Google dimensions, canvas PNG export. No account, no upload API.</li>
+        </ul>
+      </details>
+    </aside>
+
+    <main class="canvas-wrap">
+      <canvas id="previewCanvas" width="1290" height="2796" aria-label="Screenshot preview"></canvas>
+      <p class="canvas-meta" id="canvasMeta"></p>
+      <div class="toolbar">
+        <button type="button" class="btn btn-primary" id="btnExportCurrent">Download this slide</button>
+        <button type="button" class="btn btn-primary" id="btnExportAll">Download all slides</button>
+      </div>
+    </main>
+
+    <aside class="panel" aria-label="Slide editor">
+      <h2>Slide copy</h2>
+      <label for="slideTitle">Title</label>
+      <input type="text" id="slideTitle" autocomplete="off" />
+
+      <label for="slideSubtitle">Subtitle</label>
+      <textarea id="slideSubtitle" rows="3"></textarea>
+
+      <h2>Screenshot image</h2>
+      <input type="file" id="screenshotInput" accept="image/png,image/jpeg,image/webp" multiple />
+      <p class="hint">Select one or more images. Assignment starts at the active slide and fills forward (bulk import like AppScreens step 4).</p>
+
+      <h2>Export log</h2>
+      <div id="exportLog" class="export-log" aria-live="polite"></div>
+
+      <h2>Quick start</h2>
+      <ol class="hint" style="padding-left: 1.2rem">
+        <li>Capture raw screens on a device or emulator (no frame).</li>
+        <li>Upload PNGs above; edit titles per slide.</li>
+        <li>Choose App Store or Play preset; export all.</li>
+        <li>Upload PNGs in App Store Connect or Play Console.</li>
+      </ol>
+      <p class="hint">
+        Play checklist: <code>site/play-store-launch/index.html</code> ·
+        Brand colors from <code>MorningGuardTheme.kt</code> (Forest, Mint, Dawn).
+      </p>
+    </aside>
+  </div>
+  <script src="studio.js" type="module"></script>
+</body>
+</html>

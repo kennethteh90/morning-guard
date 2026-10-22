@@ -1,0 +1,45 @@
+{
+  "description": "Play Console notification-listener demo — step-based pacing with visible taps.",
+  "outputFile": "notification-listener-demo.mp4",
+  "defaults": {
+    "sceneSettleSeconds": 2.5,
+    "afterTapSeconds": 0.8
+  },
+  "steps": [
+    {
+      "do": "launch_scene",
+      "scene": "onboarding_notification",
+      "cold": true
+    },
+    { "do": "hold", "seconds": 4, "note": "Disclosure + status chips" },
+    { "do": "listener_settings", "note": "Same intent as in-app Open access settings" },
+    { "do": "hold", "seconds": 1.5, "note": "Transition to system settings" },
+    { "do": "wait_settings" },
+    { "do": "hold", "seconds": 5, "note": "Notification access toggle (off)" },
+    { "do": "grant_listener" },
+    { "do": "hold", "seconds": 4, "note": "Toggle enabled" },
+    { "do": "press_back", "times": 1 },
+    { "do": "wait_pkg", "pkg": "com.morningguard.app.screenshot" },
+    { "do": "hold", "seconds": 4, "note": "Onboarding — access granted chips" },
+    {
+      "do": "launch_scene",
+      "scene": "home",
+      "cold": false,
+      "note": "Transition to main app (no force-stop; re-seeds demo data)"
+    },
+    { "do": "hold", "seconds": 4, "note": "Morning gate / held notifications" },
+    { "do": "tap_text", "text": "Start morning goal", "fallback_x": 540, "fallback_y": 1180 },
+    { "do": "hold", "seconds": 7, "note": "Morning goal (Bible)" },
+    { "do": "press_back", "times": 1 },
+    { "do": "hold", "seconds": 2 },
+    {
+      "do": "launch_scene",
+      "scene": "digest",
+      "cold": false,
+      "note": "Digest of held notifications (warm nav)"
+    },
+    { "do": "hold", "seconds": 8, "note": "Digest list" },
+    { "do": "press_back", "times": 1 },
+    { "do": "hold", "seconds": 4, "note": "Back on home" }
+  ]
+}
