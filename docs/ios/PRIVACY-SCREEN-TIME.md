@@ -14,6 +14,8 @@ Morning Guard uses Apple’s **Screen Time API** (Family Controls, Managed Setti
 - Turn on **Focus** or Do Not Disturb for you without your action in Settings.
 - Shield apps without your **explicit authorization** in Settings → Screen Time → Morning Guard (revocable anytime).
 
+For **Downtime** and **Focus** setup (with screenshots), see https://morning-guard.codingagents.cc/iphone/ (repo copies in [DOWNTIME-AND-FOCUS.md](DOWNTIME-AND-FOCUS.md)).
+
 ## Data sharing
 
 - v1 iOS build is **local-first**. Optional cloud sign-in (when enabled) follows the same Supabase policies as Android; see the main privacy policy on the website.

@@ -68,4 +68,4 @@ Set `BIBLE_PROXY_BASE_URL` in `ios/Config/Local.xcconfig` (see `Local.xcconfig.e
 
 ## Privacy
 
-`PrivacyInfo.xcprivacy` declares UserDefaults (`CA92.1`). Settings links the hosted privacy policy. Screen Time copy: [docs/ios/PRIVACY-SCREEN-TIME.md](../docs/ios/PRIVACY-SCREEN-TIME.md).
+`PrivacyInfo.xcprivacy` declares UserDefaults (`CA92.1`). Settings links the hosted privacy policy. Screen Time copy: [docs/ios/PRIVACY-SCREEN-TIME.md](../docs/ios/PRIVACY-SCREEN-TIME.md). **Downtime & Focus (user guides, hosted):** https://morning-guard.codingagents.cc/iphone/ — sources in `docs/ios/downtime-and-focus-*.html`.
