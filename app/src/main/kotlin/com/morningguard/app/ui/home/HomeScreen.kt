@@ -307,7 +307,9 @@ fun HomeScreen(
                     }
                 }
 
-                if (state.morningGoalCompleteToday) {
+                val morningGoalActive =
+                    state.gate?.state == GateState.LOCKED && state.gate?.reason == "morning_window"
+                if (state.morningGoalCompleteToday && !morningGoalActive) {
                     OutlinedButton(
                         onClick = { viewModel.startOrExtendPeaceSession() },
                         modifier = Modifier.fillMaxWidth(),

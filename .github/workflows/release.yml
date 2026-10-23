@@ -53,11 +53,11 @@ jobs:
           } > local.properties
 
       - name: Build release App Bundle
-        run: ./gradlew bundleRelease --stacktrace
+        run: ./gradlew bundleFullRelease --stacktrace
 
       - name: Upload release App Bundle
         uses: actions/upload-artifact@v4
         with:
           name: app-release-bundle
-          path: app/build/outputs/bundle/release/*.aab
+          path: app/build/outputs/bundle/fullRelease/*.aab
           if-no-files-found: error

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Morning Guard — Security rollout operator guide</title>
+    <style>
+      :root {
+        --bg: #0f1419;
+        --card: #1a2332;
+        --text: #e8eef4;
+        --muted: #9aabbc;
+        --accent: #e8a54b;
+        --ok: #5cb85c;
+        --warn: #f0ad4e;
+        --border: #2d3a4d;
+        --code-bg: #0a0e14;
+      }
+      * { box-sizing: border-box; }
+      body {
+        font-family: "DM Sans", system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.55;
+        margin: 0;
+        padding: 1.5rem;
+        max-width: 52rem;
+        margin-inline: auto;
+      }
+      h1 { font-size: 1.75rem; margin-top: 0; }
+      h2 {
+        font-size: 1.2rem;
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        color: var(--accent);
+      }
+      h3 { font-size: 1rem; margin-bottom: 0.35rem; }
+      p, li { color: var(--text); }
+      .muted { color: var(--muted); font-size: 0.92rem; }
+      a { color: #7eb8ff; }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        margin: 1rem 0;
+      }
+      th, td {
+        border: 1px solid var(--border);
+        padding: 0.5rem 0.65rem;
+        text-align: left;
+        vertical-align: top;
+      }
+      th { background: var(--card); }
+      .status-ok { color: var(--ok); font-weight: 600; }
+      .status-warn { color: var(--warn); font-weight: 600; }
+      pre, code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.85rem;
+      }
+      pre {
+        background: var(--code-bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.85rem 1rem;
+        overflow-x: auto;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 1rem 1.15rem;
+        margin: 1rem 0;
+      }
+      .prompt {
+        border-left: 3px solid var(--accent);
+        padding-left: 0.85rem;
+        margin: 0.75rem 0;
+      }
+      ol.steps > li { margin-bottom: 0.75rem; }
+      @media print {
+        body { background: #fff; color: #111; }
+        :root { --card: #f5f5f5; --border: #ccc; --code-bg: #f0f0f0; }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Morning Guard — security rollout operator guide</h1>
+    <p class="muted">
+      For the 22 Oct 2026 audit plan (<code>docs/security-fixes-2026-10-22.md</code>).
+      Code lives on branch <code>ios/scaffold-ci</code> — PR
+      <a href="https://github.com/kennethteh90/morning-guard/pull/1">#1</a>.
+      Worker URL (deployed): <code>https://morning-guard-bible-cache.kennethteh90.workers.dev</code>
+    </p>
+
+    <h2>1. Code audit recheck (latest tree)</h2>
+    <p>Re-verified against current sources on <strong>2026-10-23</strong>. Automated tests: <code>./gradlew test</code>, <code>workers/bible-cache npm test</code> — pass.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>What</th>
+          <th>In repo?</th>
+          <th>Your action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>R1</td>
+          <td>SMS packages hard-exempt; WhatsApp still interceptable</td>
+          <td class="status-ok">Yes — <code>NotificationPolicy.kt</code></td>
+          <td>Manual: SMS in shade, WhatsApp held when locked</td>
+        </tr>
+        <tr>
+          <td>R2</td>
+          <td>PKCE <code>code</code> only; no <code>handleDeeplinks</code></td>
+          <td class="status-ok">Yes — <code>AuthCallbackUri.kt</code>, <code>SupabaseAuthBackend.kt</code></td>
+          <td>Redeploy auth landing; test magic link</td>
+        </tr>
+        <tr>
+          <td>R3</td>
+          <td>No <code>BIBLE_PROXY_TOKEN</code> in app; Play Integrity + worker challenge</td>
+          <td class="status-ok">Yes — Android + worker</td>
+          <td class="status-warn">Set worker attestation secrets (below). Legacy token on worker until cutover.</td>
+        </tr>
+        <tr>
+          <td>I1</td>
+          <td>Monitor extension evaluates gate (peace session)</td>
+          <td class="status-ok">Yes — <code>DeviceActivityMonitorExtension.swift</code></td>
+          <td>Device TestFlight QA</td>
+        </tr>
+        <tr>
+          <td>I2/I6</td>
+          <td>Passphrase hash Keychain-only; PBKDF2 throws on failure</td>
+          <td class="status-ok">Yes — <code>PassphraseStore.swift</code>, <code>AppState.swift</code></td>
+          <td>Confirm no <code>pbkdf2-sha256$</code> in app-group plist</td>
+        </tr>
+        <tr>
+          <td>I3/I4</td>
+          <td>No <code>sharedApplication</code>; privacy manifest; policy link</td>
+          <td class="status-ok">Yes — shield extensions, <code>PrivacyInfo.xcprivacy</code>, Settings</td>
+          <td>Archive → Privacy Report in Xcode</td>
+        </tr>
+        <tr>
+          <td>I5</td>
+          <td>Hide “Clear shields” while locked</td>
+          <td class="status-ok">Yes — <code>SettingsView.swift</code></td>
+          <td>Quick UI check</td>
+        </tr>
+        <tr>
+          <td>R8</td>
+          <td>Sentry scrub (no default PII; strip auth headers)</td>
+          <td class="status-ok">Yes — <code>AppInitializer.kt</code></td>
+          <td>Trigger test event in release build</td>
+        </tr>
+        <tr>
+          <td>R9</td>
+          <td>Notes sync only when encryption on</td>
+          <td class="status-ok">Yes — <code>UserDataSyncService.kt</code></td>
+          <td>Sign in, note without encryption → empty remote note</td>
+        </tr>
+        <tr>
+          <td>R10</td>
+          <td>Narrow ProGuard keep</td>
+          <td class="status-ok">Yes — no <code>-keep com.morningguard.**</code></td>
+          <td>Smoke release: auth, Bible, sync</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="card">
+      <h3>Changes by other agents (does not revert security)</h3>
+      <ul class="muted">
+        <li><strong>Product flavors:</strong> <code>full</code> (Play) vs <code>demo</code> (<code>com.morningguard.app.demo</code>) — CI now builds <code>bundleFullRelease</code> / <code>assembleFullRelease</code> (uncommitted locally).</li>
+        <li><strong>Demo Pages:</strong> <code>site/auth-landing/demo/</code>, middleware — separate from production auth landing.</li>
+        <li><strong>Production auth landing</strong> still includes <code>access_token</code> query handling (lines ~256–270 in <code>site/auth-landing/index.html</code>).</li>
+      </ul>
+      <p class="muted">Commit <code>9ed3b5c</code> contains security work; you have additional uncommitted files — merge or commit demo/CI changes before shipping.</p>
+    </div>
+
+    <h2>2. Accounts you need</h2>
+    <ul>
+      <li><strong>Google Play Console</strong> — app <code>com.morningguard.app</code></li>
+      <li><strong>Google Cloud</strong> — Play Integrity API + service account</li>
+      <li><strong>Cloudflare</strong> — Workers + Pages (<code>morning-guard.codingagents.cc</code>)</li>
+      <li><strong>Supabase</strong> — auth + sync project</li>
+      <li><strong>GitHub</strong> — <code>kennethteh90/morning-guard</code> Actions secrets</li>
+      <li><strong>Apple Developer</strong> — Team ID, App Attest, Family Controls entitlement</li>
+      <li><strong>Sentry</strong> (optional) — DSN only in build config</li>
+      <li><strong>API.Bible</strong> — key only on worker, never in the app</li>
+    </ul>
+
+    <h2>3. Where to find each value</h2>
+
+    <h3>Android — <code>PLAY_CLOUD_PROJECT_NUMBER</code></h3>
+    <p class="muted">Not secret. Embedded in the app for Play Integrity.</p>
+    <ol class="steps">
+      <li>Play Console → your app → <strong>Setup</strong> → <strong>App integrity</strong> (or Google Cloud Console linked to Play).</li>
+      <li>Find <strong>Cloud project number</strong> (numeric, often 10–12 digits).</li>
+      <li>Put in <code>local.properties</code> and GitHub secret <code>PLAY_CLOUD_PROJECT_NUMBER</code>.</li>
+    </ol>
+
+    <h3>Worker — <code>PLAY_APP_SIGNING_CERT_SHA256</code></h3>
+    <p class="muted">Play <em>app signing</em> certificate (not upload key).</p>
+    <ol class="steps">
+      <li>Play Console → <strong>Setup</strong> → <strong>App signing</strong> → <strong>App signing key certificate</strong> → copy <strong>SHA-256</strong> fingerprint.</li>
+      <li>Or run repo script after you have the cert: <code>./scripts/print-android-signing-sha256.sh</code> (upload key — use Play’s app signing value for production).</li>
+      <li>Worker secret: hex string(s), comma-separated if multiple debug certs for dev only.</li>
+    </ol>
+
+    <h3>Worker — <code>PLAY_INTEGRITY_SERVICE_ACCOUNT_JSON</code></h3>
+    <ol class="steps">
+      <li>Google Cloud Console → same project as Play Integrity → <strong>IAM</strong> → <strong>Service accounts</strong> → Create.</li>
+      <li>Grant access to <strong>Play Integrity API</strong> (Google Play Android Developer API / Play Integrity as per current Google docs).</li>
+      <li>Create JSON key → paste entire JSON as one Wrangler secret (never commit).</li>
+    </ol>
+
+    <h3>Worker — <code>APPLE_TEAM_ID</code></h3>
+    <ol class="steps">
+      <li>Apple Developer → <strong>Membership</strong> → <strong>Team ID</strong> (10 characters).</li>
+    </ol>
+
+    <h3>Worker — existing secrets</h3>
+    <ul>
+      <li><code>API_BIBLE_KEY</code> — API.Bible dashboard</li>
+      <li><code>API_BIBLE_LICENSED_ENABLED</code> — <code>true</code></li>
+      <li><code>BIBLE_PROXY_TOKEN</code> — you choose; keep during rollout for old Android builds only</li>
+    </ul>
+
+    <h3>App / CI — <code>local.properties</code> & GitHub</h3>
+    <pre>BIBLE_PROXY_BASE_URL=https://morning-guard-bible-cache.kennethteh90.workers.dev/
+PLAY_CLOUD_PROJECT_NUMBER=&lt;from Play / Cloud&gt;
+PRIVACY_POLICY_URL=https://morning-guard.codingagents.cc/privacy/
+SUPABASE_URL=...
+SUPABASE_ANON_KEY=...
+SENTRY_DSN=...          # optional
+RELEASE_STORE_FILE=...  # release signing — never commit</pre>
+    <p>Push to GitHub: <code>./scripts/push-github-secrets.sh</code> (uses your <code>local.properties</code>).</p>
+
+    <h3>iOS — <code>BIBLE_PROXY_BASE_URL</code></h3>
+    <p><code>ios/Config/Local.xcconfig</code> (from <code>Local.xcconfig.example</code>). No proxy token in the app.</p>
+
+    <h3>Supabase redirect URLs</h3>
+    <p>Supabase Dashboard → Authentication → URL configuration:</p>
+    <ul>
+      <li>Site URL: <code>https://morning-guard.codingagents.cc/</code></li>
+      <li>Redirect: <code>morningguard://auth</code></li>
+    </ul>
+    <p>Repo helper: <code>./scripts/configure-supabase-auth-urls.sh</code></p>
+
+    <h3>Play App Links — <code>assetlinks.json</code></h3>
+    <p><code>site/auth-landing/.well-known/assetlinks.json</code> — SHA-256 must match <strong>Play app signing</strong> cert.</p>
+    <p><code>./scripts/set-assetlinks-sha256.sh &lt;sha256&gt;</code></p>
+
+    <h2>4. Commands to run (in order)</h2>
+
+    <h3>A. Bible-cache worker</h3>
+    <pre>cd workers/bible-cache
+npm install
+npm test
+npx wrangler secret put API_BIBLE_KEY
+npx wrangler secret put API_BIBLE_LICENSED_ENABLED   # true
+npx wrangler secret put PLAY_INTEGRITY_SERVICE_ACCOUNT_JSON
+npx wrangler secret put PLAY_APP_SIGNING_CERT_SHA256
+npx wrangler secret put APPLE_TEAM_ID
+# Rollout only (until stores ship attestation):
+npx wrangler secret put BIBLE_PROXY_TOKEN
+npm run deploy</pre>
+
+    <h3>B. Smoke test worker</h3>
+    <pre>WORKER=https://morning-guard-bible-cache.kennethteh90.workers.dev
+curl -sS "$WORKER/health"
+curl -sS -o /dev/null -w "web:%{http_code}\n" \
+  "$WORKER/v1/chapter?translation=web&amp;book=John&amp;chapter=3"
+curl -sS -o /dev/null -w "niv:%{http_code}\n" \
+  "$WORKER/v1/chapter?translation=niv&amp;book=Genesis&amp;chapter=1"
+# Expect: 200, 200, 401</pre>
+
+    <h3>C. Auth landing (Pages)</h3>
+    <pre>cd site/auth-landing
+./deploy.sh</pre>
+    <p>Confirm magic link with <code>?code=</code> redirects to <code>morningguard://auth?code=...</code> and <code>?access_token=</code> shows expired message (no redirect).</p>
+
+    <h3>D. Android release (full flavor)</h3>
+    <pre>./gradlew bundleFullRelease
+# Verify no proxy token in AAB:
+strings app/build/outputs/bundle/fullRelease/*.aab | grep -i BIBLE_PROXY_TOKEN || echo "OK: not found"</pre>
+
+    <h3>E. iOS</h3>
+    <pre>cd ios/MorningGuardCore &amp;&amp; swift test
+# Xcode: archive MorningGuard → validate Privacy Report
+# Device: NIV with proxy; Simulator: WEB/KJV only</pre>
+
+    <h2>5. Manual QA checklist</h2>
+    <ul>
+      <li>Locked gate: Google Messages/SMS visible in shade; WhatsApp held</li>
+      <li>Digest notification: count + app name only (lock screen secret)</li>
+      <li>Magic link: URL has <code>code=</code>; opening fragment-only token does not sign in</li>
+      <li>Internal-track Android: NIV loads via proxy (Play Integrity)</li>
+      <li>Sideload debug full build: WEB/KJV via proxy; NIV fails unless legacy token worker path + old app</li>
+      <li>iOS peace session: shields stay after Device Activity interval ends (app killed)</li>
+      <li>Emergency passphrase: 5 failures → 15 min lock; hash not in app-group JSON</li>
+      <li>Settings: privacy policy opens; no “Clear shields” while locked</li>
+      <li>Sync: note without encryption → empty <code>bible_highlights.note</code> in Supabase</li>
+    </ul>
+
+    <h2>6. Legacy token cutover (later)</h2>
+    <p>When most users run builds with Play Integrity / App Attest:</p>
+    <pre>cd workers/bible-cache
+npx wrangler secret put BIBLE_PROXY_LEGACY_TOKEN_DISABLED
+# value: true
+# Then remove BIBLE_PROXY_TOKEN from worker</pre>
+
+    <h2>7. What to tell Cursor to do</h2>
+    <p class="muted">Copy-paste prompts. Agent can run commands, edit repo, deploy worker if Wrangler is logged in, open PRs — not your Play/Apple dashboards.</p>
+
+    <div class="prompt">
+      <strong>Deploy worker after I set secrets:</strong><br />
+      “Deploy <code>workers/bible-cache</code> and run the smoke curl commands in <code>docs/security-operator-guide.html</code>.”
+    </div>
+    <div class="prompt">
+      <strong>Push GitHub secrets from my machine:</strong><br />
+      “Run <code>./scripts/push-github-secrets.sh</code> and list which secrets were skipped as empty.”
+    </div>
+    <div class="prompt">
+      <strong>Fix CI after demo flavor:</strong><br />
+      “Commit the uncommitted <code>fullRelease</code> CI changes and confirm <code>bundleFullRelease</code> still enforces <code>PRIVACY_POLICY_URL</code>.”
+    </div>
+    <div class="prompt">
+      <strong>Auth landing:</strong><br />
+      “Deploy <code>site/auth-landing</code> to Cloudflare Pages and verify PKCE redirect behavior.”
+    </div>
+    <div class="prompt">
+      <strong>Play Integrity not working on internal track:</strong><br />
+      “Debug NIV 401 from bible worker: check <code>PLAY_CLOUD_PROJECT_NUMBER</code> in the build, worker <code>PLAY_APP_SIGNING_CERT_SHA256</code>, and Play Integrity SA JSON. Summarize Cloudflare worker logs if available.”
+    </div>
+    <div class="prompt">
+      <strong>iOS NIV on device:</strong><br />
+      “Trace <code>BibleProxyClient</code> App Attest flow vs worker <code>app-attest.ts</code>; suggest fixes if attestation verification fails.”
+    </div>
+    <div class="prompt">
+      <strong>Pre-release audit:</strong><br />
+      “Re-run the security recheck table in <code>docs/security-operator-guide.html</code> against HEAD and run all unit tests.”
+    </div>
+
+    <h2>8. Related docs</h2>
+    <ul>
+      <li><a href="security-fixes-2026-10-22.md">security-fixes-2026-10-22.md</a></li>
+      <li><a href="deploy-security-rollout.md">deploy-security-rollout.md</a></li>
+      <li><a href="../workers/bible-cache/README.md">workers/bible-cache/README.md</a></li>
+      <li><a href="../site/play-store-launch/index.html">Play store launch checklist</a></li>
+      <li><a href="supabase/SETUP.md">supabase/SETUP.md</a></li>
+    </ul>
+
+    <p class="muted">Generated for operator use. Open this file in a browser: <code>docs/security-operator-guide.html</code></p>
+  </body>
+</html>

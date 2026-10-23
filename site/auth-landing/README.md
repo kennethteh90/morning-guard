@@ -8,6 +8,7 @@ Host this folder on **`https://morning-guard.codingagents.cc`** — same domain 
 |------|------|-----|
 | `/` | `index.html` | Marketing landing; auto-redirects to `morningguard://auth` when `?code=` is present |
 | `/privacy/` | `privacy/index.html` | Public privacy policy (`PRIVACY_POLICY_URL`) |
+| `/demo/` | synced from `site/ios-demo/` on deploy | iOS interactive mockup (**HTTP Basic Auth**) |
 | `/.well-known/assetlinks.json` | App Links for `com.morningguard.app` |
 
 Shared styles: `styles/site.css`. Landing screenshots: `assets/screenshots/` (copy from `scripts/store-screenshots/out/morning-guard_play_phone_slide-*.png` after re-running compose).
@@ -59,7 +60,16 @@ Script helper: `./scripts/configure-supabase-auth-urls.sh`
 ./scripts/attach-pages-domain.sh   # if the custom domain is not attached yet
 ```
 
-No build step — static HTML/CSS only.
+No build step — static HTML/CSS. `/demo` is protected by `functions/_middleware.js` (HTTP Basic Auth). Root `_routes.json` must include `/*` so middleware runs before static assets under `/demo`.
+
+### Demo basic auth
+
+```bash
+DEMO_BASIC_AUTH_USER=demo DEMO_BASIC_AUTH_PASSWORD='choose-a-strong-password' ./scripts/configure-demo-pages-auth.sh
+./site/auth-landing/deploy.sh
+```
+
+Visitors opening `https://morning-guard.codingagents.cc/demo/` get a browser login prompt.
 
 ## App build secret
 

@@ -8,6 +8,17 @@ SwiftUI app and Screen Time extensions for Morning Guard. The Xcode project is g
 - [XcodeGen](https://github.com/yonaskolb/XcodeGen): `brew install xcodegen`
 - **Physical iPhone** for real Family Controls / shield behavior (Simulator builds compile but Screen Time APIs are limited)
 
+## Demo without a device
+
+For pitches and reviews before TestFlight, use the **interactive HTML mockup** (no install):
+
+```bash
+python3 -m http.server 8766 --directory site/ios-demo
+# http://localhost:8766/ — arrow keys, presenter mode (P)
+```
+
+See [site/ios-demo/README.md](../site/ios-demo/README.md).
+
 ## Generate and open
 
 **Device testing:** see [DEVICE-TESTING.md](DEVICE-TESTING.md).

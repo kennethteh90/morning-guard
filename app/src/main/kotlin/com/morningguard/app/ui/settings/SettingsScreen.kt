@@ -50,7 +50,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.morningguard.app.demo.DemoSession
 import com.morningguard.app.platform.AppDebugFlags
+import com.morningguard.app.platform.PresenterMode
 import com.morningguard.app.ui.backup.LocalBackupPasswordDialog
 import com.morningguard.app.ui.components.SelectableSettingsCard
 import com.morningguard.domain.bible.BibleTranslations
@@ -216,6 +218,13 @@ fun SettingsScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    if (PresenterMode.demoApp) {
+                        TextButton(onClick = { DemoSession.returnToPresenterHub?.invoke() }) {
+                            Text("Demo")
+                        }
                     }
                 },
             )

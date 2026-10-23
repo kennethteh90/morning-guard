@@ -141,7 +141,7 @@ android {
 }
 
 afterEvaluate {
-    tasks.matching { it.name == "bundleRelease" }.configureEach {
+    tasks.matching { it.name == "bundleFullRelease" }.configureEach {
         doFirst {
             if (prop("PRIVACY_POLICY_URL").isBlank()) {
                 throw GradleException("PRIVACY_POLICY_URL must be set for release app bundles")

@@ -45,7 +45,7 @@ jobs:
 
       - name: Assemble release
         if: github.ref == 'refs/heads/main'
-        run: ./gradlew assembleRelease --stacktrace
+        run: ./gradlew assembleFullRelease --stacktrace
 
       - name: Upload release APK
         if: github.ref == 'refs/heads/main'

@@ -29,7 +29,9 @@ SwiftUI app and Screen Time extensions live under [`ios/`](ios/). See [`ios/READ
 5. Open in Android Studio or run:
 
 ```bash
-./gradlew test lint detekt assembleDebug
+./gradlew test lint detekt assembleFullDebug
+
+**Demo presenter app** (separate package `com.morningguard.app.demo`, scenario picker): `./gradlew :app:assembleDemoDebug` then `./scripts/serve-phone-apk.sh --demo` to install over Wi‑Fi.
 ```
 
 Grant **Notification access** in system settings for the listener service.

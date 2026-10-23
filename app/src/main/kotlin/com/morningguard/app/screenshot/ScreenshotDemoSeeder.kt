@@ -88,10 +88,10 @@ class ScreenshotDemoSeeder @Inject constructor(
     suspend fun markTodayGoalComplete() {
         val now = System.currentTimeMillis()
         val today = LocalDate.now().toString()
+        val fallbackGoal = settingsRepository.currentSettings().morningGoal
         settingsRepository.updateGoalProgress { store ->
             val progress = store.progress
-            val config = progress?.config
-                ?: settingsRepository.currentSettings().morningGoal
+            val config = progress?.config ?: fallbackGoal
             store.copy(
                 progress = MorningGoalProgress(
                     dateKey = today,
