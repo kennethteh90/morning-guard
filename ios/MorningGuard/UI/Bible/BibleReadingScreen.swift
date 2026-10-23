@@ -34,6 +34,9 @@ struct BibleReadingScreen: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 selectorRow
+                if let errorMessage, !loading {
+                    bibleLoadErrorBanner(errorMessage)
+                }
                 if showsGoalProgress {
                     ProgressView(value: min(1, Double(elapsedSeconds) / Double(requiredSeconds)))
                     Text("\(elapsedSeconds) / \(requiredSeconds) seconds on screen")
@@ -47,11 +50,8 @@ struct BibleReadingScreen: View {
                 if loading {
                     ProgressView("Loading chapter…")
                         .frame(maxWidth: .infinity)
-                } else if let errorMessage {
-                    Text(errorMessage)
-                        .foregroundStyle(.red)
-                    Button("Retry") { Task { await loadChapter() } }
-                        .buttonStyle(.bordered)
+                } else if errorMessage != nil {
+                    EmptyView()
                 } else if let passage, !passage.blocks.isEmpty {
                     BiblePassageView(
                         blocks: passage.blocks,
@@ -110,6 +110,24 @@ struct BibleReadingScreen: View {
         "\(config.bibleTranslation)|\(config.bibleBook)|\(config.bibleChapter)"
     }
 
+    private func bibleLoadErrorBanner(_ message: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(
+                "Couldn't load \(config.bibleBook) \(config.bibleChapter) (\(BibleTranslations.chipLabel(id: config.bibleTranslation)))"
+            )
+            .font(.subheadline.bold())
+            Text(message)
+                .font(.subheadline)
+            Button("Retry") { Task { await loadChapter() } }
+                .buttonStyle(.bordered)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(Color.red.opacity(0.12))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .accessibilityElement(children: .combine)
+    }
+
     private var selectorRow: some View {
         HStack(spacing: 8) {
             Button {
@@ -163,6 +181,7 @@ struct BibleReadingScreen: View {
     private func loadChapter() async {
         loading = true
         errorMessage = nil
+        passage = nil
         highlightBarState = nil
         defer { loading = false }
         do {
@@ -172,6 +191,7 @@ struct BibleReadingScreen: View {
                 chapter: config.bibleChapter
             )
         } catch {
+            passage = nil
             errorMessage = friendlyBibleError(error.localizedDescription)
         }
     }

@@ -236,6 +236,8 @@ fun MorningGoalScreen(
                     chapter = state.config.bibleChapter,
                     translationId = state.config.bibleTranslation,
                     loading = state.loadingBible,
+                    loadError = state.bibleLoadError,
+                    onRetryLoad = viewModel::retryBibleChapterLoad,
                     passage = state.biblePassage,
                     chapterHighlights = state.bibleChapterHighlights,
                     elapsedSec = elapsedSec,
@@ -334,6 +336,8 @@ private fun BibleGoalBody(
     chapter: Int,
     translationId: String,
     loading: Boolean,
+    loadError: String?,
+    onRetryLoad: () -> Unit,
     passage: List<com.morningguard.domain.bible.BiblePassageBlock>,
     chapterHighlights: List<com.morningguard.domain.bible.BibleHighlight>,
     elapsedSec: Long,
@@ -379,6 +383,15 @@ private fun BibleGoalBody(
                     },
                 )
             }
+            if (loadError != null) {
+                BibleChapterLoadErrorBanner(
+                    message = loadError,
+                    book = book,
+                    chapter = chapter,
+                    translationLabel = translationLabel,
+                    onRetry = onRetryLoad,
+                )
+            }
             if (!browseOnly) {
                 Text(
                     "Chapter $chapter of ${BibleCanon.chapterCount(book)} · next chapter after you complete today",
@@ -399,6 +412,8 @@ private fun BibleGoalBody(
             )
             if (loading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+            } else if (loadError != null) {
+                // Error banner above already explains the failure; avoid implying stale text is shown.
             } else if (passage.isEmpty()) {
                 Text(
                     "Chapter text is not loaded yet. Check your connection — it should load automatically.",
@@ -412,6 +427,39 @@ private fun BibleGoalBody(
                     onHighlightBarStateChange = onHighlightBarStateChange,
                     defaultHighlightColorKey = defaultHighlightColorKey,
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun BibleChapterLoadErrorBanner(
+    message: String,
+    book: String,
+    chapter: Int,
+    translationLabel: String,
+    onRetry: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                "Couldn't load $book $chapter ($translationLabel)",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+            )
+            Text(
+                message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+            )
+            OutlinedButton(onClick = onRetry) {
+                Text("Retry")
             }
         }
     }
