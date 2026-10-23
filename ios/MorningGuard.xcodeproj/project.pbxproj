@@ -15,7 +15,6 @@
 		16618503AB0C5AA51FEDC877 /* FamilyControls.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AF6E1B1BFE23A7F394439DF /* FamilyControls.framework */; };
 		19B8F5862FF1840CF64C3114 /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E50DC86C7F1E9546E9949CBD /* ManagedSettings.framework */; };
 		1E0F1270747C78ED0AF49303 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0251160E737CA417B642CB04 /* HomeView.swift */; };
-		22717AAF1C4318A7725756AB /* GoalSuccessView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99694892B4E665373E8E30FA /* GoalSuccessView.swift */; };
 		23B516347DE0C936FBE2A4A9 /* MorningGoalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACA489CB0F83CBDDE5EC8AE /* MorningGoalView.swift */; };
 		29D5D7BC4117C55FF0AD2004 /* HealthKitStepReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82C564AB2B6BA80594178830 /* HealthKitStepReader.swift */; };
 		3187CCD6FC2B78573321F544 /* MorningGuardShieldConfig.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5EB14626797E34D4CD697E25 /* MorningGuardShieldConfig.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -44,6 +43,9 @@
 		9068EC237522BBD60D70F6EC /* PassphraseStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FFCDA7D42BBD179CBFEFBE /* PassphraseStore.swift */; };
 		92A50C89B06DC6BE19BC558D /* GateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3AF3B0E51E8029DB6C341EB /* GateService.swift */; };
 		92E141766FC45D480022F576 /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E50DC86C7F1E9546E9949CBD /* ManagedSettings.framework */; };
+		A8F1C2D3E4B5061728394A01 /* MGBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8F1C2D3E4B5061728394A02 /* MGBanner.swift */; };
+		A8F1C2D3E4B5061728394A03 /* MGBottomAccessory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8F1C2D3E4B5061728394A04 /* MGBottomAccessory.swift */; };
+		A8F1C2D3E4B5061728394A05 /* MGHaptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8F1C2D3E4B5061728394A06 /* MGHaptics.swift */; };
 		AA6B01F1B2C3F9072A3CA442 /* HighlightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00A5F4DD592205A39A9EAF3F /* HighlightsView.swift */; };
 		AC49F851F9F09E19243241ED /* LocalBackupRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1086E92C178BC3DD4C7FEF /* LocalBackupRepository.swift */; };
 		B07B0E1CE114B1E02C8682C0 /* BibleHighlightStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457782675C4399E0F89F2078 /* BibleHighlightStore.swift */; };
@@ -148,8 +150,10 @@
 		8DD5E7589527244CDDCA106D /* ShieldConfigurationExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldConfigurationExtension.swift; sourceTree = "<group>"; };
 		90D9266C4AF969C46EE56AC0 /* MorningGuard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MorningGuard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		94E21AC5482DB20B3A769B3D /* SharedShieldSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedShieldSupport.swift; sourceTree = "<group>"; };
-		99694892B4E665373E8E30FA /* GoalSuccessView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalSuccessView.swift; sourceTree = "<group>"; };
 		A1CC0EE43A6FEBE2A16D6AD2 /* BackupFileDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupFileDocument.swift; sourceTree = "<group>"; };
+		A8F1C2D3E4B5061728394A02 /* MGBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MGBanner.swift; sourceTree = "<group>"; };
+		A8F1C2D3E4B5061728394A04 /* MGBottomAccessory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MGBottomAccessory.swift; sourceTree = "<group>"; };
+		A8F1C2D3E4B5061728394A06 /* MGHaptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MGHaptics.swift; sourceTree = "<group>"; };
 		AA704C42B2AE3CAFAD8A7190 /* PeaceSessionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeaceSessionService.swift; sourceTree = "<group>"; };
 		AF75F5C2F1739AEB62D9C89F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		B0330BD22B2E0AE54225793F /* MorningGuardApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningGuardApp.swift; sourceTree = "<group>"; };
@@ -356,6 +360,9 @@
 		D68661B0B6415C30987BD8E4 /* Theme */ = {
 			isa = PBXGroup;
 			children = (
+				A8F1C2D3E4B5061728394A02 /* MGBanner.swift */,
+				A8F1C2D3E4B5061728394A04 /* MGBottomAccessory.swift */,
+				A8F1C2D3E4B5061728394A06 /* MGHaptics.swift */,
 				FBE493E65A0A9FD8BEAC9040 /* MGTheme.swift */,
 			);
 			path = Theme;
@@ -376,7 +383,6 @@
 				E23BE943056E3ECFE07C406B /* Bible */,
 				68D194A1FA3E9D61F393EA7E /* BibleReaderView.swift */,
 				F99E314604CBF15542E4EC9D /* EmergencyBypassView.swift */,
-				99694892B4E665373E8E30FA /* GoalSuccessView.swift */,
 				00A5F4DD592205A39A9EAF3F /* HighlightsView.swift */,
 				0251160E737CA417B642CB04 /* HomeView.swift */,
 				CACA489CB0F83CBDDE5EC8AE /* MorningGoalView.swift */,
@@ -567,7 +573,6 @@
 				BFAD4DA7B384C90B712C8306 /* DeviceActivityScheduler.swift in Sources */,
 				CA847750F63FD0EBEC5D0612 /* EmergencyBypassView.swift in Sources */,
 				92A50C89B06DC6BE19BC558D /* GateService.swift in Sources */,
-				22717AAF1C4318A7725756AB /* GoalSuccessView.swift in Sources */,
 				29D5D7BC4117C55FF0AD2004 /* HealthKitStepReader.swift in Sources */,
 				AA6B01F1B2C3F9072A3CA442 /* HighlightsView.swift in Sources */,
 				1E0F1270747C78ED0AF49303 /* HomeView.swift in Sources */,
@@ -577,6 +582,9 @@
 				AC49F851F9F09E19243241ED /* LocalBackupRepository.swift in Sources */,
 				E494CDC8424AAFE4FA7C5576 /* MGDebugFlags.swift in Sources */,
 				D932241988B4B86B725CDF94 /* MGPlatform.swift in Sources */,
+				A8F1C2D3E4B5061728394A01 /* MGBanner.swift in Sources */,
+				A8F1C2D3E4B5061728394A03 /* MGBottomAccessory.swift in Sources */,
+				A8F1C2D3E4B5061728394A05 /* MGHaptics.swift in Sources */,
 				6C1C798D7D2CDB85C58F9519 /* MGTheme.swift in Sources */,
 				5E9BDE3B1D2378470ADADBBA /* MorningAlarmScheduler.swift in Sources */,
 				23B516347DE0C936FBE2A4A9 /* MorningGoalView.swift in Sources */,

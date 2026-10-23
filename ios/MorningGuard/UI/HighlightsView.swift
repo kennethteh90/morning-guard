@@ -4,7 +4,9 @@ import MorningGuardCore
 struct HighlightsView: View {
     @Environment(AppState.self) private var appState
     @State private var search = ""
-    @State private var pendingDelete: BibleHighlight?
+    @State private var banner: MGBannerPayload?
+    @State private var pendingUndoHighlight: BibleHighlight?
+    @State private var openReader = false
 
     private var filtered: [BibleHighlight] {
         let query = search.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -32,35 +34,49 @@ struct HighlightsView: View {
                         highlight: highlight,
                         note: appState.bibleHighlightStore.displayNote(for: highlight)
                     )
-                        .swipeActions {
-                            Button("Delete", role: .destructive) {
-                                pendingDelete = highlight
-                            }
-                            ShareLink(item: BibleVerseCopyFormat.shareText(highlight: highlight)) {
-                                Label("Share", systemImage: "square.and.arrow.up")
-                            }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        openPassage(for: highlight)
+                    }
+                    .swipeActions(edge: .trailing) {
+                        Button("Delete", role: .destructive) {
+                            deleteWithUndo(highlight)
                         }
+                        ShareLink(item: BibleVerseCopyFormat.shareText(highlight: highlight)) {
+                            Label("Share", systemImage: "square.and.arrow.up")
+                        }
+                    }
                 }
             }
         }
         .navigationTitle("Saved highlights")
         .searchable(text: $search, prompt: "Search highlights")
-        .confirmationDialog(
-            "Remove highlight?",
-            isPresented: Binding(
-                get: { pendingDelete != nil },
-                set: { if !$0 { pendingDelete = nil } }
-            ),
-            titleVisibility: .visible
-        ) {
-            Button("Delete", role: .destructive) {
-                if let highlight = pendingDelete {
-                    appState.bibleHighlightStore.deleteHighlight(id: highlight.id)
-                }
-                pendingDelete = nil
-            }
-            Button("Cancel", role: .cancel) { pendingDelete = nil }
+        .overlay(alignment: .top) {
+            MGBannerOverlay(payload: banner, onUndo: undoDelete)
         }
+        .navigationDestination(isPresented: $openReader) {
+            BibleReaderView()
+        }
+    }
+
+    private func openPassage(for highlight: BibleHighlight) {
+        appState.setBibleTranslation(highlight.translationId)
+        appState.setBibleReading(book: highlight.book, chapter: highlight.chapter)
+        openReader = true
+    }
+
+    private func deleteWithUndo(_ highlight: BibleHighlight) {
+        guard let removed = appState.bibleHighlightStore.deleteHighlightReturningRemoved(id: highlight.id) else { return }
+        pendingUndoHighlight = removed
+        MGBanner.present(.undo("Highlight removed"), binding: $banner, duration: 5)
+    }
+
+    private func undoDelete() {
+        guard let highlight = pendingUndoHighlight else { return }
+        appState.bibleHighlightStore.restoreHighlight(highlight)
+        pendingUndoHighlight = nil
+        banner = nil
+        MGHaptics.lightImpact()
     }
 }
 
@@ -69,21 +85,25 @@ private struct HighlightRow: View {
     let note: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
-                Circle()
-                    .fill(BibleHighlightColorsUi.color(for: highlight.colorKey))
-                    .frame(width: 12, height: 12)
+        HStack(alignment: .top, spacing: 12) {
+            RoundedRectangle(cornerRadius: 3, style: .continuous)
+                .fill(BibleHighlightColorsUi.color(for: highlight.colorKey))
+                .frame(width: 4)
+                .padding(.vertical, 2)
+
+            VStack(alignment: .leading, spacing: 8) {
                 Text(BibleVerseCopyFormat.referenceLine(highlight: highlight))
                     .font(.headline)
-            }
-            Text(BibleVerseCopyFormat.bodyFromHighlight(highlight: highlight))
-                .font(.body)
-                .foregroundStyle(.primary)
-            if !note.isEmpty {
-                Text(note)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                Text(BibleVerseCopyFormat.bodyFromHighlight(highlight: highlight))
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                    .lineLimit(4)
+                if !note.isEmpty {
+                    Text(note)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
             }
         }
         .padding(.vertical, 4)

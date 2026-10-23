@@ -55,6 +55,22 @@ final class BibleHighlightStore {
         persist()
     }
 
+    @discardableResult
+    func deleteHighlightReturningRemoved(id: Int64) -> BibleHighlight? {
+        guard let index = highlights.firstIndex(where: { $0.id == id }) else { return nil }
+        let removed = highlights[index]
+        highlights.remove(at: index)
+        persist()
+        return removed
+    }
+
+    func restoreHighlight(_ highlight: BibleHighlight) {
+        highlights.removeAll { $0.id == highlight.id }
+        highlights.append(highlight)
+        highlights.sort { $0.createdAtEpochMs > $1.createdAtEpochMs }
+        persist()
+    }
+
     func setLastHighlightColorKey(_ key: String) {
         let normalized = BibleHighlightColors.keys.contains(key) ? key : BibleHighlightColors.defaultKey
         lastHighlightColorKey = normalized

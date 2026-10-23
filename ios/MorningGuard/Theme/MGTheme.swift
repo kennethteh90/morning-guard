@@ -24,3 +24,39 @@ struct MGCard<Content: View>: View {
             .clipShape(RoundedRectangle(cornerRadius: MGTheme.cardCornerRadius, style: .continuous))
     }
 }
+
+/// Standard Settings-style row (avoids tinted capsule `Button` styling inside `List`).
+struct MGListNavigationRow: View {
+    let title: String
+    let systemImage: String
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Label {
+                Text(title)
+                    .foregroundStyle(.primary)
+            } icon: {
+                Image(systemName: systemImage)
+                    .foregroundStyle(MGTheme.accent)
+            }
+            Spacer(minLength: 8)
+            Image(systemName: "chevron.right")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.tertiary)
+        }
+        .contentShape(Rectangle())
+    }
+}
+
+/// Full-width primary action cell inside an inset grouped list section.
+struct MGListPrimaryActionLabel: View {
+    let title: String
+
+    var body: some View {
+        Text(title)
+            .font(.body.weight(.semibold))
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.vertical, 4)
+    }
+}

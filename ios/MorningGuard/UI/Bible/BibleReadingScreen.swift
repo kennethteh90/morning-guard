@@ -7,6 +7,7 @@ struct BibleReadingScreen: View {
 
     var browseOnly: Bool
     var showsGoalProgress: Bool
+    var showsNavigationChrome: Bool = false
     var elapsedSeconds: Int = 0
     var requiredSeconds: Int = 60
 
@@ -16,7 +17,8 @@ struct BibleReadingScreen: View {
     @State private var highlightBarState: VerseHighlightBarState?
     @State private var translationSheet = false
     @State private var bookChapterSheet = false
-    @State private var savedToast = false
+    @State private var banner: MGBannerPayload?
+    @AppStorage("mg_bibleReaderTipSeen") private var bibleReaderTipSeen = false
 
     private var config: MorningGoalConfig {
         appState.settingsStore.userSettings.morningGoal
@@ -33,7 +35,6 @@ struct BibleReadingScreen: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                selectorRow
                 if let errorMessage, !loading {
                     bibleLoadErrorBanner(errorMessage)
                 }
@@ -43,9 +44,10 @@ struct BibleReadingScreen: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                Text("Tap verses to highlight. Use the bottom bar to save, add a note, or delete.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+
+                if !bibleReaderTipSeen {
+                    bibleTipCard
+                }
 
                 if loading {
                     ProgressView("Loading chapter…")
@@ -66,23 +68,32 @@ struct BibleReadingScreen: View {
                 }
             }
             .padding(MGTheme.standardPadding)
-            .padding(.bottom, highlightBarState == nil ? 72 : 180)
         }
-        .safeAreaInset(edge: .bottom) {
-            if let barState = highlightBarState {
-                VerseHighlightBottomBar(
-                    state: Binding(
-                        get: { barState },
-                        set: { highlightBarState = $0 }
-                    ),
-                    onSave: saveHighlight,
-                    onDelete: deleteHighlight,
-                    onCopy: copySelection,
-                    onDismiss: { highlightBarState = nil },
-                    onColorSelected: { appState.bibleHighlightStore.setLastHighlightColorKey($0) }
-                )
-            } else {
-                chapterNavBar
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            bottomChrome
+                .animation(.spring(duration: 0.35), value: highlightBarState != nil)
+        }
+        .overlay(alignment: .top) {
+            MGBannerOverlay(payload: banner)
+        }
+        .toolbar {
+            if showsNavigationChrome {
+                ToolbarItem(placement: .principal) {
+                    Button {
+                        bookChapterSheet = true
+                    } label: {
+                        Text("\(config.bibleBook) \(config.bibleChapter)")
+                            .font(.headline)
+                    }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        translationSheet = true
+                    } label: {
+                        Text(BibleTranslations.chipLabel(id: config.bibleTranslation))
+                            .font(.subheadline.weight(.semibold))
+                    }
+                }
             }
         }
         .task(id: chapterLoadKey) { await loadChapter() }
@@ -101,9 +112,48 @@ struct BibleReadingScreen: View {
                 }
             )
         }
-        .alert("Saved to highlights", isPresented: $savedToast) {
-            Button("OK", role: .cancel) {}
+    }
+
+    @ViewBuilder
+    private var bottomChrome: some View {
+        if let barState = highlightBarState {
+            VerseHighlightBottomBar(
+                state: Binding(
+                    get: { barState },
+                    set: { highlightBarState = $0 }
+                ),
+                onSave: saveHighlight,
+                onDelete: deleteHighlight,
+                onCopy: copySelection,
+                onDismiss: {
+                    withAnimation(.spring(duration: 0.35)) {
+                        highlightBarState = nil
+                    }
+                },
+                onColorSelected: { appState.bibleHighlightStore.setLastHighlightColorKey($0) }
+            )
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+        } else {
+            chapterNavBar
+                .transition(.move(edge: .bottom).combined(with: .opacity))
         }
+    }
+
+    private var bibleTipCard: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "hand.tap.fill")
+                .foregroundStyle(MGTheme.accent)
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Tap verses to highlight, then save from the bar below.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Button("Got it") { bibleReaderTipSeen = true }
+                    .font(.subheadline.weight(.semibold))
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(MGTheme.accent.opacity(0.1), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
     private var chapterLoadKey: String {
@@ -128,28 +178,8 @@ struct BibleReadingScreen: View {
         .accessibilityElement(children: .combine)
     }
 
-    private var selectorRow: some View {
-        HStack(spacing: 8) {
-            Button {
-                bookChapterSheet = true
-            } label: {
-                Label("\(config.bibleBook) \(config.bibleChapter)", systemImage: "book")
-                    .lineLimit(1)
-            }
-            .buttonStyle(.bordered)
-
-            Button {
-                translationSheet = true
-            } label: {
-                Text(BibleTranslations.chipLabel(id: config.bibleTranslation))
-            }
-            .buttonStyle(.bordered)
-        }
-    }
-
     private var chapterNavBar: some View {
-        VStack(spacing: 0) {
-            Divider()
+        MGBottomAccessory {
             HStack(spacing: 4) {
                 chapterNavCaretButton(
                     systemName: "chevron.left",
@@ -157,10 +187,20 @@ struct BibleReadingScreen: View {
                     action: { appState.stepBibleChapter(delta: -1) }
                 )
                 Spacer(minLength: 8)
-                Text("\(config.bibleBook) \(config.bibleChapter)")
-                    .font(.subheadline.bold())
-                    .lineLimit(1)
-                    .onTapGesture { bookChapterSheet = true }
+                if !showsNavigationChrome {
+                    Button {
+                        bookChapterSheet = true
+                    } label: {
+                        Text("\(config.bibleBook) \(config.bibleChapter)")
+                            .font(.subheadline.bold())
+                            .lineLimit(1)
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    Text(BibleTranslations.chipLabel(id: config.bibleTranslation))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
                 Spacer(minLength: 8)
                 chapterNavCaretButton(
                     systemName: "chevron.right",
@@ -169,8 +209,7 @@ struct BibleReadingScreen: View {
                 )
             }
             .padding(.horizontal, 8)
-            .padding(.vertical, 6)
-            .background(.bar)
+            .padding(.vertical, 4)
         }
     }
 
@@ -192,7 +231,9 @@ struct BibleReadingScreen: View {
         loading = true
         errorMessage = nil
         passage = nil
-        highlightBarState = nil
+        withAnimation(.spring(duration: 0.35)) {
+            highlightBarState = nil
+        }
         defer { loading = false }
         do {
             passage = try await appState.bibleClient.loadChapter(
@@ -243,14 +284,21 @@ struct BibleReadingScreen: View {
                 createdAtEpochMs: nowMs
             )
         )
-        highlightBarState = nil
-        savedToast = true
+        MGHaptics.success()
+        withAnimation(.spring(duration: 0.35)) {
+            highlightBarState = nil
+        }
+        MGBanner.present(.message("Saved to highlights"), binding: $banner)
     }
 
     private func deleteHighlight() {
         guard let existing = highlightBarState?.existingHighlight else { return }
         appState.bibleHighlightStore.deleteHighlight(id: existing.id)
-        highlightBarState = nil
+        MGHaptics.lightImpact()
+        withAnimation(.spring(duration: 0.35)) {
+            highlightBarState = nil
+        }
+        MGBanner.present(.message("Highlight removed"), binding: $banner)
     }
 
     private func copySelection() {
@@ -265,6 +313,8 @@ struct BibleReadingScreen: View {
         #if canImport(UIKit)
         UIPasteboard.general.string = text
         #endif
+        MGHaptics.lightImpact()
+        MGBanner.present(.message("Copied to clipboard"), binding: $banner)
     }
 }
 

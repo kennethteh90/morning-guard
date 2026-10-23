@@ -20,23 +20,46 @@ struct HomeView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                if MGDebugFlags.showDebugPanels {
+        List {
+            if MGDebugFlags.showDebugPanels {
+                Section {
                     debugBuildBanner
                 }
-                gateCard
-                shieldCard
-                primaryActions
-                peaceSection
-                readBibleButton
-                homeNavCard
-                iosNoteCard
-                emergencyAction
             }
-            .padding(MGTheme.standardPadding)
+
+            Section {
+                gateStatusRow
+                shieldStatusRows
+            }
+
+            primarySection
+
+            if peaceActive, let until = appState.peaceSessionService.activeUntilEpochMs {
+                peaceActiveSection(until: until)
+            } else if PeaceSessionPolicy.canOfferPeaceBreak(evaluation: evaluation, peaceSessionActive: peaceActive) {
+                Section {
+                    listNavButton(title: "Start peace break (1 hour)", systemImage: "timer") {
+                        appState.startOrExtendPeaceSession()
+                    }
+                }
+            }
+
+            Section {
+                listNavButton(title: "Read Bible", systemImage: "book.fill", action: onOpenBibleReader)
+                listNavButton(title: "Streak & stats", systemImage: "chart.bar", action: onOpenStats)
+                listNavButton(title: "Saved highlights", systemImage: "bookmark", action: onOpenHighlights)
+            }
+
+            if evaluation.state == .locked, evaluation.reason == "morning_window" {
+                Section {
+                    Button("Emergency bypass", action: onOpenEmergency)
+                        .buttonStyle(.plain)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
+            }
         }
-        .background(MGTheme.background)
+        .listStyle(.insetGrouped)
         .navigationTitle("Morning Guard")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -51,147 +74,97 @@ struct HomeView: View {
         }
     }
 
-    private var gateCard: some View {
-        MGCard {
-            VStack(alignment: .leading, spacing: 8) {
-                Label(gateTitle, systemImage: gateIcon)
-                    .font(MGTheme.titleFont)
-                Text(gateSubtitle)
-                    .foregroundStyle(.secondary)
-            }
+    private func listNavButton(title: String, systemImage: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            MGListNavigationRow(title: title, systemImage: systemImage)
         }
+        .buttonStyle(.plain)
     }
 
-    private var shieldCard: some View {
-        MGCard {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Shields")
-                    .font(MGTheme.titleFont)
-                if appState.shieldController.isAuthorized {
-                    Text("\(appState.shieldController.shieldedAppCount) apps selected")
-                    Text(appState.shieldController.shieldsApplied ? "Shields active" : "Shields off")
-                        .foregroundStyle(appState.shieldController.shieldsApplied ? .orange : .secondary)
-                } else if MGDebugFlags.relaxesShieldOnboarding {
-                    Text("Screen Time not authorized (OK in Simulator). Shields apply on a real device after authorization.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                } else {
-                    Text("Screen Time not authorized")
-                        .foregroundStyle(.secondary)
-                }
+    private var gateStatusRow: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Label(gateTitle, systemImage: gateIcon)
+                .font(.title3.weight(.semibold))
+            Text(gateSubtitle)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 4)
+    }
+
+    @ViewBuilder
+    private var shieldStatusRows: some View {
+        if appState.shieldController.isAuthorized {
+            LabeledContent("Apps shielded") {
+                Text("\(appState.shieldController.shieldedAppCount)")
             }
+            LabeledContent("Status") {
+                Text(appState.shieldController.shieldsApplied ? "Active" : "Off")
+                    .foregroundStyle(appState.shieldController.shieldsApplied ? .orange : .secondary)
+            }
+        } else if MGDebugFlags.relaxesShieldOnboarding {
+            Text("Screen Time not authorized (OK in Simulator). Shields apply on a real device after authorization.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        } else {
+            Text("Screen Time not authorized")
+                .foregroundStyle(.secondary)
         }
     }
 
     @ViewBuilder
-    private var primaryActions: some View {
+    private var primarySection: some View {
         if peaceActive {
             EmptyView()
         } else if evaluation.state == .locked, evaluation.reason == "morning_window" {
-            Button("Start morning goal", action: onOpenGoal)
-                .buttonStyle(.borderedProminent)
-                .tint(MGTheme.accent)
-                .frame(maxWidth: .infinity)
+            Section {
+                Button(action: onOpenGoal) {
+                    MGListPrimaryActionLabel(title: "Start morning goal")
+                }
+                .buttonStyle(.plain)
+                .listRowBackground(MGTheme.accent)
+            }
         } else if evaluation.state == .inactive {
-            Text("Outside your morning window. The gate activates during the hours you chose in setup.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            Section {
+                Text("Outside your morning window. The gate activates during the hours you chose in setup.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
         } else if evaluation.state == .unlocked, evaluation.reason == "goal_complete" {
-            Text("Today's morning goal is complete.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            Section {
+                Text("Today's morning goal is complete.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 
-    @ViewBuilder
-    private var peaceSection: some View {
-        if peaceActive, let until = appState.peaceSessionService.activeUntilEpochMs {
-            let remainingMin = max(1, Int((until - nowMs()) / 60_000))
-            MGCard {
-                VStack(alignment: .leading, spacing: 12) {
-                    Label("Peace break", systemImage: "leaf.fill")
-                        .font(MGTheme.titleFont)
-                        .foregroundStyle(MGTheme.accent)
-                    Text("About \(remainingMin) min left. Selected apps stay shielded—iOS has no notification digest.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    HStack(spacing: 12) {
-                        Button("End") {
-                            appState.endPeaceSession()
-                        }
-                        .buttonStyle(.bordered)
-                        Button("Extend 1 hour") {
-                            appState.startOrExtendPeaceSession()
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(MGTheme.accent)
+    private func peaceActiveSection(until: Int64) -> some View {
+        let remainingMin = max(1, Int((until - nowMs()) / 60_000))
+        return Section {
+            VStack(alignment: .leading, spacing: 10) {
+                Label("Peace break", systemImage: "leaf.fill")
+                    .font(.headline)
+                    .foregroundStyle(MGTheme.accent)
+                Text("About \(remainingMin) min left. Selected apps stay shielded.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                HStack {
+                    Button("End peace break") {
+                        appState.endPeaceSession()
                     }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.secondary)
+                    Spacer()
+                    Button("Extend 1 hour") {
+                        appState.startOrExtendPeaceSession()
+                    }
+                    .buttonStyle(.plain)
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(MGTheme.accent)
                 }
             }
-        } else if PeaceSessionPolicy.canOfferPeaceBreak(evaluation: evaluation, peaceSessionActive: peaceActive) {
-            Button {
-                appState.startOrExtendPeaceSession()
-            } label: {
-                Label("Start peace break (1 hour)", systemImage: "timer")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
-        }
-    }
-
-    private var readBibleButton: some View {
-        Button(action: onOpenBibleReader) {
-            Label("Read Bible", systemImage: "book.fill")
-                .frame(maxWidth: .infinity)
-        }
-        .buttonStyle(.bordered)
-    }
-
-    private var homeNavCard: some View {
-        MGCard {
-            VStack(spacing: 0) {
-                homeNavRow(label: "Streak & stats", systemImage: "chart.bar", action: onOpenStats)
-                Divider()
-                homeNavRow(label: "Saved highlights", systemImage: "bookmark", action: onOpenHighlights)
-            }
-        }
-    }
-
-    private func homeNavRow(label: String, systemImage: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack {
-                Image(systemName: systemImage)
-                    .foregroundStyle(MGTheme.accent)
-                Text(label)
-                    .foregroundStyle(.primary)
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.vertical, 12)
-        }
-    }
-
-    private var iosNoteCard: some View {
-        MGCard {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("On iPhone")
-                    .font(.headline)
-                Text("Peace break re-enables app shields instead of holding notifications. Use Focus in Settings for notification quiet.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
-
-    private var emergencyAction: some View {
-        Group {
-            if evaluation.state == .locked, evaluation.reason == "morning_window" {
-                Button("Emergency bypass", action: onOpenEmergency)
-                    .buttonStyle(.bordered)
-                    .frame(maxWidth: .infinity)
-            }
+            .padding(.vertical, 4)
         }
     }
 
@@ -253,9 +226,6 @@ struct HomeView: View {
                 .font(.caption)
         }
         .foregroundStyle(MGTheme.accent)
-        .padding(10)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(MGTheme.accent.opacity(0.12))
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .listRowBackground(MGTheme.accent.opacity(0.12))
     }
 }

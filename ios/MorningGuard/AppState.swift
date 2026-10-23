@@ -158,6 +158,10 @@ final class AppState {
         setBibleReading(book: book, chapter: chapter)
     }
 
+    func finalizeBibleReadingAfterGoalSessionIfNeeded() {
+        gateService.finalizeBibleReadingAfterGoalSessionIfNeeded()
+    }
+
     func stepBibleChapter(delta: Int) {
         let goal = settingsStore.userSettings.morningGoal
         let next: (String, Int)

@@ -2,7 +2,8 @@
 # Build and run Morning Guard on the iOS Simulator (no paid Apple Developer account required).
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$ROOT"
 
 if ! xcode-select -p 2>/dev/null | grep -q "Xcode.app"; then
@@ -13,7 +14,7 @@ fi
 
 SIM_NAME="${SIMULATOR_NAME:-iPhone 17}"
 
-"$(dirname "$0")/generate-xcodeproj.sh"
+"$SCRIPT_DIR/generate-xcodeproj.sh"
 
 xcodebuild \
   -project MorningGuard.xcodeproj \

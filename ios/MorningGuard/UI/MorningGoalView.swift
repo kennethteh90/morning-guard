@@ -29,6 +29,19 @@ struct MorningGoalView: View {
         .background(MGTheme.background)
         .navigationTitle("Morning goal")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if config.type == .bibleChapter {
+                ToolbarItem(placement: .principal) {
+                    VStack(spacing: 2) {
+                        Text(headerTitle)
+                            .font(.subheadline.weight(.semibold))
+                        Text(bibleToolbarSubtitle)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
         .task { await onAppearWork() }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
@@ -37,10 +50,10 @@ struct MorningGoalView: View {
                 stopTicker()
             }
         }
-        .onDisappear { stopTicker() }
-        .onChange(of: progress?.isComplete) { _, complete in
-            if complete == true {
-                onCompleted()
+        .onDisappear {
+            stopTicker()
+            if progress?.isComplete == true {
+                appState.finalizeBibleReadingAfterGoalSessionIfNeeded()
             }
         }
     }
@@ -52,9 +65,6 @@ struct MorningGoalView: View {
                     .padding(.horizontal, MGTheme.standardPadding)
                     .padding(.top, 8)
             }
-            header
-                .padding(.horizontal, MGTheme.standardPadding)
-                .padding(.top, 8)
             BibleReadingScreen(
                 browseOnly: false,
                 showsGoalProgress: true,
@@ -169,20 +179,77 @@ struct MorningGoalView: View {
     }
 
     private var completionFooter: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             if let progress {
-                Text(progressLabel(progress: progress))
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            }
-            if appState.gateService.canComplete(currentSteps: todaySteps) {
-                Button("Mark complete") {
-                    appState.gateService.markComplete()
-                    appState.shieldController.refreshShields()
+                if progress.isComplete {
+                    goalCompleteCard
+                } else {
+                    Text(progressLabel(progress: progress))
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                    if appState.gateService.canComplete(currentSteps: todaySteps) {
+                        Button {
+                            completeGoalExplicitly()
+                        } label: {
+                            Label("Complete morning goal", systemImage: "checkmark.circle.fill")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(MGTheme.accent)
+                    } else {
+                        Text(completionHint)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
-                .buttonStyle(.borderedProminent)
             }
         }
+    }
+
+    private var goalCompleteCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("Morning goal complete", systemImage: "sun.max.fill")
+                .font(.headline)
+                .foregroundStyle(MGTheme.accent)
+            Text(config.type == .bibleChapter
+                ? "Your apps are unlocked. Keep reading here or go home when you're ready."
+                : "Your apps are unlocked for today.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            Button("Back to home") {
+                leaveGoalScreen()
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(MGTheme.accent)
+            .frame(maxWidth: .infinity)
+        }
+        .padding(MGTheme.standardPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(MGTheme.surface)
+        .clipShape(RoundedRectangle(cornerRadius: MGTheme.cardCornerRadius, style: .continuous))
+    }
+
+    private var completionHint: String {
+        switch config.type {
+        case .bibleChapter:
+            return "Stay on this screen until you've read for at least 60 seconds, then tap Complete morning goal."
+        case .timedFocus:
+            return "Keep this screen open until the timer finishes."
+        case .stepCount:
+            return "Walk until you reach your step target, then tap Complete morning goal."
+        }
+    }
+
+    private func completeGoalExplicitly() {
+        appState.gateService.markComplete()
+        appState.shieldController.refreshShields()
+        MGHaptics.success()
+        stopTicker()
+    }
+
+    private func leaveGoalScreen() {
+        appState.finalizeBibleReadingAfterGoalSessionIfNeeded()
+        onCompleted()
     }
 
     private var headerTitle: String {
@@ -191,6 +258,10 @@ struct MorningGoalView: View {
         case .timedFocus: "Timed focus"
         case .stepCount: "Step count"
         }
+    }
+
+    private var bibleToolbarSubtitle: String {
+        "Chapter \(config.bibleChapter) of \(BibleCanon.chapterCount(bookName: config.bibleBook)) · stay on this screen"
     }
 
     private var headerSubtitle: String {

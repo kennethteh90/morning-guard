@@ -5,7 +5,6 @@ struct RootView: View {
     @State private var showGoal = false
     @State private var showSettings = false
     @State private var showEmergency = false
-    @State private var showSuccess = false
     @State private var showBibleReader = false
     @State private var showHighlights = false
     @State private var showStats = false
@@ -23,10 +22,7 @@ struct RootView: View {
                         onOpenEmergency: { showEmergency = true }
                     )
                     .navigationDestination(isPresented: $showGoal) {
-                        MorningGoalView(onCompleted: {
-                            showGoal = false
-                            showSuccess = true
-                        })
+                        MorningGoalView(onCompleted: { showGoal = false })
                     }
                     .navigationDestination(isPresented: $showBibleReader) {
                         BibleReaderView()
@@ -42,9 +38,6 @@ struct RootView: View {
                     }
                     .navigationDestination(isPresented: $showEmergency) {
                         EmergencyBypassView()
-                    }
-                    .navigationDestination(isPresented: $showSuccess) {
-                        GoalSuccessView(onDone: { showSuccess = false })
                     }
                 }
             } else {

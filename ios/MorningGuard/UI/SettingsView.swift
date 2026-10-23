@@ -72,6 +72,12 @@ struct SettingsView: View {
                 }
             }
 
+            Section("On iPhone") {
+                Text("Peace break re-enables app shields instead of holding notifications. Use Focus in Settings for notification quiet.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Section("Shields") {
                 Text("To fully remove shields, revoke Screen Time access for Morning Guard in Settings → Screen Time, or clear your app selection during onboarding.")
                     .font(.caption)

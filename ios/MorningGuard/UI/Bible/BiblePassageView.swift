@@ -57,21 +57,22 @@ struct BiblePassageView: View {
                     VerseLineView(
                         verseNumber: number,
                         text: text,
-                        highlightBackground: saved != nil && !isSelected
-                            ? BibleHighlightColorsUi.color(for: saved!.colorKey).opacity(BibleHighlightColorsUi.savedVerseHighlightOpacity)
-                            : nil,
-                        showSelectionUnderline: isSelected
+                        highlightBackground: verseBackground(saved: saved, isSelected: isSelected),
+                        showSelection: isSelected
                     ) {
                         guard verseSelectionEnabled else { return }
+                        MGHaptics.selection()
                         if let saved {
                             let verses = BibleHighlightVerses.numbers(highlight: saved)
-                            highlightBarState = VerseHighlightBarState(
-                                selectedVerses: verses,
-                                verseSnippets: verseSnippets,
-                                colorKey: saved.colorKey,
-                                note: decryptNote(saved),
-                                existingHighlight: saved
-                            )
+                            withAnimation(.spring(duration: 0.35)) {
+                                highlightBarState = VerseHighlightBarState(
+                                    selectedVerses: verses,
+                                    verseSnippets: verseSnippets,
+                                    colorKey: saved.colorKey,
+                                    note: decryptNote(saved),
+                                    existingHighlight: saved
+                                )
+                            }
                             return
                         }
                         var selected = highlightBarState?.selectedVerses ?? []
@@ -81,15 +82,19 @@ struct BiblePassageView: View {
                             selected.insert(number)
                         }
                         if selected.isEmpty {
-                            highlightBarState = nil
+                            withAnimation(.spring(duration: 0.35)) {
+                                highlightBarState = nil
+                            }
                         } else {
-                            highlightBarState = VerseHighlightBarState(
-                                selectedVerses: selected,
-                                verseSnippets: verseSnippets,
-                                colorKey: highlightBarState?.colorKey ?? defaultHighlightColorKey,
-                                note: highlightBarState?.note ?? "",
-                                existingHighlight: nil
-                            )
+                            withAnimation(.spring(duration: 0.35)) {
+                                highlightBarState = VerseHighlightBarState(
+                                    selectedVerses: selected,
+                                    verseSnippets: verseSnippets,
+                                    colorKey: highlightBarState?.colorKey ?? defaultHighlightColorKey,
+                                    note: highlightBarState?.note ?? "",
+                                    existingHighlight: nil
+                                )
+                            }
                         }
                     }
                 }
@@ -99,13 +104,24 @@ struct BiblePassageView: View {
             highlightBarState = nil
         }
     }
+
+    private func verseBackground(saved: BibleHighlight?, isSelected: Bool) -> Color? {
+        if isSelected {
+            return MGTheme.accent.opacity(0.14)
+        }
+        if let saved {
+            return BibleHighlightColorsUi.color(for: saved.colorKey)
+                .opacity(BibleHighlightColorsUi.savedVerseHighlightOpacity)
+        }
+        return nil
+    }
 }
 
 private struct VerseLineView: View {
     let verseNumber: Int
     let text: String
     let highlightBackground: Color?
-    let showSelectionUnderline: Bool
+    let showSelection: Bool
     let onTap: () -> Void
 
     var body: some View {
@@ -117,17 +133,22 @@ private struct VerseLineView: View {
                     .frame(minWidth: 22, alignment: .trailing)
                 Text(text)
                     .font(.body)
+                    .lineSpacing(4)
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(.vertical, 4)
-            .padding(.horizontal, 6)
-            .background(highlightBackground ?? .clear)
-            .overlay(alignment: .bottom) {
-                if showSelectionUnderline {
-                    Rectangle()
-                        .fill(MGTheme.accent)
-                        .frame(height: 2)
+            .padding(.vertical, 6)
+            .padding(.horizontal, 8)
+            .background {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(highlightBackground ?? .clear)
+            }
+            .overlay(alignment: .trailing) {
+                if showSelection {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(MGTheme.accent)
+                        .padding(.trailing, 4)
                 }
             }
         }

@@ -53,7 +53,7 @@ final class GateService {
         let updated = progress.withOnScreenSeconds(progress.onScreenSeconds + 1)
         settingsStore.updateGoalProgress { $0.withProgress(updated) }
         settingsStore.recordGoalScreenSeconds(dateKey: updated.dateKey, seconds: updated.onScreenSeconds)
-        tryAutoComplete(progress: updated, currentSteps: nil)
+        refresh()
     }
 
     func syncStepCount(_ totalToday: Int) {
@@ -70,7 +70,7 @@ final class GateService {
         if merged != progress {
             settingsStore.updateGoalProgress { $0.withProgress(merged) }
             settingsStore.recordGoalStepsForDate(dateKey: merged.dateKey, steps: merged.stepsAccumulated)
-            tryAutoComplete(progress: merged, currentSteps: totalToday)
+            refresh()
         }
     }
 
@@ -97,16 +97,23 @@ final class GateService {
                 stepsOnGoal: progress.stepsAccumulated
             )
         } else {
-            var completedConfig = config
-            if config.type == .bibleChapter {
-                settingsStore.advanceBibleReadingAfterComplete()
-                completedConfig = settingsStore.userSettings.morningGoal
-            }
-            let completed = progress.withCompleted(at: now).withConfig(completedConfig)
+            let completed = progress.withCompleted(at: now).withConfig(config)
             settingsStore.updateGoalProgress { $0.withProgress(completed) }
             settingsStore.recordMorningOutcome(dateKey: progress.dateKey, outcome: .goalCompleted)
         }
         refresh()
+    }
+
+    /// Advances the assigned Bible chapter after the user leaves the goal screen (keeps today's chapter while they keep reading).
+    func finalizeBibleReadingAfterGoalSessionIfNeeded() {
+        guard let progress = settingsStore.goalProgressStore.progress,
+              progress.isComplete,
+              progress.config.type == .bibleChapter else { return }
+        let goal = settingsStore.userSettings.morningGoal
+        guard goal.type == .bibleChapter,
+              goal.bibleBook.caseInsensitiveCompare(progress.config.bibleBook) == .orderedSame,
+              goal.bibleChapter == progress.config.bibleChapter else { return }
+        settingsStore.advanceBibleReadingAfterComplete()
     }
 
     func activateEmergencyBypass(expiresAtMs: Int64) {
@@ -116,18 +123,6 @@ final class GateService {
             return copy
         }
         refresh()
-    }
-
-    private func tryAutoComplete(progress: MorningGoalProgress, currentSteps: Int?) {
-        if completionVerifier.canMarkComplete(
-            progress: progress,
-            activeConfig: settingsStore.userSettings.morningGoal,
-            currentSteps: currentSteps
-        ) {
-            markComplete()
-        } else {
-            refresh()
-        }
     }
 
     private func syncProgressWithSettings(_ progress: MorningGoalProgress) -> MorningGoalProgress {
