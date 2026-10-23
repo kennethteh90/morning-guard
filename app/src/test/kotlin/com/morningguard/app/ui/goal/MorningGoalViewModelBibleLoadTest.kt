@@ -16,6 +16,7 @@ import com.morningguard.domain.bible.BiblePassageBlock
 import com.morningguard.domain.model.GoalType
 import com.morningguard.domain.model.MorningGoalConfig
 import com.morningguard.domain.model.UserSettings
+import io.mockk.coAnswers
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -23,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -99,10 +101,11 @@ class MorningGoalViewModelBibleLoadTest {
     @Test
     fun `failed chapter load clears passage and sets bible load error`() = runTest {
         coEvery {
-            bibleRepository.loadChapter("nkjv", "John", 3)
+            bibleRepository.loadChapter(any(), any(), any())
         } returns Result.failure(IllegalStateException("Licensed proxy unavailable"))
 
         val viewModel = viewModel()
+        val collectJob = backgroundScope.launch { viewModel.uiState.collect { } }
         viewModel.setBrowseOnly(true)
         advanceUntilIdle()
 
@@ -110,19 +113,26 @@ class MorningGoalViewModelBibleLoadTest {
         assertEquals("Licensed proxy unavailable", state.bibleLoadError)
         assertTrue(state.biblePassage.isEmpty())
         assertNull(state.error)
+        collectJob.cancel()
     }
 
     @Test
     fun `successful chapter load clears bible load error`() = runTest {
         val blocks = listOf(BiblePassageBlock.Paragraph("1. In the beginning"))
+        var loadAttempts = 0
         coEvery {
-            bibleRepository.loadChapter("nkjv", "John", 3)
-        } returnsMany listOf(
-            Result.failure(IllegalStateException("temporary")),
-            Result.success(BibleChapterContent("John 3", blocks)),
-        )
+            bibleRepository.loadChapter(any(), any(), any())
+        } coAnswers {
+            loadAttempts += 1
+            if (loadAttempts < 3) {
+                Result.failure(IllegalStateException("temporary"))
+            } else {
+                Result.success(BibleChapterContent("John 3", blocks))
+            }
+        }
 
         val viewModel = viewModel()
+        val collectJob = backgroundScope.launch { viewModel.uiState.collect { } }
         viewModel.setBrowseOnly(true)
         advanceUntilIdle()
         assertEquals("temporary", viewModel.uiState.value.bibleLoadError)
@@ -133,5 +143,6 @@ class MorningGoalViewModelBibleLoadTest {
         val state = viewModel.uiState.value
         assertNull(state.bibleLoadError)
         assertEquals(blocks, state.biblePassage)
+        collectJob.cancel()
     }
 }
