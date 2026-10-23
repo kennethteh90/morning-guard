@@ -150,32 +150,42 @@ struct BibleReadingScreen: View {
     private var chapterNavBar: some View {
         VStack(spacing: 0) {
             Divider()
-            HStack {
-                Button {
-                    appState.stepBibleChapter(delta: -1)
-                } label: {
-                    Image(systemName: "chevron.left")
-                }
-                .accessibilityLabel("Previous chapter")
-
-                Spacer()
+            HStack(spacing: 4) {
+                chapterNavCaretButton(
+                    systemName: "chevron.left",
+                    accessibilityLabel: "Previous chapter",
+                    action: { appState.stepBibleChapter(delta: -1) }
+                )
+                Spacer(minLength: 8)
                 Text("\(config.bibleBook) \(config.bibleChapter)")
                     .font(.subheadline.bold())
                     .lineLimit(1)
                     .onTapGesture { bookChapterSheet = true }
-
-                Spacer()
-                Button {
-                    appState.stepBibleChapter(delta: 1)
-                } label: {
-                    Image(systemName: "chevron.right")
-                }
-                .accessibilityLabel("Next chapter")
+                Spacer(minLength: 8)
+                chapterNavCaretButton(
+                    systemName: "chevron.right",
+                    accessibilityLabel: "Next chapter",
+                    action: { appState.stepBibleChapter(delta: 1) }
+                )
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
             .background(.bar)
         }
+    }
+
+    private func chapterNavCaretButton(
+        systemName: String,
+        accessibilityLabel: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(accessibilityLabel)
     }
 
     private func loadChapter() async {

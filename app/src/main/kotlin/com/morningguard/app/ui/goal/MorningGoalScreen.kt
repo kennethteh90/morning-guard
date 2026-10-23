@@ -2,6 +2,7 @@ package com.morningguard.app.ui.goal
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -491,25 +493,29 @@ private fun BibleChapterNavBar(
                 contentDescription = "Previous chapter",
                 onClick = onPrevious,
             )
-            Text(
-                "$book $chapter",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .weight(1f)
-                    .alpha(titleAlpha)
-                    .then(
-                        if (titleAlpha > 0.2f) {
-                            Modifier.clickable(onClick = onOpenBookChapter, role = Role.Button)
-                        } else {
-                            Modifier
-                        },
-                    )
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-            )
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    "$book $chapter",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .alpha(titleAlpha)
+                        .then(
+                            if (titleAlpha > 0.2f) {
+                                Modifier.clickable(onClick = onOpenBookChapter, role = Role.Button)
+                            } else {
+                                Modifier
+                            },
+                        )
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                )
+            }
             ChapterNavCaret(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = "Next chapter",
@@ -525,15 +531,17 @@ private fun ChapterNavCaret(
     contentDescription: String,
     onClick: () -> Unit,
 ) {
-    Icon(
-        imageVector = imageVector,
-        contentDescription = contentDescription,
-        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier
-            .clickable(onClick = onClick, role = Role.Button)
-            .padding(horizontal = 4.dp, vertical = 2.dp)
-            .size(22.dp),
-    )
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier.size(48.dp),
+    ) {
+        Icon(
+            imageVector = imageVector,
+            contentDescription = contentDescription,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(22.dp),
+        )
+    }
 }
 
 @Composable
