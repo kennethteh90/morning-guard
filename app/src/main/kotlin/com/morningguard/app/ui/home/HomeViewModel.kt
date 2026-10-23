@@ -33,7 +33,6 @@ data class HomeUiState(
     val authState: AuthState = AuthState.Unconfigured,
     val signedInEmail: String? = null,
     val peaceSessionUntilEpochMs: Long? = null,
-    val morningGoalCompleteToday: Boolean = false,
 )
 
 @HiltViewModel
@@ -60,9 +59,6 @@ class HomeViewModel @Inject constructor(
     ) { gate, digest, access, auth, store ->
         val now = System.currentTimeMillis()
         val peaceUntil = store.peaceSessionUntilEpochMs?.takeIf { it > now }
-        val dateKey = java.time.LocalDate.now().toString()
-        val progress = store.progress
-        val goalCompleteToday = progress?.dateKey == dateKey && progress.isComplete
         HomeUiState(
             gate = gate,
             digest = digest,
@@ -71,7 +67,6 @@ class HomeViewModel @Inject constructor(
             authState = auth,
             signedInEmail = (auth as? AuthState.SignedIn)?.user?.email,
             peaceSessionUntilEpochMs = peaceUntil,
-            morningGoalCompleteToday = goalCompleteToday,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 

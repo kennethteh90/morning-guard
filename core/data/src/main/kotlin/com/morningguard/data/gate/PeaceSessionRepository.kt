@@ -1,22 +1,15 @@
 package com.morningguard.data.gate
 
 import com.morningguard.data.settings.SettingsRepository
-import java.time.LocalDate
-import java.time.ZoneId
+import com.morningguard.domain.gate.PeaceBreakPolicy
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class PeaceSessionRepository @Inject constructor(
     private val settingsRepository: SettingsRepository,
-    private val zoneId: ZoneId = ZoneId.systemDefault(),
+    private val morningGateRepository: MorningGateRepository,
 ) {
-    suspend fun morningGoalCompleteToday(): Boolean {
-        val store = settingsRepository.currentGoalStore()
-        val dateKey = LocalDate.now(zoneId).toString()
-        val progress = store.progress
-        return progress?.dateKey == dateKey && progress.isComplete
-    }
     suspend fun peaceSessionActiveUntil(nowMs: Long = System.currentTimeMillis()): Long? {
         reconcileStoredPeaceSession(nowMs)
         val until = settingsRepository.currentGoalStore().peaceSessionUntilEpochMs ?: return null
@@ -27,7 +20,8 @@ class PeaceSessionRepository @Inject constructor(
         reconcileStoredPeaceSession(nowMs)
         val store = settingsRepository.currentGoalStore()
         val peaceActive = store.peaceSessionUntilEpochMs?.let { it > nowMs } == true
-        if (!peaceActive && !morningGoalCompleteToday()) {
+        val gate = morningGateRepository.evaluateNow()
+        if (!peaceActive && PeaceBreakPolicy.isMorningGoalActive(gate)) {
             return store.peaceSessionUntilEpochMs ?: nowMs
         }
         val base = store.peaceSessionUntilEpochMs?.takeIf { it > nowMs } ?: nowMs

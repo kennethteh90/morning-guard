@@ -96,7 +96,7 @@ struct HomeView: View {
             Text("Outside your morning window. The gate activates during the hours you chose in setup.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-        } else if evaluation.state == .unlocked, goalCompleteToday {
+        } else if evaluation.state == .unlocked, evaluation.reason == "goal_complete" {
             Text("Today's morning goal is complete.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -128,7 +128,7 @@ struct HomeView: View {
                     }
                 }
             }
-        } else if goalCompleteToday, !peaceActive {
+        } else if PeaceSessionPolicy.canOfferPeaceBreak(evaluation: evaluation, peaceSessionActive: peaceActive) {
             Button {
                 appState.startOrExtendPeaceSession()
             } label: {
@@ -193,10 +193,6 @@ struct HomeView: View {
                     .frame(maxWidth: .infinity)
             }
         }
-    }
-
-    private var goalCompleteToday: Bool {
-        appState.peaceSessionService.morningGoalCompleteToday
     }
 
     private var gateTitle: String {

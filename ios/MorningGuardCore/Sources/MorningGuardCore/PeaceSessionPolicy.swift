@@ -11,11 +11,11 @@ public enum PeaceSessionPolicy {
         return until
     }
 
-    public static func morningGoalCompleteToday(
-        progress: MorningGoalProgress?,
-        dateKey: String
-    ) -> Bool {
-        guard let progress, progress.dateKey == dateKey, progress.isComplete else { return false }
-        return true
+    public static func isMorningGoalActive(evaluation: GateEvaluation) -> Bool {
+        evaluation.state == .locked && evaluation.reason == "morning_window"
+    }
+
+    public static func canOfferPeaceBreak(evaluation: GateEvaluation, peaceSessionActive: Bool) -> Bool {
+        !peaceSessionActive && !isMorningGoalActive(evaluation: evaluation)
     }
 }

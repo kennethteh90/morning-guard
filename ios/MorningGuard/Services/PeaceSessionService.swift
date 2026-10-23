@@ -19,13 +19,6 @@ final class PeaceSessionService {
         )
     }
 
-    var morningGoalCompleteToday: Bool {
-        PeaceSessionPolicy.morningGoalCompleteToday(
-            progress: settingsStore.goalProgressStore.progress,
-            dateKey: gateService.evaluation.dateKey
-        )
-    }
-
     func reconcileStoredPeaceSession() {
         let nowMs = Self.nowMs()
         guard let until = settingsStore.goalProgressStore.peaceSessionUntilEpochMs else { return }
@@ -46,7 +39,7 @@ final class PeaceSessionService {
         let store = settingsStore.goalProgressStore
         let peaceActive = PeaceSessionPolicy.activeUntil(storedUntilEpochMs: store.peaceSessionUntilEpochMs, nowMs: nowMs) != nil
 
-        if !peaceActive, !morningGoalCompleteToday {
+        if !peaceActive, PeaceSessionPolicy.isMorningGoalActive(evaluation: gateService.evaluation) {
             return store.peaceSessionUntilEpochMs ?? nowMs
         }
 

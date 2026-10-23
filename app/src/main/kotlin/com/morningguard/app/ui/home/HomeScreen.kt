@@ -62,6 +62,7 @@ import com.morningguard.app.platform.PresenterMode
 import com.morningguard.data.auth.AuthState
 import com.morningguard.domain.gate.GateDigestPolicy
 import com.morningguard.domain.gate.GateState
+import com.morningguard.domain.gate.PeaceBreakPolicy
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -307,9 +308,8 @@ fun HomeScreen(
                     }
                 }
 
-                val morningGoalActive =
-                    state.gate?.state == GateState.LOCKED && state.gate?.reason == "morning_window"
-                if (state.morningGoalCompleteToday && !morningGoalActive) {
+                val gate = state.gate
+                if (gate != null && PeaceBreakPolicy.canOfferPeaceBreak(gate, peaceActive)) {
                     OutlinedButton(
                         onClick = { viewModel.startOrExtendPeaceSession() },
                         modifier = Modifier.fillMaxWidth(),
