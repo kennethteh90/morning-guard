@@ -90,7 +90,11 @@ class GoalCompletionVerifier(
         return when (activeConfig.type) {
             GoalType.BIBLE_CHAPTER -> bibleChapterComplete(progress, minimumReadSeconds = 60)
             GoalType.TIMED_FOCUS -> timedFocusComplete(progress, activeConfig.focusMinutes)
-            GoalType.STEP_COUNT -> stepCountComplete(progress, activeConfig.stepTarget)
+            GoalType.STEP_COUNT -> {
+                val steps = currentSteps?.let { kotlin.math.max(progress.stepsAccumulated, it) }
+                    ?: progress.stepsAccumulated
+                stepCountComplete(progress.copy(stepsAccumulated = steps), activeConfig.stepTarget)
+            }
         }
     }
 }

@@ -27,6 +27,7 @@ object CaptureQualityPolicy {
         "new emails",
     )
 
+    @Suppress("UnusedParameter")
     fun shouldPersist(
         packageName: String,
         title: String,

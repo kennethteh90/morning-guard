@@ -15,7 +15,6 @@ class BibleRepository @Inject constructor(
     private val bibleProxyConfig: BibleProxyConfig,
 ) {
     suspend fun loadChapter(translation: String, book: String, chapter: Int): Result<BibleChapterContent> {
-        val fallbackReference = "$book $chapter"
         val option = BibleTranslations.find(translation)
             ?: return loadOpenBibleChapter(BibleTranslations.defaultId, book, chapter)
 
@@ -24,35 +23,37 @@ class BibleRepository @Inject constructor(
                 translation = BibleTranslations.normalizeId(translation),
                 book = book,
                 chapter = chapter,
-                fallbackReference = fallbackReference,
                 label = option.chipLabel,
             )
-            BibleTranslationSource.OPEN_BIBLE -> {
-                if (bibleProxyConfig.isConfigured) {
-                    val viaProxy = bibleProxyClient.loadChapter(
-                        translation = BibleTranslations.normalizeId(translation),
-                        book = book,
-                        chapter = chapter,
-                    )
-                    if (viaProxy.isSuccess) {
-                        val result = viaProxy.getOrThrow()
-                        if (!paragraphsLackVerseMarkers(result.blocks)) {
-                            return Result.success(
-                                BibleChapterContent(result.reference, result.blocks),
-                            )
-                        }
-                    }
+            BibleTranslationSource.OPEN_BIBLE -> loadOpenBibleWithOptionalProxy(
+                translation = BibleTranslations.normalizeId(translation),
+                book = book,
+                chapter = chapter,
+            )
+        }
+    }
+
+    private suspend fun loadOpenBibleWithOptionalProxy(
+        translation: String,
+        book: String,
+        chapter: Int,
+    ): Result<BibleChapterContent> {
+        if (bibleProxyConfig.isConfigured) {
+            val viaProxy = bibleProxyClient.loadChapter(translation, book, chapter)
+            if (viaProxy.isSuccess) {
+                val result = viaProxy.getOrThrow()
+                if (!paragraphsLackVerseMarkers(result.blocks)) {
+                    return Result.success(BibleChapterContent(result.reference, result.blocks))
                 }
-                loadOpenBibleChapter(BibleTranslations.normalizeId(translation), book, chapter)
             }
         }
+        return loadOpenBibleChapter(translation, book, chapter)
     }
 
     private suspend fun loadLicensedViaProxy(
         translation: String,
         book: String,
         chapter: Int,
-        fallbackReference: String,
         label: String,
     ): Result<BibleChapterContent> {
         bibleProxyConfig.missingPieceMessage?.let { hint ->

@@ -59,7 +59,7 @@ object BibleTranslations {
         BibleTranslationOption("cherokee", "CHEROKEE", "Cherokee New Testament", language = "Cherokee"),
     )
 
-    val defaultId: String = "niv"
+    const val defaultId: String = "niv"
 
     fun find(id: String): BibleTranslationOption? =
         supported.firstOrNull { it.id.equals(id, ignoreCase = true) }

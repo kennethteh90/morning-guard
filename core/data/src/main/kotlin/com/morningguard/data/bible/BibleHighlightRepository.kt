@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
+@Suppress("TooManyFunctions")
 @Singleton
 class BibleHighlightRepository @Inject constructor(
     private val dao: BibleHighlightDao,
@@ -84,12 +85,38 @@ class BibleHighlightRepository @Inject constructor(
     }
 
     private suspend fun mergeFromRemote(remoteHighlights: List<BibleHighlight>) {
-        for (remote in remoteHighlights) {
-            if (remote.remoteId <= 0) continue
-            val existingByRemote = dao.findByRemoteId(remote.remoteId)
-            if (existingByRemote != null) {
+        remoteHighlights.filter { it.remoteId > 0 }.forEach { mergeOneRemote(it) }
+    }
+
+    private suspend fun mergeOneRemote(remote: BibleHighlight) {
+        val existingByRemote = dao.findByRemoteId(remote.remoteId)
+        if (existingByRemote != null) {
+            dao.update(
+                existingByRemote.copy(
+                    translationId = remote.translationId,
+                    book = remote.book,
+                    chapter = remote.chapter,
+                    label = remote.label,
+                    excerpt = remote.excerpt,
+                    verse = remote.verse,
+                    verseEnd = remote.verseEnd,
+                    verseNumbers = remote.verseNumbers,
+                    colorKey = remote.colorKey,
+                    note = remote.note,
+                    selectionStart = remote.selectionStart,
+                    selectionEnd = remote.selectionEnd,
+                    createdAtEpochMs = remote.createdAtEpochMs,
+                ),
+            )
+            return
+        }
+        val localId = remote.id.takeIf { it > 0 }
+        if (localId != null) {
+            val local = dao.listAll().find { it.id == localId }
+            if (local != null) {
                 dao.update(
-                    existingByRemote.copy(
+                    local.copy(
+                        remoteId = remote.remoteId,
                         translationId = remote.translationId,
                         book = remote.book,
                         chapter = remote.chapter,
@@ -102,38 +129,13 @@ class BibleHighlightRepository @Inject constructor(
                         note = remote.note,
                         selectionStart = remote.selectionStart,
                         selectionEnd = remote.selectionEnd,
-                        createdAtEpochMs = remote.createdAtEpochMs,
                     ),
                 )
-                continue
+                return
             }
-            val localId = remote.id.takeIf { it > 0 }
-            if (localId != null) {
-                val local = dao.listAll().find { it.id == localId }
-                if (local != null) {
-                    dao.update(
-                        local.copy(
-                            remoteId = remote.remoteId,
-                            translationId = remote.translationId,
-                            book = remote.book,
-                            chapter = remote.chapter,
-                            label = remote.label,
-                            excerpt = remote.excerpt,
-                            verse = remote.verse,
-                            verseEnd = remote.verseEnd,
-                            verseNumbers = remote.verseNumbers,
-                            colorKey = remote.colorKey,
-                            note = remote.note,
-                            selectionStart = remote.selectionStart,
-                            selectionEnd = remote.selectionEnd,
-                        ),
-                    )
-                    continue
-                }
-            }
-            dao.insert(
-                remote.copy(id = 0).toEntity().copy(remoteId = remote.remoteId),
-            )
         }
+        dao.insert(
+            remote.copy(id = 0).toEntity().copy(remoteId = remote.remoteId),
+        )
     }
 }

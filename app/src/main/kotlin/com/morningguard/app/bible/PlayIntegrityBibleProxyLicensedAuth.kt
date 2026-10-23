@@ -57,10 +57,8 @@ class PlayIntegrityBibleProxyLicensedAuth @Inject constructor(
             .post("".toRequestBody("application/json".toMediaType()))
             .build()
         challengeClient.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                throw IllegalStateException("Bible proxy challenge failed (${response.code})")
-            }
-            val body = response.body?.string() ?: throw IllegalStateException("Empty challenge response")
+            check(response.isSuccessful) { "Bible proxy challenge failed (${response.code})" }
+            val body = response.body?.string() ?: error("Empty challenge response")
             val json = JSONObject(body)
             return json.getString("nonce")
         }
@@ -68,7 +66,7 @@ class PlayIntegrityBibleProxyLicensedAuth @Inject constructor(
 
     private suspend fun requestIntegrityToken(nonce: String): String = suspendCoroutine { cont ->
         val cloudProject = BuildConfig.PLAY_CLOUD_PROJECT_NUMBER.trim().toLongOrNull()
-            ?: throw IllegalStateException("PLAY_CLOUD_PROJECT_NUMBER is not configured")
+            ?: error("PLAY_CLOUD_PROJECT_NUMBER is not configured")
         val nonceBytes = Base64.encodeToString(
             nonce.toByteArray(Charsets.UTF_8),
             Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING,

@@ -8,6 +8,7 @@ import com.morningguard.data.local.entity.CapturedNotificationEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
+@Suppress("TooManyFunctions")
 interface CapturedNotificationDao {
     @Insert
     suspend fun insert(entity: CapturedNotificationEntity): Long

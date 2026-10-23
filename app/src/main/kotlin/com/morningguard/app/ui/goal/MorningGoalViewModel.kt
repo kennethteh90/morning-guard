@@ -397,22 +397,27 @@ class MorningGoalViewModel @Inject constructor(
     private suspend fun runOnScreenTicker() {
         while (goalScreenForeground.value) {
             kotlinx.coroutines.delay(1_000)
-            if (!goalScreenForeground.value) break
-            val settings = settingsRepository.currentSettings()
-            if (settings.morningGoal.type == GoalType.STEP_COUNT) continue
-            val store = settingsRepository.currentGoalStore()
-            val progress = store.progress ?: continue
-            if (progress.isComplete) continue
-            settingsRepository.updateGoalProgress {
-                val current = it.progress ?: return@updateGoalProgress it
-                val newSeconds = current.onScreenSeconds + 1
-                val dateKey = current.dateKey
-                val mergedTimes = mergeGoalScreenTime(it.goalTimeSecondsByDate, dateKey, newSeconds)
-                it.copy(
-                    progress = current.copy(onScreenSeconds = newSeconds),
-                    goalTimeSecondsByDate = mergedTimes,
-                )
+            if (goalScreenForeground.value) {
+                tickOnScreenSecond()
             }
+        }
+    }
+
+    private suspend fun tickOnScreenSecond() {
+        val settings = settingsRepository.currentSettings()
+        if (settings.morningGoal.type == GoalType.STEP_COUNT) return
+        val store = settingsRepository.currentGoalStore()
+        val progress = store.progress ?: return
+        if (progress.isComplete) return
+        settingsRepository.updateGoalProgress {
+            val current = it.progress ?: return@updateGoalProgress it
+            val newSeconds = current.onScreenSeconds + 1
+            val dateKey = current.dateKey
+            val mergedTimes = mergeGoalScreenTime(it.goalTimeSecondsByDate, dateKey, newSeconds)
+            it.copy(
+                progress = current.copy(onScreenSeconds = newSeconds),
+                goalTimeSecondsByDate = mergedTimes,
+            )
         }
     }
 

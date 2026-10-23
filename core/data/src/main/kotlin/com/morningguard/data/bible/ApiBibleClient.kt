@@ -58,8 +58,9 @@ class ApiBibleClient @Inject constructor(
 
         val bibles = api.listBibles().data
         val match = bibles.firstOrNull { summary -> matchesAbbrev(summary, abbreviation) }
-            ?: throw IllegalStateException(
-                "No $abbreviation Bible on your API.Bible account. Add it in the dashboard or set API_BIBLE_${abbreviation.uppercase()}_ID in local.properties.",
+            ?: error(
+                "No $abbreviation Bible on your API.Bible account. " +
+                    "Add it in the dashboard or set API_BIBLE_${abbreviation.uppercase()}_ID in local.properties.",
             )
         resolvedIds[translationId] = match.id
         return match.id

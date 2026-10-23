@@ -12,6 +12,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
+@Suppress("TooManyFunctions")
 class NoteEncryptionRepository @Inject constructor(
     private val store: NoteCryptoStore,
     private val keyManager: NoteCryptoKeyManager,

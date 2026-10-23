@@ -72,6 +72,7 @@ object GoalProgressSerializer : Serializer<GoalProgressStore> {
 }
 
 @Singleton
+@Suppress("TooManyFunctions")
 class SettingsRepository @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {

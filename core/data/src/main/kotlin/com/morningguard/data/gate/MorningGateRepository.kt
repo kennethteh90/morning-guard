@@ -20,6 +20,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
+@Suppress("TooManyFunctions")
 class MorningGateRepository @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val evaluator: MorningGateEvaluator,

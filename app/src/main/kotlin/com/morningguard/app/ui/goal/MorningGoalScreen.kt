@@ -326,6 +326,7 @@ private fun GoalHeaderCard(type: GoalType) {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
+@Suppress("LongParameterList")
 @Composable
 private fun BibleGoalBody(
     browseOnly: Boolean,
