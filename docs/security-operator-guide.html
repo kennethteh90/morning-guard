@@ -221,11 +221,26 @@
       <li>Apple Developer → <strong>Membership</strong> → <strong>Team ID</strong> (10 characters).</li>
     </ol>
 
+    <h3>Worker — <code>BIBLE_PROXY_SESSION_HMAC_SECRET</code></h3>
+    <p class="muted">
+      HMAC secret for short-lived licensed session tokens (~1 hour). After one successful Play Integrity
+      / App Attest exchange (<code>POST /v1/session</code>), the app sends
+      <code>X-Morning-Guard-Session</code> on chapter requests instead of attesting every time.
+      Generate a long random value (32+ bytes); never commit it.
+    </p>
+    <pre>npx wrangler secret put BIBLE_PROXY_SESSION_HMAC_SECRET --name morning-guard-bible-cache</pre>
+    <p class="muted">
+      Deploy the worker with this secret <strong>before</strong> shipping an app build that expects
+      <code>/v1/session</code>. If the secret is missing, session minting returns 503 and licensed
+      chapter auth can still use fresh attestation or the legacy token.
+    </p>
+
     <h3>Worker — existing secrets</h3>
     <ul>
       <li><code>API_BIBLE_KEY</code> — API.Bible dashboard</li>
       <li><code>API_BIBLE_LICENSED_ENABLED</code> — <code>true</code></li>
       <li><code>BIBLE_PROXY_TOKEN</code> — you choose; keep during rollout for old Android builds only</li>
+      <li><code>BIBLE_PROXY_SESSION_HMAC_SECRET</code> — required for session-token licensed auth (see above)</li>
     </ul>
 
     <h3>App / CI — <code>local.properties</code> & GitHub</h3>
@@ -265,6 +280,7 @@ npx wrangler secret put API_BIBLE_LICENSED_ENABLED --name morning-guard-bible-ca
 npx wrangler secret put PLAY_INTEGRITY_SERVICE_ACCOUNT_JSON --name morning-guard-bible-cache &lt; key.json
 npx wrangler secret put PLAY_APP_SIGNING_CERT_SHA256 --name morning-guard-bible-cache
 npx wrangler secret put APPLE_TEAM_ID --name morning-guard-bible-cache
+npx wrangler secret put BIBLE_PROXY_SESSION_HMAC_SECRET --name morning-guard-bible-cache
 # Rollout only (until stores ship attestation):
 npx wrangler secret put BIBLE_PROXY_TOKEN --name morning-guard-bible-cache
 npm run deploy</pre>
