@@ -66,7 +66,8 @@ async function verifyPlayIntegrity(
     const verdict = await decode(token, env);
     if (!playIntegrityPasses(verdict, nonce, env)) return null;
     return verdict;
-  } catch {
+  } catch (e) {
+    console.warn("play_integrity_decode_failed", { message: String(e).slice(0, 300) });
     return null;
   }
 }

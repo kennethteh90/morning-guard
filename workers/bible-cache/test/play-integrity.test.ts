@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  nonceMatches,
   normalizeSha256Digest,
   playIntegrityPasses,
   signingCertMatches,
@@ -121,4 +122,15 @@ describe("playIntegrityPasses cert allowlist", () => {
     };
     assert.equal(playIntegrityPasses(verdict, "nonce", envOk), true);
   });
+});
+
+describe("nonceMatches", () => {
+  const nonce = "abc-_DEF123";
+  const enc = btoa(nonce).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+  it("accepts the raw nonce", () => assert.equal(nonceMatches(nonce, nonce), true));
+  it("accepts base64url of the nonce, padded or not", () => {
+    assert.equal(nonceMatches(enc, nonce), true);
+    assert.equal(nonceMatches(btoa(nonce), nonce), true);
+  });
+  it("rejects a different nonce", () => assert.equal(nonceMatches("other", nonce), false));
 });

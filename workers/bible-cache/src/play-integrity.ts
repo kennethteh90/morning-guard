@@ -99,8 +99,14 @@ export function playIntegrityPasses(
   env: Env,
 ): boolean {
   const packageName = env.PLAY_INTEGRITY_PACKAGE_NAME?.trim() || DEFAULT_PACKAGE;
-  if (verdict.requestPackageName !== packageName) return false;
-  if (verdict.requestDetailsNonce && verdict.requestDetailsNonce !== expectedNonce) return false;
+  if (verdict.requestPackageName !== packageName) {
+    console.warn("play_integrity_reject", { check: "package", got: verdict.requestPackageName });
+    return false;
+  }
+  if (verdict.requestDetailsNonce && !nonceMatches(verdict.requestDetailsNonce, expectedNonce)) {
+    console.warn("play_integrity_reject", { check: "nonce" });
+    return false;
+  }
 
   const certOk = signingCertMatches(
     verdict.certificateSha256Digests,
@@ -117,7 +123,30 @@ export function playIntegrityPasses(
   const appOk =
     recognition === "PLAY_RECOGNIZED" || unrecognizedDebug;
   const deviceOk = verdict.deviceRecognitionVerdicts.includes("MEETS_DEVICE_INTEGRITY");
+  if (!(appOk && certOk && deviceOk)) {
+    console.warn("play_integrity_reject", {
+      check: "verdict",
+      appRecognition: recognition,
+      certOk,
+      device: verdict.deviceRecognitionVerdicts,
+    });
+  }
   return appOk && certOk && deviceOk;
+}
+
+/**
+ * The app passes base64url(UTF-8 bytes of the challenge nonce) to Play Integrity,
+ * so Google echoes that encoded form back. Accept the raw nonce or its
+ * base64url/base64 encoding, ignoring padding.
+ */
+export function nonceMatches(verdictNonce: string, expectedNonce: string): boolean {
+  const strip = (v: string) => v.trim().replace(/=+$/g, "");
+  const got = strip(verdictNonce);
+  if (got === strip(expectedNonce)) return true;
+  const bytes = new TextEncoder().encode(expectedNonce);
+  const b64 = btoa(String.fromCharCode(...bytes));
+  const b64url = b64.replace(/\+/g, "-").replace(/\//g, "_");
+  return got === strip(b64url) || got === strip(b64);
 }
 
 function tryDecodeBase64Digest(input: string): Uint8Array | null {
