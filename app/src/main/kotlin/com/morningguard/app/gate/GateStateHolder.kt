@@ -15,7 +15,7 @@ import javax.inject.Singleton
 
 @Singleton
 class GateStateHolder @Inject constructor(
-    morningGateRepository: MorningGateRepository,
+    private val morningGateRepository: MorningGateRepository,
     settingsRepository: SettingsRepository,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -28,6 +28,7 @@ class GateStateHolder @Inject constructor(
 
     init {
         scope.launch {
+            refreshNow()
             combine(
                 morningGateRepository.gateEvaluation,
                 settingsRepository.settings,
@@ -38,5 +39,11 @@ class GateStateHolder @Inject constructor(
                 latestSettings = settings
             }
         }
+    }
+
+    suspend fun refreshNow() {
+        val (settings, evaluation) = morningGateRepository.currentSettingsAndEvaluation()
+        latestSettings = settings
+        latestEvaluation = evaluation
     }
 }

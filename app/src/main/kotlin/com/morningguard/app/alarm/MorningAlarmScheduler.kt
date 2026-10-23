@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import com.morningguard.app.MainActivity
 import com.morningguard.domain.model.AlarmSettings
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.Calendar
@@ -36,14 +37,19 @@ class MorningAlarmScheduler @Inject constructor(
         }
 
         val trigger = nextTriggerTime(alarm.hour, alarm.minute)
+        val showIntent = PendingIntent.getActivity(
+            context,
+            ALARM_SHOW_INTENT_REQUEST_CODE,
+            Intent(context, MainActivity::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
         try {
-            alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                trigger,
+            alarmManager.setAlarmClock(
+                AlarmManager.AlarmClockInfo(trigger, showIntent),
                 pendingIntent,
             )
         } catch (_: SecurityException) {
-            alarmManager.setAndAllowWhileIdle(
+            alarmManager.setExactAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,
                 trigger,
                 pendingIntent,
@@ -66,5 +72,6 @@ class MorningAlarmScheduler @Inject constructor(
 
     companion object {
         const val ALARM_REQUEST_CODE = 4242
+        private const val ALARM_SHOW_INTENT_REQUEST_CODE = 4243
     }
 }

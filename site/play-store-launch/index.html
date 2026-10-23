@@ -1,0 +1,135 @@
+# Morning Guard — Google Play launch checklist
+
+Morning Guard (`com.morningguard.app`) — internal reference for first production upload.
+
+## Public site (Cloudflare Pages)
+
+Deploy folder: [`site/auth-landing`](../auth-landing/README.md) → custom domain **`https://morning-guard.codingagents.cc`**.
+
+| URL | Purpose |
+|-----|---------|
+| `https://morning-guard.codingagents.cc/` | Store **website**, marketing landing, magic-link browser fallback |
+| `https://morning-guard.codingagents.cc/privacy/` | **Privacy policy** (Play Console + `PRIVACY_POLICY_URL`) |
+| `https://morning-guard.codingagents.cc/.well-known/assetlinks.json` | Android App Links (Play App Signing SHA-256) |
+| Play **key management** (SHA-256) | `https://play.google.com/console/u/3/developers/4637542060743917035/app/4974716491863892021/keymanagement` → **App signing key certificate** |
+| **Internal testing** track | `https://play.google.com/console/u/3/developers/4637542060743917035/app/4974716491863892021/tracks/internal-testing` — see `docs/play-console-fill-in.md` |
+
+Set **`PRIVACY_POLICY_URL=https://morning-guard.codingagents.cc/privacy/`** in `local.properties` and GitHub Actions secrets before `bundleRelease`.
+
+Deploy: `./site/auth-landing/deploy.sh` (then attach domain with `./scripts/attach-pages-domain.sh` if needed).
+
+## Outstanding before first Play upload
+
+| Item | Status |
+|------|--------|
+| Hosted landing + privacy policy | **Live** on `morning-guard.codingagents.cc` — set `PRIVACY_POLICY_URL` in CI/local |
+| Play developer contact on site (`kenneth@codingagents.cc`) | **Done** |
+| `assetlinks.json` Play App Signing SHA-256 | **Done** — live at `/.well-known/assetlinks.json` |
+| `PRIVACY_POLICY_URL` in GitHub Actions | **Done** (pushed from `local.properties`) |
+| Play developer account + app listing | **TODO** |
+| Data safety form (align with `docs/pii-and-encryption.md`) | **TODO** |
+| Content rating (IARC) | **TODO** |
+| Store screenshots / feature graphic (`site/screenshot-studio`, `docs/store-screenshots.md`) | **TODO** |
+| Notification-listener demo video (`record-notification-demo.sh`) | **TODO** |
+| Sensitive permission declarations (listener, alarms, Health Connect) | **TODO** |
+| Production Supabase + redirect URLs + prod secrets in CI | **TODO** |
+| Internal test pass on **release** AAB | **TODO** |
+
+## Already in the repo
+
+- Ready Release signing via `RELEASE_*` in `local.properties` (see README).
+- Ready `bundleRelease` → signed AAB; R8/ProGuard on release.
+- Ready Versioning in `version.properties` → `versionName` / `versionCode`.
+- Ready CI: test, lint, detekt; release assembly on `main`.
+- Ready Release workflow builds an AAB when GitHub secrets are set (artifact uploaded after merge to `main`).
+- Ready Supabase, Sentry, Bible proxy, and PII notes under `docs/`.
+
+## 1. Google Play Console (one-time)
+
+1. Create a **Google Play developer account** (one-time registration fee).
+2. Create the app listing for `com.morningguard.app`.
+3. Enroll in **Play App Signing** (you upload with your *upload* keystore; Google holds the app signing key).
+4. Plan rollout: **Internal testing** → closed/open → production.
+
+## 2. Production build to upload
+
+Play requires an **Android App Bundle (.aab)**, not an APK.
+
+### Before each release
+
+1. Bump `version.properties` (every upload needs a higher `versionCode`).
+2. Ensure production build config (local or GitHub Actions secrets):
+   
+   - `SUPABASE_URL`, `SUPABASE_ANON_KEY`
+   - `SENTRY_DSN`
+   - `BIBLE_PROXY_BASE_URL`, `PLAY_CLOUD_PROJECT_NUMBER` (Android; no proxy token in the app)
+   - `PRIVACY_POLICY_URL` — **required**; `bundleRelease` fails if blank
+   - `GOOGLE_WEB_CLIENT_ID` if Google sign-in is enabled
+   - `RELEASE_KEYSTORE_BASE64` + `RELEASE_STORE_PASSWORD` + `RELEASE_KEY_ALIAS` + `RELEASE_KEY_PASSWORD` in CI
+3. Build locally or download the CI artifact after push to `main`.
+
+```
+./gradlew bundleRelease
+```
+
+Output: `app/build/outputs/bundle/release/app-release.aab`
+
+**Keystore:** Back up the upload keystore and passwords. Losing them blocks updates unless Play approves a key reset. Push secrets from your machine: `./scripts/push-github-secrets.sh` (includes base64 keystore when `RELEASE_STORE_FILE` exists).
+
+## 3. Backend and domains (production)
+
+PieceAction Supabase Prod project, migrations applied, Auth redirect URLs (`morningguard://auth` + hosted site). See `docs/supabase/SETUP.md`. Auth landing Deploy `site/auth-landing` (e.g. `morning-guard.codingagents.cc`); set Supabase Site URL. App Links In `site/auth-landing/.well-known/assetlinks.json`, set SHA-256 to **Play App Signing** cert (Console → Setup → App integrity). Bible proxy Deploy `workers/bible-cache` with Play Integrity / App Attest secrets; see `docs/deploy-security-rollout.md`. Sentry Production DSN in release builds; optional release tracking.
+
+## 4. Legal and Play policy
+
+- **Public privacy policy URL** — Draft at [`site/auth-landing/privacy/`](../auth-landing/privacy/index.html); deploy to `https://morning-guard.codingagents.cc/privacy/` and set `PRIVACY_POLICY_URL` to that URL (required for release bundles).
+- **Data safety form** — Align with `docs/pii-and-encryption.md`: what is collected, what stays on device, what syncs when the user opts in.
+- **Content rating** (IARC questionnaire).
+- **Target audience** / Families policy if applicable.
+
+## 5. Sensitive permissions (declarations and review)
+
+Notification-holding apps are reviewed carefully. Use clear store copy and consider a short demo video.
+
+CapabilityNotes Notification listener Core feature; explain hold/digest; document bypass for calls and user-selected apps. Bypass app picker Uses launcher package visibility only (no `QUERY_ALL_PACKAGES`). Exact alarms User enables under Settings → Alarm (Experimental); requested when they configure the alarm. Full-screen intent Alarm UI on lock screen; requested when configuring alarm on Android 14+. Health Connect / steps Register in Health Connect if shipping step goals; declare in Play. Activity recognition Declare if used for steps on Android 10+.
+
+### Release QA (signed build on a real device)
+
+- Onboarding, morning gate, digest, peace break, alarm permissions and dismiss
+- Magic link (and Google sign-in if enabled)
+- Optional cloud sync and highlights
+
+## 6. Store listing assets
+
+Compose framed listing screenshots locally: [`site/screenshot-studio/`](https://example.com/screenshot-studio/index.html) (App Store & Play presets, Morning Guard templates).
+
+- Short and full description
+- Phone screenshots (tablet if supported)
+- Feature graphic, hi-res icon
+- Category, developer contact email, website (privacy + auth domain)
+
+**Notification-listener demo video** (Play → App content → Sensitive app permissions; not required for the public listing gallery):
+
+```bash
+./scripts/store-screenshots/record-notification-demo.sh
+```
+
+Writes `scripts/store-screenshots/out/notification-listener-demo.mp4`. See `docs/store-screenshots.md`.
+
+## 7. Suggested launch order
+
+1. Prod secrets, hosted privacy policy, `PRIVACY_POLICY_URL` in CI.
+2. Build signed AAB; bump version if needed beyond `CHANGELOG.md` 1.0.0.
+3. **Internal testing** with your account and a few testers.
+4. Fix Sentry issues from test builds.
+5. **Closed testing** → production when review passes.
+
+## 8. Later improvements
+
+- Play Developer API upload from CI (service account).
+- GitHub Release with changelog attachment (optional; AAB is on Actions artifacts today).
+- Update `CHANGELOG.md` for everything shipped after 1.0.0.
+
+## Minimum bar to submit
+
+Play developer account · backed-up upload key · production AAB with all release `BuildConfig` secrets and `PRIVACY_POLICY_URL` · live Supabase + auth URLs + asset links · public privacy policy · Data safety + content rating · honest permission declarations · internal test pass on a **release** build.

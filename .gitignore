@@ -1,6 +1,7 @@
 *.iml
 .gradle/
 /local.properties
+.cursor/mcp.json
 /.idea/
 .DS_Store
 /build/
@@ -10,5 +11,8 @@
 .cxx/
 *.apk
 *.aab
+ios/MorningGuardCore/.build/
+core/domain/bin/
+ios/Config/Local.xcconfig
 *.keystore
 !debug.keystore

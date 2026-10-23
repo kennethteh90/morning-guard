@@ -1,0 +1,119 @@
+name: MorningGuard
+options:
+  bundleIdPrefix: com.morningguard
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+configs:
+  Debug: debug
+  Release: release
+configFiles:
+  Debug: Config/Debug.xcconfig
+  Release: Config/Release.xcconfig
+packages:
+  MorningGuardCore:
+    path: MorningGuardCore
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+targets:
+  MorningGuard:
+    type: application
+    platform: iOS
+    sources:
+      - path: MorningGuard
+        excludes:
+          - "**/*.entitlements"
+    configFiles:
+      Debug: Config/Debug.xcconfig
+      Release: Config/Release.xcconfig
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.morningguard.app
+      CODE_SIGN_ENTITLEMENTS: MorningGuard/MorningGuard.entitlements
+      TARGETED_DEVICE_FAMILY: "1,2"
+      INFOPLIST_FILE: MorningGuard/Info.plist
+    dependencies:
+      - package: MorningGuardCore
+        product: MorningGuardCore
+      - target: MorningGuardMonitor
+        embed: true
+      - target: MorningGuardShieldConfig
+        embed: true
+      - target: MorningGuardShieldAction
+        embed: true
+    scheme:
+      testTargets: []
+
+  MorningGuardMonitor:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: MorningGuardMonitor
+        excludes:
+          - "**/*.entitlements"
+    configFiles:
+      Debug: Config/Debug.xcconfig
+      Release: Config/Release.xcconfig
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.morningguard.app.monitor
+      CODE_SIGN_ENTITLEMENTS: MorningGuardMonitor/MorningGuardMonitor.entitlements
+      INFOPLIST_FILE: MorningGuardMonitor/Info.plist
+      SKIP_INSTALL: YES
+      APPLICATION_EXTENSION_API_ONLY: YES
+    dependencies:
+      - package: MorningGuardCore
+        product: MorningGuardCore
+      - sdk: DeviceActivity.framework
+      - sdk: FamilyControls.framework
+      - sdk: ManagedSettings.framework
+
+  MorningGuardShieldConfig:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: MorningGuardShieldConfig
+        excludes:
+          - "**/*.entitlements"
+    configFiles:
+      Debug: Config/Debug.xcconfig
+      Release: Config/Release.xcconfig
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.morningguard.app.shieldconfig
+      CODE_SIGN_ENTITLEMENTS: MorningGuardShieldConfig/MorningGuardShieldConfig.entitlements
+      INFOPLIST_FILE: MorningGuardShieldConfig/Info.plist
+      SKIP_INSTALL: YES
+      APPLICATION_EXTENSION_API_ONLY: YES
+    dependencies:
+      - sdk: ManagedSettings.framework
+      - sdk: ManagedSettingsUI.framework
+
+  MorningGuardShieldAction:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: MorningGuardShieldAction
+        excludes:
+          - "**/*.entitlements"
+    configFiles:
+      Debug: Config/Debug.xcconfig
+      Release: Config/Release.xcconfig
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.morningguard.app.shieldaction
+      CODE_SIGN_ENTITLEMENTS: MorningGuardShieldAction/MorningGuardShieldAction.entitlements
+      INFOPLIST_FILE: MorningGuardShieldAction/Info.plist
+      SKIP_INSTALL: YES
+      APPLICATION_EXTENSION_API_ONLY: YES
+    dependencies:
+      - sdk: ManagedSettings.framework
+
+schemes:
+  MorningGuard:
+    build:
+      targets:
+        MorningGuard: all
+    run:
+      config: Debug
+    archive:
+      config: Release

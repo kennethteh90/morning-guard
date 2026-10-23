@@ -1,6 +1,7 @@
 package com.morningguard.domain.gate
 
 import com.morningguard.domain.model.GoalType
+import com.morningguard.domain.model.MorningGoalConfig
 import com.morningguard.domain.model.MorningGoalProgress
 import com.morningguard.domain.model.MorningWindow
 import java.time.Instant
@@ -27,6 +28,7 @@ class MorningGateEvaluator(
         window: MorningWindow,
         progress: MorningGoalProgress?,
         emergencyBypassActiveUntilEpochMs: Long?,
+        peaceSessionUntilEpochMs: Long? = null,
     ): GateEvaluation {
         val nowMs = nowProvider()
         val zonedNow = Instant.ofEpochMilli(nowMs).atZone(zoneId)
@@ -34,6 +36,10 @@ class MorningGateEvaluator(
 
         if (emergencyBypassActiveUntilEpochMs != null && nowMs < emergencyBypassActiveUntilEpochMs) {
             return GateEvaluation(GateState.UNLOCKED, dateKey, "emergency_bypass")
+        }
+
+        if (peaceSessionUntilEpochMs != null && nowMs < peaceSessionUntilEpochMs) {
+            return GateEvaluation(GateState.LOCKED, dateKey, "peace_session")
         }
 
         if (progress?.dateKey == dateKey && progress.isComplete) {
@@ -64,32 +70,30 @@ class GoalCompletionVerifier(
         progress: MorningGoalProgress,
         minimumReadSeconds: Int,
     ): Boolean {
-        val started = progress.startedAtEpochMs ?: return false
-        val elapsedSec = (nowProvider() - started) / 1000
-        return elapsedSec >= minimumReadSeconds
+        return progress.onScreenSeconds >= minimumReadSeconds
     }
 
     fun timedFocusComplete(progress: MorningGoalProgress, requiredMinutes: Int): Boolean {
-        val started = progress.startedAtEpochMs ?: return false
-        val elapsedMin = (nowProvider() - started) / 60_000
-        return elapsedMin >= requiredMinutes
+        return progress.onScreenSeconds >= requiredMinutes * 60
     }
 
-    fun stepCountComplete(progress: MorningGoalProgress, currentSteps: Int, target: Int): Boolean {
-        val baseline = progress.stepsAtStart ?: return false
-        return (currentSteps - baseline) >= target
+    fun stepCountComplete(progress: MorningGoalProgress, target: Int): Boolean {
+        return progress.stepsAccumulated >= target
     }
 
     fun canMarkComplete(
         progress: MorningGoalProgress,
+        activeConfig: MorningGoalConfig,
         currentSteps: Int?,
     ): Boolean {
-        return when (progress.config.type) {
+        if (progress.isComplete) return false
+        return when (activeConfig.type) {
             GoalType.BIBLE_CHAPTER -> bibleChapterComplete(progress, minimumReadSeconds = 60)
-            GoalType.TIMED_FOCUS -> timedFocusComplete(progress, progress.config.focusMinutes)
+            GoalType.TIMED_FOCUS -> timedFocusComplete(progress, activeConfig.focusMinutes)
             GoalType.STEP_COUNT -> {
-                val steps = currentSteps ?: return false
-                stepCountComplete(progress, steps, progress.config.stepTarget)
+                val steps = currentSteps?.let { kotlin.math.max(progress.stepsAccumulated, it) }
+                    ?: progress.stepsAccumulated
+                stepCountComplete(progress.copy(stepsAccumulated = steps), activeConfig.stepTarget)
             }
         }
     }

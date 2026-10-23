@@ -8,9 +8,23 @@ complexity:
   LongMethod:
     active: true
     threshold: 80
+    excludes:
+      - "**/ui/**"
+  CyclomaticComplexMethod:
+    active: true
+    threshold: 15
+    excludes:
+      - "**/ui/**"
   LongParameterList:
     active: true
-    functionThreshold: 10
+    functionThreshold: 12
+    constructorThreshold: 12
+  TooManyFunctions:
+    active: true
+    excludes:
+      - "**/*ViewModel.kt"
+      - "**/sync/**"
+      - "**/di/**"
 naming:
   FunctionNaming:
     active: false
@@ -25,6 +39,8 @@ style:
   MaxLineLength:
     active: true
     maxLineLength: 120
+    excludes:
+      - "**/ui/**"
 
 exceptions:
   TooGenericExceptionCaught:

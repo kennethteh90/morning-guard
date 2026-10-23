@@ -1,5 +1,5 @@
 [versions]
-agp = "8.7.3"
+agp = "8.10.1"
 kotlin = "2.0.21"
 coreKtx = "1.15.0"
 lifecycle = "2.8.7"
@@ -30,6 +30,8 @@ detekt = "1.23.7"
 ksp = "2.0.21-1.0.28"
 credentials = "1.3.0"
 googleid = "1.1.1"
+healthConnect = "1.1.0-alpha10"
+playIntegrity = "1.4.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -77,6 +79,8 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
 androidx-credentials-play-services = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentials" }
 googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
+androidx-health-connect = { group = "androidx.health.connect", name = "connect-client", version.ref = "healthConnect" }
+play-integrity = { group = "com.google.android.play", name = "integrity", version.ref = "playIntegrity" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

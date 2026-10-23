@@ -1,5 +1,21 @@
 sdk.dir=/path/to/Android/sdk
 SUPABASE_URL=
 SUPABASE_ANON_KEY=
+# Optional: Sentry project DSN for crash + non-fatal monitoring (sync failures, etc.). Leave blank to disable.
 SENTRY_DSN=
 GOOGLE_WEB_CLIENT_ID=
+
+# Public Play Console / hosted privacy policy URL (required for release bundles)
+# After deploying site/auth-landing to morning-guard.codingagents.cc:
+PRIVACY_POLICY_URL=https://morning-guard.codingagents.cc/privacy/
+
+# Bible chapter proxy (Cloudflare Worker holds API_BIBLE_KEY — see workers/bible-cache/README.md)
+BIBLE_PROXY_BASE_URL=
+# Google Play Console → App integrity → Cloud project number (for licensed NIV/NKJV/NLT via Play Integrity)
+PLAY_CLOUD_PROJECT_NUMBER=
+
+# Release signing (paths/passwords stay in local.properties only — never commit)
+RELEASE_STORE_FILE=/absolute/path/to/morning-guard-release.keystore
+RELEASE_STORE_PASSWORD=
+RELEASE_KEY_ALIAS=morning-guard
+RELEASE_KEY_PASSWORD=

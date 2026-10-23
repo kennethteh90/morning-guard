@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Morning Guard — iOS interactive demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/demo/demo.css" />
+</head>
+<body>
+  <div class="demo-shell" id="demoShell">
+    <aside class="sidebar">
+      <span class="badge">Interactive mockup</span>
+      <h1>Morning Guard on iPhone</h1>
+      <p class="lede">
+        Click a scene or use ← → keys. No install, no Apple enrollment — for pitches and design reviews.
+        Android holds notifications; iOS shields apps via Screen Time until your morning goal is done.
+      </p>
+      <div class="toolbar-row">
+        <button type="button" class="btn" id="btnPresenter">Presenter mode</button>
+        <button type="button" class="btn btn-ghost" onclick="location.hash='#home-locked'">Reset</button>
+      </div>
+      <ul id="sceneList" class="scene-list" aria-label="Demo scenes"></ul>
+      <p class="hint">
+        Share: run <code>python3 -m http.server 8766 --directory site/ios-demo</code> and open
+        <code>http://localhost:8766/</code> on a laptop, or deploy this folder with your static site.
+      </p>
+    </aside>
+
+    <div class="phone-stage">
+      <div class="fullscreen-top" id="fullscreenTop" hidden>
+        <div class="fullscreen-top-label">
+          <strong id="sceneLabelFs">Home</strong>
+          <div class="hint" id="sceneNoteFs"></div>
+        </div>
+        <button type="button" class="btn btn-ghost btn-exit-fullscreen" id="btnExitFullscreen">Exit</button>
+      </div>
+      <div class="phone-nav" id="phoneNav">
+        <button type="button" class="btn btn-ghost" id="btnPrev" aria-label="Previous screen">← Prev</button>
+        <div class="phone-nav-label">
+          <strong id="sceneLabel">Home</strong>
+          <div class="hint" id="sceneNote"></div>
+        </div>
+        <button type="button" class="btn btn-ghost" id="btnNext" aria-label="Next screen">Next →</button>
+      </div>
+      <button type="button" class="btn btn-fullscreen-entry" id="btnFullscreen">Fullscreen demo</button>
+
+      <div class="phone-frame" aria-label="iPhone mockup">
+        <div class="phone-screen">
+          <!-- Home — locked -->
+          <div class="screen active" data-screen="home-locked">
+            <div class="status-bar"><span>9:41</span><span>●●●</span></div>
+            <div class="nav-bar">
+              <h2>Morning Guard</h2>
+              <button class="icon-btn" type="button" aria-hidden="true">⚙︎</button>
+            </div>
+            <div class="screen-body">
+              <div class="card">
+                <h3>🔒 Morning gate locked</h3>
+                <p>Complete your morning goal to unlock selected apps.</p>
+              </div>
+              <div class="card">
+                <h3>Shields</h3>
+                <p>12 apps selected · Shields active</p>
+              </div>
+              <div class="btn-primary">Start morning goal</div>
+              <div class="btn-secondary">Read Bible</div>
+              <div class="row-link"><span>📊 Streak &amp; stats</span><span>›</span></div>
+              <div class="row-link"><span>🔖 Saved highlights</span><span>›</span></div>
+              <div class="card" style="margin-top:8px">
+                <p style="font-size:0.8rem">On iPhone: peace break re-enables app shields (no notification digest).</p>
+              </div>
+              <div class="btn-secondary" style="color:#c44">Emergency bypass</div>
+            </div>
+          </div>
+
+          <!-- Morning goal -->
+          <div class="screen" data-screen="goal-bible">
+            <div class="status-bar"><span>9:41</span><span>●●●</span></div>
+            <div class="nav-bar">
+              <button class="icon-btn" type="button">‹</button>
+              <h2>Morning goal</h2>
+              <span></span>
+            </div>
+            <div class="screen-body">
+              <div class="card">
+                <h3>Read your chapter</h3>
+                <p>Stay on this screen while you read · John 1</p>
+              </div>
+              <div class="chip-row">
+                <span class="chip">📖 John 1</span>
+                <span class="chip">NIV</span>
+              </div>
+              <div class="progress"><i></i></div>
+              <p class="hint" style="margin:0 0 10px">Reading time: 27s / 60s</p>
+              <div class="verse-line">
+                <span class="verse-num">1</span>
+                <span>In the beginning was the Word, and the Word was with God, and the Word was God.</span>
+              </div>
+              <div class="verse-line verse-highlight">
+                <span class="verse-num">2</span>
+                <span>He was with God in the beginning.</span>
+              </div>
+              <div class="verse-line">
+                <span class="verse-num">3</span>
+                <span>Through him all things were made; without him nothing was made that has been made.</span>
+              </div>
+              <div class="btn-primary" style="margin-top:12px">Mark complete</div>
+            </div>
+            <div class="bottom-bar">
+              <span>‹</span>
+              <strong>John 1</strong>
+              <span>›</span>
+            </div>
+          </div>
+
+          <!-- Picker overlay -->
+          <div class="screen" data-screen="picker">
+            <div class="status-bar"><span>9:41</span><span>●●●</span></div>
+            <div class="nav-bar"><h2>Read Bible</h2></div>
+            <div class="screen-body" style="opacity:0.35">
+              <div class="card"><h3>John 1</h3><p>Chapter text…</p></div>
+            </div>
+            <div class="picker-overlay">
+              <div class="picker-sheet">
+                <strong>Book &amp; chapter</strong>
+                <p class="hint" style="margin:0">Each column scrolls independently.</p>
+                <div class="picker-columns">
+                  <div class="picker-panel">
+                    <h4>Book</h4>
+                    <div class="picker-scroll">
+                      <div>Matthew</div>
+                      <div>Mark</div>
+                      <div>Luke</div>
+                      <div class="sel">John</div>
+                      <div>Acts</div>
+                      <div>Romans</div>
+                      <div>1 Corinthians</div>
+                    </div>
+                  </div>
+                  <div class="picker-panel">
+                    <h4>Chapter</h4>
+                    <div class="picker-scroll">
+                      <div class="chapter-grid">
+                        <span class="sel">1</span><span>2</span><span>3</span>
+                        <span>4</span><span>5</span><span>6</span>
+                        <span>7</span><span>8</span><span>9</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="btn-primary" style="margin:0">Apply</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Peace break -->
+          <div class="screen" data-screen="peace">
+            <div class="status-bar"><span>9:41</span><span>●●●</span></div>
+            <div class="nav-bar"><h2>Morning Guard</h2><button class="icon-btn">⚙︎</button></div>
+            <div class="screen-body">
+              <div class="card">
+                <h3>🍃 Peace break</h3>
+                <p>Shields stay on for a quiet hour after your goal.</p>
+              </div>
+              <div class="card">
+                <h3>Peace break</h3>
+                <p>About 42 min left. Selected apps stay shielded.</p>
+                <div style="display:flex;gap:8px;margin-top:12px">
+                  <div class="btn-secondary" style="margin:0;flex:1">End</div>
+                  <div class="btn-primary" style="margin:0;flex:1">Extend 1 hour</div>
+                </div>
+              </div>
+              <div class="btn-secondary">Read Bible</div>
+            </div>
+          </div>
+
+          <!-- Highlights -->
+          <div class="screen" data-screen="highlights">
+            <div class="status-bar"><span>9:41</span><span>●●●</span></div>
+            <div class="nav-bar"><button class="icon-btn">‹</button><h2>Saved highlights</h2><span></span></div>
+            <div class="screen-body">
+              <div class="card">
+                <p style="font-weight:600;color:var(--accent)">John 1:2 (NIV)</p>
+                <p>He was with God in the beginning.</p>
+                <p class="hint" style="margin-top:8px">Morning reflection — stay present before opening mail.</p>
+              </div>
+              <div class="card">
+                <p style="font-weight:600;color:var(--accent)">Psalm 23:1–2 (WEB)</p>
+                <p>The LORD is my shepherd; I shall not want. He makes me lie down in green pastures.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div class="screen" data-screen="stats">
+            <div class="status-bar"><span>9:41</span><span>●●●</span></div>
+            <div class="nav-bar"><button class="icon-btn">‹</button><h2>Streak &amp; stats</h2><span></span></div>
+            <div class="screen-body">
+              <p class="hint">Time adds up while the goal screen is open.</p>
+              <div class="card"><h3>Time on morning goal</h3><p style="font-size:1.4rem;font-weight:700;margin-top:4px">4h 12m</p></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div class="card"><h3>Current streak</h3><p style="font-weight:700">5 day(s)</p></div>
+                <div class="card"><h3>Best streak</h3><p style="font-weight:700">12 day(s)</p></div>
+              </div>
+              <h3 style="font-size:1rem">History</h3>
+              <div class="row-link"><span><strong>2026-10-22</strong><br><span class="hint">6m 10s</span></span><span style="color:var(--accent)">Goal completed</span></div>
+              <div class="row-link"><span><strong>2026-10-21</strong></span><span style="color:var(--accent)">Goal completed</span></div>
+            </div>
+          </div>
+
+          <!-- Settings -->
+          <div class="screen" data-screen="settings">
+            <div class="status-bar"><span>9:41</span><span>●●●</span></div>
+            <div class="nav-bar"><button class="icon-btn">‹</button><h2>Settings</h2><span></span></div>
+            <div class="screen-body">
+              <div class="card"><h3>Morning window</h3><p>05:30 – 10:00</p></div>
+              <div class="card"><h3>Encrypted highlight notes</h3><p>Keychain + password · Notes unlocked</p></div>
+              <div class="card"><h3>Local backup</h3><p>Export / restore encrypted .mgbackup file</p></div>
+              <div class="card"><h3>Shields</h3><p>Screen Time · 12 apps selected</p></div>
+            </div>
+          </div>
+
+          <!-- Onboarding -->
+          <div class="screen" data-screen="onboarding">
+            <div class="status-bar"><span>9:41</span><span>●●●</span></div>
+            <div class="nav-bar"><h2>Setup</h2></div>
+            <div class="screen-body">
+              <div class="card">
+                <h3>Choose apps to shield</h3>
+                <p>Instagram, Mail, Slack, …</p>
+              </div>
+              <div class="card">
+                <h3>Morning routine</h3>
+                <p>Bible chapter · 05:30–10:00 window · NIV via proxy</p>
+              </div>
+              <div class="btn-primary">Finish setup</div>
+              <p class="hint">Screen Time authorization happens on a real device (skipped in Simulator debug).</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/demo/demo.js"></script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+// Shared versioning and bundle id prefix for all Morning Guard iOS targets.
+PRODUCT_BUNDLE_IDENTIFIER_PREFIX = com.morningguard
+MARKETING_VERSION = 1.0.0
+CURRENT_PROJECT_VERSION = 1

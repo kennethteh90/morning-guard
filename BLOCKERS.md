@@ -7,4 +7,4 @@
 | B3 | Supabase project | Open | Set `SUPABASE_URL` and `SUPABASE_ANON_KEY` via `local.properties` or CI env. Auth screens show “unconfigured” until set. |
 | B4 | Notification listener in CI | Accepted | Full listener behavior requires device/emulator; covered by unit tests + manual QA. |
 | B5 | Remote repo host | Resolved | Public GitHub repo: https://github.com/kennethteh90/morning-guard |
-| B6 | Play Store signing | Open | Release APK builds unsigned; add signing config + Play Console listing for store launch. |
+| B6 | Play Store listing | Open | Signing + AAB build wired; see `site/play-store-launch/index.html` for Console, policy, and upload steps. |

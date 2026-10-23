@@ -3,8 +3,16 @@ package com.morningguard.data.di
 import android.content.Context
 import androidx.room.Room
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.morningguard.data.bible.ApiBibleApi
+import com.morningguard.data.bible.ApiBibleAuthInterceptor
 import com.morningguard.data.bible.BibleApi
+import com.morningguard.data.bible.BibleProxyApi
+import com.morningguard.data.bible.BibleProxyAuthInterceptor
+import com.morningguard.data.bible.BibleProxyConfig
 import com.morningguard.data.local.MorningGuardDatabase
+import com.morningguard.data.security.HighlightNoteCipher
+import com.morningguard.data.security.NoteEncryptionRepository
+import com.morningguard.data.local.dao.BibleHighlightDao
 import com.morningguard.data.local.dao.CapturedNotificationDao
 import com.morningguard.domain.gate.GoalCompletionVerifier
 import com.morningguard.domain.gate.MorningGateEvaluator
@@ -21,10 +29,12 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import java.time.ZoneId
 import java.util.concurrent.TimeUnit
+import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
+@Suppress("TooManyFunctions")
 object DataModule {
 
     @Provides
@@ -39,25 +49,31 @@ object DataModule {
         db.capturedNotificationDao()
 
     @Provides
+    fun provideBibleHighlightDao(db: MorningGuardDatabase): BibleHighlightDao =
+        db.bibleHighlightDao()
+
+    @Provides
     @Singleton
     fun provideJson(): Json = Json { ignoreUnknownKeys = true }
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
-        val logging = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BASIC
-        }
-        return OkHttpClient.Builder()
+    fun provideOkHttpClient(@Named("httpLogging") httpLogging: Boolean): OkHttpClient {
+        val builder = OkHttpClient.Builder()
             .connectTimeout(20, TimeUnit.SECONDS)
             .readTimeout(20, TimeUnit.SECONDS)
-            .addInterceptor(logging)
-            .build()
+        if (httpLogging) {
+            val logging = HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BASIC
+            }
+            builder.addInterceptor(logging)
+        }
+        return builder.build()
     }
 
     @Provides
     @Singleton
-    fun provideBibleApi(client: OkHttpClient, json: Json): BibleApi {
+    fun provideOpenBibleApi(client: OkHttpClient, json: Json): BibleApi {
         val contentType = "application/json".toMediaType()
         return Retrofit.Builder()
             .baseUrl("https://bible-api.com/")
@@ -65,6 +81,46 @@ object DataModule {
             .addConverterFactory(json.asConverterFactory(contentType))
             .build()
             .create(BibleApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideApiBibleApi(
+        client: OkHttpClient,
+        json: Json,
+        authInterceptor: ApiBibleAuthInterceptor,
+    ): ApiBibleApi {
+        val contentType = "application/json".toMediaType()
+        val apiClient = client.newBuilder()
+            .addInterceptor(authInterceptor)
+            .build()
+        return Retrofit.Builder()
+            .baseUrl("https://api.scripture.api.bible/v1/")
+            .client(apiClient)
+            .addConverterFactory(json.asConverterFactory(contentType))
+            .build()
+            .create(ApiBibleApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBibleProxyApi(
+        client: OkHttpClient,
+        json: Json,
+        config: BibleProxyConfig,
+        authInterceptor: BibleProxyAuthInterceptor,
+    ): BibleProxyApi {
+        val contentType = "application/json".toMediaType()
+        val baseUrl = config.baseUrl.takeIf { it.isNotBlank() } ?: "https://invalid.local/"
+        val proxyClient = client.newBuilder()
+            .addInterceptor(authInterceptor)
+            .build()
+        return Retrofit.Builder()
+            .baseUrl(baseUrl)
+            .client(proxyClient)
+            .addConverterFactory(json.asConverterFactory(contentType))
+            .build()
+            .create(BibleProxyApi::class.java)
     }
 
     @Provides
@@ -82,4 +138,8 @@ object DataModule {
     @Provides
     @Singleton
     fun provideZoneId(): ZoneId = ZoneId.systemDefault()
+
+    @Provides
+    @Singleton
+    fun provideHighlightNoteCipher(repository: NoteEncryptionRepository): HighlightNoteCipher = repository
 }

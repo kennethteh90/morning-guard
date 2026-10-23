@@ -1,0 +1,12 @@
+{
+  "name": "morning-guard-store-screenshots",
+  "private": true,
+  "type": "module",
+  "description": "Compose step for store screenshot pipeline (node-canvas)",
+  "dependencies": {
+    "canvas": "^3.1.0"
+  },
+  "allowScripts": {
+    "canvas@3.2.3": true
+  }
+}

@@ -1,9 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Morning Guard</string>
-    <string name="notification_listener_label">Morning Guard notification collector</string>
+    <string name="notification_listener_label">Morning Guard</string>
     <string name="digest_channel_name">Morning digest</string>
     <string name="digest_channel_description">Aggregated notifications held during your morning goal</string>
+    <string name="digest_explanation">These alerts were removed from your status bar while the morning gate was on. Android does not let apps put them back in the shade — tap an item to open that app, or dismiss the log when you are done.</string>
+    <string name="dismiss_digest_log">Dismiss digest log</string>
+    <string name="view_digest">View digest</string>
     <string name="alarm_channel_name">Morning alarm</string>
     <string name="alarm_channel_description">Optional wake-up alarm</string>
+    <string name="alarm_ringing_title">Morning Guard alarm</string>
+    <string name="alarm_ringing_body">Tap dismiss when you are ready to start your morning.</string>
+    <string name="alarm_dismiss">Dismiss</string>
+    <string name="alarm_permission_exact">Allow exact alarms so the wake-up time is reliable.</string>
+    <string name="alarm_permission_full_screen">Allow full-screen alarms so the wake-up screen can appear over the lock screen.</string>
+    <string name="alarm_permission_grant">Open settings</string>
+
+    <string name="privacy_policy_title">Privacy policy</string>
+    <string name="notification_access_disclosure">Morning Guard reads the app name, title, and text of notifications it holds, stores them on this phone, and shows them in the digest after your goal. It does not upload that text. Calls and text messages are not held.</string>
+    <string name="notification_access_disclosure_checkbox">I understand how Morning Guard uses notification access</string>
+    <string name="open_notification_access_settings">Open Morning Guard access settings</string>
+    <string name="auth_signed_in_disclosure">Bible highlights sync. Notes sync only if you turn on note encryption in Settings. Notification text stays on this phone.</string>
+    <string name="auth_magic_link_hint">We\'ll email a one-time sign-in link for Morning Guard (cloud sync only). The message may come from Supabase; after you tap the link you\'ll see the Morning Guard sign-in page, then the app.</string>
+    <string name="auth_magic_link_inbox_title">Check your inbox</string>
+    <string name="auth_magic_link_inbox_body">We sent a sign-in link to %1$s. Open it on this phone to finish logging in to Morning Guard. The email subject may look generic — it\'s still for this app.</string>
+    <string name="auth_magic_link_resend">Send again</string>
+    <string name="auth_magic_link_resend_wait">Send again in %1$d s</string>
+    <string name="auth_magic_link_use_different_email">Use a different email</string>
+    <string name="auth_magic_link_rate_limit">Please wait %1$d seconds before requesting another link.</string>
+
+    <plurals name="digest_held_count">
+        <item quantity="one">1 notification held from %2$s</item>
+        <item quantity="other">%1$d notifications held — latest from %2$s</item>
+    </plurals>
 </resources>
