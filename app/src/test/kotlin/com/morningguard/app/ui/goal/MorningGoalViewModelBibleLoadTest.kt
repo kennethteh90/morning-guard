@@ -22,7 +22,6 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -70,7 +69,7 @@ class MorningGoalViewModelBibleLoadTest {
         every { settingsRepository.goalProgressStore } returns MutableStateFlow(GoalProgressStore())
         coEvery { settingsRepository.currentSettings() } returns userSettings
         every { bibleHighlightRepository.highlights } returns flowOf(emptyList())
-        every { bibleHighlightColorStore.colorKey } returns flowOf("yellow")
+        every { bibleHighlightColorStore.colorKey } returns MutableStateFlow("yellow")
         every { morningGateRepository.canComplete(any(), any(), any()) } returns false
         every { stepCounterProvider.isAvailable } returns false
         every { healthConnectStepReader.isAvailable() } returns false
