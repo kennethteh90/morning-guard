@@ -116,25 +116,20 @@ class MorningGoalViewModelBibleLoadTest {
     }
 
     @Test
-    fun `successful chapter load clears bible load error`() = runTest {
+    fun `retry after failure loads chapter and clears bible load error`() = runTest {
         val blocks = listOf(BiblePassageBlock.Paragraph("1. In the beginning"))
-        var loadAttempts = 0
         coEvery {
             bibleRepository.loadChapter(any(), any(), any())
-        } coAnswers {
-            loadAttempts += 1
-            if (loadAttempts < 3) {
-                Result.failure(IllegalStateException("temporary"))
-            } else {
-                Result.success(BibleChapterContent("John 3", blocks))
-            }
-        }
+        } returns Result.failure(IllegalStateException("temporary"))
 
         val viewModel = viewModel()
         val collectJob = backgroundScope.launch { viewModel.uiState.collect { } }
-        viewModel.setBrowseOnly(true)
         advanceUntilIdle()
         assertEquals("temporary", viewModel.uiState.value.bibleLoadError)
+
+        coEvery {
+            bibleRepository.loadChapter(any(), any(), any())
+        } returns Result.success(BibleChapterContent("John 3", blocks))
 
         viewModel.retryBibleChapterLoad()
         advanceUntilIdle()
