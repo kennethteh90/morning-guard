@@ -47,6 +47,9 @@ data class MorningGoalUiState(
     val progress: MorningGoalProgress? = null,
     val biblePassage: List<BiblePassageBlock> = emptyList(),
     val loadingBible: Boolean = false,
+    /** Shown at the top of the Bible reader when chapter load fails. */
+    val bibleLoadError: String? = null,
+    /** Goal completion or other non-Bible errors (shown below the goal body). */
     val error: String? = null,
     val currentSteps: Int? = null,
     val stepHardwareAvailable: Boolean = false,
@@ -79,6 +82,7 @@ class MorningGoalViewModel @Inject constructor(
 
     private val biblePassage = MutableStateFlow<List<BiblePassageBlock>>(emptyList())
     private val loadingBible = MutableStateFlow(false)
+    private val bibleLoadError = MutableStateFlow<String?>(null)
     private val error = MutableStateFlow<String?>(null)
     private val currentSteps = MutableStateFlow<Int?>(null)
     private val goalScreenForeground = MutableStateFlow(false)
@@ -91,8 +95,8 @@ class MorningGoalViewModel @Inject constructor(
             combine(settingsRepository.settings, settingsRepository.goalProgressStore) { settings, store ->
                 settings to store
             },
-            combine(biblePassage, loadingBible, error, currentSteps, browseOnly) { passage, loading, err, steps, browsing ->
-                PassageQuad(passage, loading, err, steps, browsing)
+            combine(biblePassage, loadingBible, bibleLoadError, currentSteps, browseOnly) { passage, loading, bibleErr, steps, browsing ->
+                PassageQuad(passage, loading, bibleErr, steps, browsing)
             },
             stepDebug,
             healthConnectNeedsPermission,
@@ -101,7 +105,8 @@ class MorningGoalViewModel @Inject constructor(
             UiCombine(settings, store, passageQuad, debug, needsHealthConnect, allHighlights)
         },
         bibleHighlightColorStore.colorKey,
-    ) { combined, lastColorKey ->
+        error,
+    ) { combined, lastColorKey, goalError ->
         val settings = combined.settings
         val store = combined.store
         val passageQuad = combined.passageQuad
@@ -122,7 +127,8 @@ class MorningGoalViewModel @Inject constructor(
             progress = progress,
             biblePassage = quad.passage,
             loadingBible = quad.loading,
-            error = quad.error,
+            bibleLoadError = quad.error,
+            error = goalError,
             currentSteps = quad.steps,
             stepHardwareAvailable = stepCounterProvider.isAvailable || healthConnectStepReader.isAvailable(),
             healthConnectNeedsPermission = needsHealthConnect,
@@ -491,20 +497,30 @@ class MorningGoalViewModel @Inject constructor(
         }
     }
 
+    fun retryBibleChapterLoad() {
+        loadBibleIfNeeded()
+    }
+
     fun loadBibleIfNeeded() {
         viewModelScope.launch {
             val settings = settingsRepository.currentSettings()
             if (!browseOnly.value && settings.morningGoal.type != GoalType.BIBLE_CHAPTER) return@launch
             loadingBible.value = true
-            error.value = null
+            bibleLoadError.value = null
+            biblePassage.value = emptyList()
             val result = bibleRepository.loadChapter(
                 settings.morningGoal.bibleTranslation,
                 settings.morningGoal.bibleBook,
                 settings.morningGoal.bibleChapter,
             )
             loadingBible.value = false
-            result.onSuccess { biblePassage.value = it.blocks }
-                .onFailure { error.value = it.message }
+            result.onSuccess {
+                biblePassage.value = it.blocks
+                bibleLoadError.value = null
+            }.onFailure {
+                biblePassage.value = emptyList()
+                bibleLoadError.value = it.message ?: "Could not load this chapter."
+            }
         }
     }
 

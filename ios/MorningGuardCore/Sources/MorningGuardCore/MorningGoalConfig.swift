@@ -13,7 +13,7 @@ public struct MorningGoalConfig: Codable, Sendable, Equatable {
         bibleTranslation: String = "web",
         bibleBook: String = "John",
         bibleChapter: Int = 1,
-        focusMinutes: Int = 5,
+        focusMinutes: Int = 2,
         stepTarget: Int = 500
     ) {
         self.type = type

@@ -2,6 +2,7 @@ package com.morningguard.app.ui.goal
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -236,6 +238,8 @@ fun MorningGoalScreen(
                     chapter = state.config.bibleChapter,
                     translationId = state.config.bibleTranslation,
                     loading = state.loadingBible,
+                    loadError = state.bibleLoadError,
+                    onRetryLoad = viewModel::retryBibleChapterLoad,
                     passage = state.biblePassage,
                     chapterHighlights = state.bibleChapterHighlights,
                     elapsedSec = elapsedSec,
@@ -334,6 +338,8 @@ private fun BibleGoalBody(
     chapter: Int,
     translationId: String,
     loading: Boolean,
+    loadError: String?,
+    onRetryLoad: () -> Unit,
     passage: List<com.morningguard.domain.bible.BiblePassageBlock>,
     chapterHighlights: List<com.morningguard.domain.bible.BibleHighlight>,
     elapsedSec: Long,
@@ -379,6 +385,15 @@ private fun BibleGoalBody(
                     },
                 )
             }
+            if (loadError != null) {
+                BibleChapterLoadErrorBanner(
+                    message = loadError,
+                    book = book,
+                    chapter = chapter,
+                    translationLabel = translationLabel,
+                    onRetry = onRetryLoad,
+                )
+            }
             if (!browseOnly) {
                 Text(
                     "Chapter $chapter of ${BibleCanon.chapterCount(book)} · next chapter after you complete today",
@@ -399,6 +414,8 @@ private fun BibleGoalBody(
             )
             if (loading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+            } else if (loadError != null) {
+                // Error banner above already explains the failure; avoid implying stale text is shown.
             } else if (passage.isEmpty()) {
                 Text(
                     "Chapter text is not loaded yet. Check your connection — it should load automatically.",
@@ -412,6 +429,39 @@ private fun BibleGoalBody(
                     onHighlightBarStateChange = onHighlightBarStateChange,
                     defaultHighlightColorKey = defaultHighlightColorKey,
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun BibleChapterLoadErrorBanner(
+    message: String,
+    book: String,
+    chapter: Int,
+    translationLabel: String,
+    onRetry: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                "Couldn't load $book $chapter ($translationLabel)",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+            )
+            Text(
+                message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+            )
+            OutlinedButton(onClick = onRetry) {
+                Text("Retry")
             }
         }
     }
@@ -443,25 +493,29 @@ private fun BibleChapterNavBar(
                 contentDescription = "Previous chapter",
                 onClick = onPrevious,
             )
-            Text(
-                "$book $chapter",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .weight(1f)
-                    .alpha(titleAlpha)
-                    .then(
-                        if (titleAlpha > 0.2f) {
-                            Modifier.clickable(onClick = onOpenBookChapter, role = Role.Button)
-                        } else {
-                            Modifier
-                        },
-                    )
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-            )
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    "$book $chapter",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .alpha(titleAlpha)
+                        .then(
+                            if (titleAlpha > 0.2f) {
+                                Modifier.clickable(onClick = onOpenBookChapter, role = Role.Button)
+                            } else {
+                                Modifier
+                            },
+                        )
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                )
+            }
             ChapterNavCaret(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = "Next chapter",
@@ -477,15 +531,17 @@ private fun ChapterNavCaret(
     contentDescription: String,
     onClick: () -> Unit,
 ) {
-    Icon(
-        imageVector = imageVector,
-        contentDescription = contentDescription,
-        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier
-            .clickable(onClick = onClick, role = Role.Button)
-            .padding(horizontal = 4.dp, vertical = 2.dp)
-            .size(22.dp),
-    )
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier.size(48.dp),
+    ) {
+        Icon(
+            imageVector = imageVector,
+            contentDescription = contentDescription,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(22.dp),
+        )
+    }
 }
 
 @Composable

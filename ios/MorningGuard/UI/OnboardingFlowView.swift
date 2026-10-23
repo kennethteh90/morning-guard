@@ -187,7 +187,7 @@ struct OnboardingFlowView: View {
         case .bibleChapter:
             return "John 1 by default. Stay on the goal screen for about 60 seconds."
         case .timedFocus:
-            return "Stay on the goal screen until the timer finishes (default 5 minutes)."
+            return "Stay on the goal screen until the timer finishes (default 2 minutes)."
         case .stepCount:
             return "Counts steps via HealthKit on device; Simulator may not update steps."
         }

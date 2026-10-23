@@ -354,7 +354,7 @@ fun OnboardingFlowScreen(
             )
             GoalChoiceCard(
                 title = "Timed focus",
-                description = "Keep the app open for your chosen minutes.",
+                description = "Keep the app open until the timer finishes (default 2 minutes).",
                 icon = Icons.Outlined.Schedule,
                 selected = state.selectedGoal == GoalType.TIMED_FOCUS,
                 onClick = { viewModel.selectGoal(GoalType.TIMED_FOCUS) },

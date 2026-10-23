@@ -15,7 +15,7 @@ data class MorningGoalConfig(
     val bibleTranslation: String = "niv",
     val bibleBook: String = "John",
     val bibleChapter: Int = 1,
-    val focusMinutes: Int = 5,
+    val focusMinutes: Int = 2,
     val stepTarget: Int = 500,
 )
 
