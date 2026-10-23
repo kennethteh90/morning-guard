@@ -6,6 +6,12 @@ import {
   type DecodeIntegrityToken,
   type PlayIntegrityVerdict,
 } from "./play-integrity";
+import {
+  issueSessionToken,
+  SESSION_HEADER,
+  sessionTokensConfigured,
+  verifySessionToken,
+} from "./session-token";
 import type { Env } from "./upstream";
 import { tokensMatch } from "./auth";
 
@@ -52,21 +58,64 @@ async function verifyPlayIntegrity(
   request: Request,
   nonce: string,
   env: Env,
-): Promise<boolean> {
+): Promise<PlayIntegrityVerdict | null> {
   const token = request.headers.get(INTEGRITY_HEADER)?.trim() ?? "";
-  if (!token) return false;
+  if (!token) return null;
   const decode = testHooks.decodeIntegrityToken ?? decodeIntegrityTokenWithGoogle;
   try {
-    const verdict: PlayIntegrityVerdict = await decode(token, env);
-    return playIntegrityPasses(verdict, nonce, env);
+    const verdict = await decode(token, env);
+    if (!playIntegrityPasses(verdict, nonce, env)) return null;
+    return verdict;
   } catch {
-    return false;
+    return null;
   }
+}
+
+type AttestationResult =
+  | { ok: true; pkg: string; plat: "android" | "ios" }
+  | { ok: false };
+
+/**
+ * Verify one-time challenge + Play Integrity or App Attest, and consume the nonce.
+ */
+async function verifyFreshAttestation(
+  request: Request,
+  env: Env,
+): Promise<AttestationResult> {
+  const nonce = request.headers.get(NONCE_HEADER)?.trim() ?? "";
+  if (!nonce) return { ok: false };
+
+  const playVerdict = await verifyPlayIntegrity(request, nonce, env);
+  if (playVerdict) {
+    const consumed = await consumeChallenge(env.BIBLE_CACHE, nonce);
+    if (!consumed) return { ok: false };
+    const pkg =
+      playVerdict.requestPackageName ||
+      env.PLAY_INTEGRITY_PACKAGE_NAME?.trim() ||
+      "com.morningguard.app";
+    return { ok: true, pkg, plat: "android" };
+  }
+
+  const appAttestFn = testHooks.verifyAppAttest ?? verifyAppAttestLicensedRequest;
+  const iosOk = await appAttestFn(request, nonce, env);
+  if (!iosOk) return { ok: false };
+
+  const consumed = await consumeChallenge(env.BIBLE_CACHE, nonce);
+  if (!consumed) return { ok: false };
+  const pkg = env.APPLE_APP_ATTEST_BUNDLE_ID?.trim() || "com.morningguard.app";
+  return { ok: true, pkg, plat: "ios" };
+}
+
+async function sessionHeaderMatches(request: Request, env: Env): Promise<boolean> {
+  const token = request.headers.get(SESSION_HEADER)?.trim() ?? "";
+  if (!token) return false;
+  const claims = await verifySessionToken(env, token);
+  return claims !== null;
 }
 
 /**
  * Authorize a licensed `/v1/chapter` request. Returns an error Response or null when OK.
- * Consumes the challenge nonce on success.
+ * Accepts (in order): legacy token, short-lived session token, or fresh attestation.
  */
 export async function authorizeLicensedChapterRequest(
   request: Request,
@@ -76,22 +125,44 @@ export async function authorizeLicensedChapterRequest(
     return null;
   }
 
-  const nonce = request.headers.get(NONCE_HEADER)?.trim() ?? "";
-  if (!nonce) {
-    return json({ error: "Unauthorized" }, 401);
+  if (await sessionHeaderMatches(request, env)) {
+    return null;
   }
 
-  const playOk = await verifyPlayIntegrity(request, nonce, env);
-  const appAttestFn = testHooks.verifyAppAttest ?? verifyAppAttestLicensedRequest;
-  const iosOk = !playOk && (await appAttestFn(request, nonce, env));
-
-  if (!playOk && !iosOk) {
-    return json({ error: "Unauthorized" }, 401);
-  }
-
-  const consumed = await consumeChallenge(env.BIBLE_CACHE, nonce);
-  if (!consumed) {
+  const attested = await verifyFreshAttestation(request, env);
+  if (!attested.ok) {
     return json({ error: "Unauthorized" }, 401);
   }
   return null;
+}
+
+/**
+ * Exchange a one-time challenge + attestation for a short-lived session token.
+ */
+export async function issueLicensedSessionResponse(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  if (!sessionTokensConfigured(env)) {
+    return json({ error: "Session tokens are not configured on the worker" }, 503);
+  }
+
+  const attested = await verifyFreshAttestation(request, env);
+  if (!attested.ok) {
+    return json({ error: "Unauthorized" }, 401);
+  }
+
+  const issued = await issueSessionToken(env, { pkg: attested.pkg, plat: attested.plat });
+  if (!issued) {
+    return json({ error: "Session tokens are not configured on the worker" }, 503);
+  }
+
+  return json(
+    {
+      sessionToken: issued.token,
+      expiresAt: issued.expiresAt,
+      expiresIn: Math.max(0, issued.expiresAt - Math.floor(Date.now() / 1000)),
+    },
+    200,
+  );
 }

@@ -142,6 +142,80 @@ describe("worker fetch", () => {
     assert.ok(body.nonce && body.nonce.length > 8);
   });
 
+  it("issues a session token after Play Integrity and accepts it on chapter", async () => {
+    const kv = mockKv();
+    const env = baseEnv({
+      BIBLE_CACHE: kv,
+      BIBLE_PROXY_LEGACY_TOKEN_DISABLED: "true",
+      BIBLE_PROXY_SESSION_HMAC_SECRET: "test-session-hmac-secret-value",
+      API_BIBLE_NIV_ID: "test-niv-bible-id",
+      PLAY_APP_SIGNING_CERT_SHA256:
+        "36:8F:58:B5:D7:B9:53:85:A5:20:5F:52:0C:48:2D:E2:2D:BF:AD:F8:71:7E:09:EF:B4:24:3C:B3:27:F3:93:40",
+    });
+    const challengeRes = await worker.fetch(
+      new Request("https://example.com/v1/challenge", { method: "POST" }),
+      env,
+    );
+    const { nonce } = (await challengeRes.json()) as { nonce: string };
+    setLicensedAuthTestHooks({
+      decodeIntegrityToken: async () => ({
+        requestPackageName: "com.morningguard.app",
+        appRecognitionVerdict: "PLAY_RECOGNIZED",
+        certificateSha256Digests: ["No9Ytde5U4WlIF9SDEgt4i2_rfhxfgnvtCQ8syfzk0A"],
+        deviceRecognitionVerdicts: ["MEETS_DEVICE_INTEGRITY"],
+        requestDetailsNonce: nonce,
+      }),
+    });
+
+    const sessionRes = await worker.fetch(
+      new Request("https://example.com/v1/session", {
+        method: "POST",
+        headers: {
+          "X-Morning-Guard-Nonce": nonce,
+          "X-Morning-Guard-Play-Integrity": "token",
+        },
+      }),
+      env,
+    );
+    assert.equal(sessionRes.status, 200);
+    const sessionBody = (await sessionRes.json()) as { sessionToken?: string };
+    assert.ok(sessionBody.sessionToken);
+
+    globalThis.fetch = mock.fn(async () =>
+      new Response(
+        JSON.stringify({
+          data: {
+            reference: "Genesis 1",
+            content: [
+              {
+                name: "para",
+                attrs: { style: "p" },
+                items: [
+                  {
+                    attrs: { number: "1", style: "v" },
+                    text: "In the beginning God created the heavens and the earth.",
+                  },
+                ],
+              },
+            ],
+          },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      ),
+    ) as typeof fetch;
+
+    const chapterRes = await worker.fetch(
+      new Request("https://example.com/v1/chapter?translation=niv&book=Genesis&chapter=1", {
+        headers: {
+          "CF-Connecting-IP": "203.0.113.9",
+          "X-Morning-Guard-Session": sessionBody.sessionToken!,
+        },
+      }),
+      env,
+    );
+    assert.equal(chapterRes.status, 200);
+  });
+
   it("serves translation=niv with Play Integrity when legacy token disabled", async () => {
     const kv = mockKv();
     const challengeRes = await worker.fetch(

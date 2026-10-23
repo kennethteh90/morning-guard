@@ -4,9 +4,11 @@ import { tokensMatch } from "../src/auth";
 import {
   authorizeLicensedChapterRequest,
   clearLicensedAuthTestHooks,
+  issueLicensedSessionResponse,
   setLicensedAuthTestHooks,
 } from "../src/licensed-auth";
 import { issueChallenge } from "../src/challenge";
+import { SESSION_HEADER } from "../src/session-token";
 import type { Env } from "../src/upstream";
 
 function mockKv(): KVNamespace {
@@ -82,5 +84,55 @@ describe("licensed chapter auth", () => {
     assert.ok(res);
     assert.equal(res!.status, 401);
     clearLicensedAuthTestHooks();
+  });
+
+  it("accepts a short-lived session token without re-attestation", async () => {
+    const kv = mockKv();
+    const playCertB64url = "No9Ytde5U4WlIF9SDEgt4i2_rfhxfgnvtCQ8syfzk0A";
+    const env: Env = {
+      BIBLE_CACHE: kv,
+      API_BIBLE_KEY: "k",
+      BIBLE_PROXY_LEGACY_TOKEN_DISABLED: "true",
+      BIBLE_PROXY_SESSION_HMAC_SECRET: "test-session-hmac-secret-value",
+      PLAY_APP_SIGNING_CERT_SHA256:
+        "36:8F:58:B5:D7:B9:53:85:A5:20:5F:52:0C:48:2D:E2:2D:BF:AD:F8:71:7E:09:EF:B4:24:3C:B3:27:F3:93:40",
+    };
+    const { nonce } = await issueChallenge(kv);
+    setLicensedAuthTestHooks({
+      decodeIntegrityToken: async () => ({
+        requestPackageName: "com.morningguard.app",
+        appRecognitionVerdict: "PLAY_RECOGNIZED",
+        certificateSha256Digests: [playCertB64url],
+        deviceRecognitionVerdicts: ["MEETS_DEVICE_INTEGRITY"],
+        requestDetailsNonce: nonce,
+      }),
+    });
+    const sessionRes = await issueLicensedSessionResponse(
+      new Request("https://example.com/v1/session", {
+        method: "POST",
+        headers: {
+          "X-Morning-Guard-Nonce": nonce,
+          "X-Morning-Guard-Play-Integrity": "token",
+        },
+      }),
+      env,
+    );
+    assert.equal(sessionRes.status, 200);
+    const body = (await sessionRes.json()) as { sessionToken?: string };
+    assert.ok(body.sessionToken);
+
+    const chapter = new Request("https://example.com/v1/chapter?translation=niv", {
+      headers: { [SESSION_HEADER]: body.sessionToken! },
+    });
+    assert.equal(await authorizeLicensedChapterRequest(chapter, env), null);
+    clearLicensedAuthTestHooks();
+  });
+
+  it("keeps legacy token behaviour unchanged when session secret is unset", async () => {
+    const env: Env = { BIBLE_CACHE: mockKv(), API_BIBLE_KEY: "k", BIBLE_PROXY_TOKEN: "secret" };
+    const req = new Request("https://example.com/v1/chapter?translation=niv", {
+      headers: { "X-Morning-Guard-Token": "secret" },
+    });
+    assert.equal(await authorizeLicensedChapterRequest(req, env), null);
   });
 });

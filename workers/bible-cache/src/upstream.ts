@@ -17,6 +17,11 @@ export interface Env {
   BIBLE_PROXY_TOKEN?: string;
   /** When true/1/yes, licensed requests no longer accept the legacy token. */
   BIBLE_PROXY_LEGACY_TOKEN_DISABLED?: string;
+  /**
+   * HMAC secret for short-lived licensed session tokens (min 16 chars).
+   * Set with: npx wrangler secret put BIBLE_PROXY_SESSION_HMAC_SECRET --name morning-guard-bible-cache
+   */
+  BIBLE_PROXY_SESSION_HMAC_SECRET?: string;
   API_BIBLE_NIV_ID?: string;
   API_BIBLE_NKJV_ID?: string;
   API_BIBLE_NLT_ID?: string;

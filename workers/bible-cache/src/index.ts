@@ -1,8 +1,12 @@
 import { issueChallenge } from "./challenge";
-import { authorizeLicensedChapterRequest } from "./licensed-auth";
+import {
+  authorizeLicensedChapterRequest,
+  issueLicensedSessionResponse,
+} from "./licensed-auth";
 import { cacheControlHeader, LICENSED_KV_TTL_SEC } from "./cache-policy";
 import { LicensedTranslationBlockedError, licensedContentAllowed } from "./licensed";
 import { isRateLimited } from "./rate-limit";
+import { SESSION_HEADER } from "./session-token";
 import { isLicensedApiBibleTranslation } from "./translations";
 import { bookKeySegment } from "./usfm";
 import { fetchChapterFromUpstream, type Env } from "./upstream";
@@ -25,6 +29,10 @@ export default {
     if (url.pathname === "/v1/challenge" && request.method === "POST") {
       const { nonce } = await issueChallenge(env.BIBLE_CACHE);
       return cors(json({ nonce }));
+    }
+
+    if (url.pathname === "/v1/session" && request.method === "POST") {
+      return cors(await issueLicensedSessionResponse(request, env));
     }
 
     if (url.pathname !== "/v1/chapter" || request.method !== "GET") {
@@ -123,6 +131,7 @@ function cors(response: Response): Response {
       "X-Morning-Guard-Token",
       "X-Morning-Guard-Nonce",
       "X-Morning-Guard-Play-Integrity",
+      SESSION_HEADER,
       "X-Morning-Guard-App-Attest-Key-Id",
       "X-Morning-Guard-App-Attest-Assertion",
       "X-Morning-Guard-App-Attest-Attestation",

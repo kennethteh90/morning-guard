@@ -9,13 +9,14 @@ Edge proxy for Bible chapters. The Android app and iOS app call this worker when
 | **WEB, KJV,** and other open ids | None (IP rate limit only) |
 | **NIV, NKJV, NLT** | Play Integrity (Android) or App Attest (iOS), **or** legacy `X-Morning-Guard-Token` during rollout |
 
-Licensed requests use a one-time challenge:
+Licensed requests use a one-time challenge, then prefer a short-lived session:
 
 1. Client `POST /v1/challenge` → `{ "nonce": "…" }` (KV TTL 2 minutes).
-2. Client calls `GET /v1/chapter?translation=niv&…` with that nonce plus attestation headers.
-3. Worker consumes the nonce on first successful licensed auth.
+2. Client `POST /v1/session` with that nonce plus attestation headers → `{ "sessionToken", "expiresAt" }` (HMAC, ~1 hour). Requires worker secret `BIBLE_PROXY_SESSION_HMAC_SECRET`.
+3. Client calls `GET /v1/chapter?translation=niv&…` with `X-Morning-Guard-Session` (re-attest only when the session expires or the worker returns 401).
+4. Fresh attestation on `/v1/chapter` still works (legacy clients / fallback). Worker consumes the nonce on first successful attestation.
 
-**Android (Play Integrity):** `X-Morning-Guard-Nonce`, `X-Morning-Guard-Play-Integrity`. App uses `PLAY_CLOUD_PROJECT_NUMBER` in `local.properties` / CI — not a secret.
+**Android (Play Integrity):** session via `/v1/session`, or `X-Morning-Guard-Nonce` + `X-Morning-Guard-Play-Integrity` on chapter. App uses `PLAY_CLOUD_PROJECT_NUMBER` in `local.properties` / CI — not a secret.
 
 **iOS (App Attest):** `X-Morning-Guard-Nonce`, `X-Morning-Guard-App-Attest-Key-Id`, `X-Morning-Guard-App-Attest-Assertion` (and attestation on first registration). Simulator cannot load licensed translations from the proxy.
 
@@ -49,6 +50,7 @@ Licensed requests use a one-time challenge:
    npx wrangler secret put PLAY_INTEGRITY_SERVICE_ACCOUNT_JSON --name morning-guard-bible-cache < key.json
    npx wrangler secret put PLAY_APP_SIGNING_CERT_SHA256 --name morning-guard-bible-cache
    npx wrangler secret put APPLE_TEAM_ID --name morning-guard-bible-cache
+   npx wrangler secret put BIBLE_PROXY_SESSION_HMAC_SECRET --name morning-guard-bible-cache
    ```
 
    `PLAY_APP_SIGNING_CERT_SHA256` accepts comma-separated entries in colon-hex, plain hex, or base64/base64url (Play Integrity returns URL-safe base64). Empty/missing secret fails closed. Optional vars: `PLAY_INTEGRITY_PACKAGE_NAME` (`com.morningguard.app`), `APPLE_APP_ATTEST_BUNDLE_ID` (`com.morningguard.app`), `PLAY_ALLOW_UNRECOGNIZED_DEBUG_CERT` (`true` for debug sideload — still requires a matching cert on the allowlist).

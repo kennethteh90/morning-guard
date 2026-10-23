@@ -53,6 +53,9 @@ class BibleProxyClient @Inject constructor(
             Result.failure(mapHttpException(e))
         } catch (e: java.io.IOException) {
             Result.failure(e)
+        } catch (e: Exception) {
+            // Defense in depth: licensed auth must throw IOException, but never crash the UI.
+            Result.failure(e)
         }
     }
 
@@ -84,6 +87,11 @@ class BibleProxyClient @Inject constructor(
             return IllegalStateException(
                 "$base Switch to WEB or KJV in the reader, or run " +
                     "`wrangler secret put API_BIBLE_LICENSED_ENABLED` (value: true) on the bible-cache worker.",
+            )
+        }
+        if (e.code() == 401) {
+            return BibleProxyLicensedAuthException(
+                BibleProxyLicensedAuthException.USER_FACING_MESSAGE,
             )
         }
         return IllegalStateException(base)
