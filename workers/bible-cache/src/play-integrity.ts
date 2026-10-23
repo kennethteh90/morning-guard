@@ -55,6 +55,44 @@ export async function decodeIntegrityTokenWithGoogle(
   };
 }
 
+/**
+ * Normalize a SHA-256 digest to lowercase hex (64 chars).
+ * Accepts colon-separated hex, plain hex, standard base64, or base64url
+ * (padded or unpadded). Returns null if the value is not a 32-byte digest.
+ * Does not lowercase base64 before decoding (base64 is case-sensitive).
+ */
+export function normalizeSha256Digest(input: string): string | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const hexCandidate = trimmed.replace(/[:\s]/g, "");
+  if (/^[0-9a-fA-F]{64}$/.test(hexCandidate)) {
+    return hexCandidate.toLowerCase();
+  }
+
+  const bytes = tryDecodeBase64Digest(trimmed);
+  if (!bytes || bytes.length !== 32) return null;
+  return bytesToHex(bytes);
+}
+
+/** True when any Play digest matches any configured allowlist entry (after normalize). */
+export function signingCertMatches(
+  playDigests: readonly string[],
+  configuredSecret: string | undefined,
+): boolean {
+  const allowed = (configuredSecret ?? "")
+    .split(",")
+    .map((s) => normalizeSha256Digest(s))
+    .filter((h): h is string => h !== null);
+  // Fail closed: empty/missing/unparseable secret never accepts a cert.
+  if (allowed.length === 0) return false;
+
+  return playDigests.some((d) => {
+    const canonical = normalizeSha256Digest(d);
+    return canonical !== null && allowed.includes(canonical);
+  });
+}
+
 export function playIntegrityPasses(
   verdict: PlayIntegrityVerdict,
   expectedNonce: string,
@@ -64,15 +102,13 @@ export function playIntegrityPasses(
   if (verdict.requestPackageName !== packageName) return false;
   if (verdict.requestDetailsNonce && verdict.requestDetailsNonce !== expectedNonce) return false;
 
-  const allowedCerts = (env.PLAY_APP_SIGNING_CERT_SHA256 ?? "")
-    .split(",")
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
-  const certOk =
-    allowedCerts.length === 0 ||
-    verdict.certificateSha256Digests.some((d) => allowedCerts.includes(d.toLowerCase()));
+  const certOk = signingCertMatches(
+    verdict.certificateSha256Digests,
+    env.PLAY_APP_SIGNING_CERT_SHA256,
+  );
 
   const recognition = verdict.appRecognitionVerdict;
+  // Debug sideload: still requires a configured matching cert (fail closed).
   const unrecognizedDebug =
     recognition === "UNRECOGNIZED" &&
     env.PLAY_ALLOW_UNRECOGNIZED_DEBUG_CERT === "true" &&
@@ -82,6 +118,25 @@ export function playIntegrityPasses(
     recognition === "PLAY_RECOGNIZED" || unrecognizedDebug;
   const deviceOk = verdict.deviceRecognitionVerdicts.includes("MEETS_DEVICE_INTEGRITY");
   return appOk && certOk && deviceOk;
+}
+
+function tryDecodeBase64Digest(input: string): Uint8Array | null {
+  let b64 = input.replace(/-/g, "+").replace(/_/g, "/");
+  const pad = b64.length % 4;
+  if (pad === 1) return null;
+  if (pad) b64 += "=".repeat(4 - pad);
+  try {
+    const raw = atob(b64);
+    const bytes = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+    return bytes;
+  } catch {
+    return null;
+  }
+}
+
+function bytesToHex(bytes: Uint8Array): string {
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 async function googleAccessToken(serviceAccountJson: string): Promise<string> {

@@ -205,14 +205,15 @@
     <ol class="steps">
       <li>Play Console → <strong>Setup</strong> → <strong>App signing</strong> → <strong>App signing key certificate</strong> → copy <strong>SHA-256</strong> fingerprint.</li>
       <li>Or run repo script after you have the cert: <code>./scripts/print-android-signing-sha256.sh</code> (upload key — use Play’s app signing value for production).</li>
-      <li>Worker secret: hex string(s), comma-separated if multiple debug certs for dev only.</li>
+      <li>Worker secret: comma-separated allowlist. Each entry may be <strong>colon-separated hex</strong> (as Play Console shows), <strong>plain hex</strong>, or <strong>base64 / base64url</strong> (padded or not). Play Integrity returns <code>certificateSha256Digest</code> as URL-safe base64 (unpadded); the worker normalizes both sides to the same 32-byte digest before comparing.</li>
+      <li><strong>Required in production:</strong> if this secret is empty or missing, licensed Play Integrity auth fails closed (no certificate is accepted). <code>PLAY_ALLOW_UNRECOGNIZED_DEBUG_CERT=true</code> still requires a matching configured cert.</li>
     </ol>
 
     <h3>Worker — <code>PLAY_INTEGRITY_SERVICE_ACCOUNT_JSON</code></h3>
     <ol class="steps">
       <li>Google Cloud Console → same project as Play Integrity → <strong>IAM</strong> → <strong>Service accounts</strong> → Create.</li>
       <li>Grant access to <strong>Play Integrity API</strong> (Google Play Android Developer API / Play Integrity as per current Google docs).</li>
-      <li>Create JSON key → paste entire JSON as one Wrangler secret (never commit).</li>
+      <li>Create JSON key → set as Wrangler secret by piping the file (never commit): <code>npx wrangler secret put PLAY_INTEGRITY_SERVICE_ACCOUNT_JSON --name morning-guard-bible-cache &lt; key.json</code></li>
     </ol>
 
     <h3>Worker — <code>APPLE_TEAM_ID</code></h3>
@@ -255,16 +256,17 @@ RELEASE_STORE_FILE=...  # release signing — never commit</pre>
     <h2>4. Commands to run (in order)</h2>
 
     <h3>A. Bible-cache worker</h3>
+    <p class="muted">On Kenneth’s machine, always pass <code>--name morning-guard-bible-cache</code> so secrets land on the right Worker. Multi-line JSON secrets should be piped from a file (<code>&lt; key.json</code>), not pasted interactively.</p>
     <pre>cd workers/bible-cache
 npm install
 npm test
-npx wrangler secret put API_BIBLE_KEY
-npx wrangler secret put API_BIBLE_LICENSED_ENABLED   # true
-npx wrangler secret put PLAY_INTEGRITY_SERVICE_ACCOUNT_JSON
-npx wrangler secret put PLAY_APP_SIGNING_CERT_SHA256
-npx wrangler secret put APPLE_TEAM_ID
+npx wrangler secret put API_BIBLE_KEY --name morning-guard-bible-cache
+npx wrangler secret put API_BIBLE_LICENSED_ENABLED --name morning-guard-bible-cache   # true
+npx wrangler secret put PLAY_INTEGRITY_SERVICE_ACCOUNT_JSON --name morning-guard-bible-cache &lt; key.json
+npx wrangler secret put PLAY_APP_SIGNING_CERT_SHA256 --name morning-guard-bible-cache
+npx wrangler secret put APPLE_TEAM_ID --name morning-guard-bible-cache
 # Rollout only (until stores ship attestation):
-npx wrangler secret put BIBLE_PROXY_TOKEN
+npx wrangler secret put BIBLE_PROXY_TOKEN --name morning-guard-bible-cache
 npm run deploy</pre>
 
     <h3>B. Smoke test worker</h3>

@@ -34,22 +34,24 @@ Licensed requests use a one-time challenge:
    npx wrangler kv namespace create BIBLE_CACHE
    ```
 
-3. **Required secrets** (from `workers/bible-cache`):
+3. **Required secrets** (from `workers/bible-cache`; use `--name morning-guard-bible-cache`):
 
    ```bash
-   npx wrangler secret put API_BIBLE_KEY
-   npx wrangler secret put API_BIBLE_LICENSED_ENABLED   # true
+   npx wrangler secret put API_BIBLE_KEY --name morning-guard-bible-cache
+   npx wrangler secret put API_BIBLE_LICENSED_ENABLED --name morning-guard-bible-cache   # true
    ```
 
 4. **Attestation (production licensed path):**
 
+   Always pass `--name morning-guard-bible-cache`. Pipe multi-line JSON from a file (`< key.json`).
+
    ```bash
-   npx wrangler secret put PLAY_INTEGRITY_SERVICE_ACCOUNT_JSON   # Google SA JSON, playintegrity scope
-   npx wrangler secret put PLAY_APP_SIGNING_CERT_SHA256          # Play App Signing cert SHA-256 (hex)
-   npx wrangler secret put APPLE_TEAM_ID
+   npx wrangler secret put PLAY_INTEGRITY_SERVICE_ACCOUNT_JSON --name morning-guard-bible-cache < key.json
+   npx wrangler secret put PLAY_APP_SIGNING_CERT_SHA256 --name morning-guard-bible-cache
+   npx wrangler secret put APPLE_TEAM_ID --name morning-guard-bible-cache
    ```
 
-   Optional vars (defaults shown in code): `PLAY_INTEGRITY_PACKAGE_NAME` (`com.morningguard.app`), `APPLE_APP_ATTEST_BUNDLE_ID` (`com.morningguard.app`).
+   `PLAY_APP_SIGNING_CERT_SHA256` accepts comma-separated entries in colon-hex, plain hex, or base64/base64url (Play Integrity returns URL-safe base64). Empty/missing secret fails closed. Optional vars: `PLAY_INTEGRITY_PACKAGE_NAME` (`com.morningguard.app`), `APPLE_APP_ATTEST_BUNDLE_ID` (`com.morningguard.app`), `PLAY_ALLOW_UNRECOGNIZED_DEBUG_CERT` (`true` for debug sideload — still requires a matching cert on the allowlist).
 
 5. **Rollout only** (remove after clients update):
 

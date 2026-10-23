@@ -154,7 +154,7 @@ describe("worker fetch", () => {
       decodeIntegrityToken: async () => ({
         requestPackageName: "com.morningguard.app",
         appRecognitionVerdict: "PLAY_RECOGNIZED",
-        certificateSha256Digests: ["abc"],
+        certificateSha256Digests: ["No9Ytde5U4WlIF9SDEgt4i2_rfhxfgnvtCQ8syfzk0A"],
         deviceRecognitionVerdicts: ["MEETS_DEVICE_INTEGRITY"],
         requestDetailsNonce: nonce,
       }),
@@ -199,7 +199,8 @@ describe("worker fetch", () => {
         BIBLE_CACHE: kv,
         BIBLE_PROXY_LEGACY_TOKEN_DISABLED: "true",
         API_BIBLE_NIV_ID: "test-niv-bible-id",
-        PLAY_APP_SIGNING_CERT_SHA256: "abc",
+        PLAY_APP_SIGNING_CERT_SHA256:
+          "36:8F:58:B5:D7:B9:53:85:A5:20:5F:52:0C:48:2D:E2:2D:BF:AD:F8:71:7E:09:EF:B4:24:3C:B3:27:F3:93:40",
       }),
     );
     const failureBody = response.status !== 200 ? await response.text() : "";
