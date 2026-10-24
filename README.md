@@ -80,24 +80,25 @@ Launch checklist: [`site/play-store-launch/index.html`](site/play-store-launch/i
 
 Store screenshots (plan → `screenshot` build capture → [`screenshot-studio`](site/screenshot-studio/)): [`docs/store-screenshots.md`](docs/store-screenshots.md) — run `./scripts/store-screenshots/orchestrate.sh` with a device connected (`--ai` optional).
 
-Upload **AAB** from `app/build/outputs/bundle/release/` (see checklist). CI uploads the same bundle as a GitHub Actions artifact on merge to `main`.
+Upload **AAB** from `app/build/outputs/bundle/fullRelease/` (see checklist). Store releases are built via the Release workflow (see below).
 
 ## CI / CD
 
-- **CI** (`.github/workflows/ci.yml`): `test`, `detekt`, `lint` on PRs and pushes; `assembleRelease` on `main`.
-- **Release** (`.github/workflows/release.yml`): signed `bundleRelease` + **AAB artifact** (`app-release-bundle`) on merge to `main`.
+- **CI** (`.github/workflows/ci.yml`): `test`, `detekt`, `lint` on PRs and pushes; `assembleFullRelease` on `main`.
+- **Release** (`.github/workflows/release.yml`): signed `bundleFullRelease` on version tags (`v*`) or manual dispatch — see [`docs/cloud-release.md`](docs/cloud-release.md).
 
-### GitHub Actions secrets (optional, for signed release builds with Supabase baked in)
+### GitHub Actions secrets
 
-Set repository secrets (Settings → Secrets and variables → Actions), or from your machine (values from your local `local.properties`, never commit them):
+Push secrets from your Mac `local.properties` (never commit values):
 
 ```bash
+./scripts/push-github-secrets.sh --dry-run
 ./scripts/push-github-secrets.sh
 ```
 
-Or set secrets manually in GitHub → Settings → Secrets and variables → Actions.
+Full secret list, Play service account setup, and triggers: [`docs/cloud-release.md`](docs/cloud-release.md).
 
-CI builds work without secrets (Supabase shows as unconfigured in those APKs). Add secrets before you need auth in GitHub-built releases.
+CI builds work without secrets (Supabase shows as unconfigured in those APKs). Add secrets before you need signed release bundles or Play upload in Actions.
 
 Magic-link browser fallback: deploy [`site/auth-landing`](site/auth-landing/README.md) with `./site/auth-landing/deploy.sh` (Cloudflare Pages).
 
