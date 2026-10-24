@@ -9,6 +9,7 @@ struct HomeView: View {
     let onOpenHighlights: () -> Void
     let onOpenStats: () -> Void
     let onOpenSettings: () -> Void
+    let onOpenAccount: () -> Void
     let onOpenEmergency: () -> Void
 
     private var evaluation: GateEvaluation {
@@ -62,6 +63,12 @@ struct HomeView: View {
         .listStyle(.insetGrouped)
         .navigationTitle("Morning Guard")
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button(action: onOpenAccount) {
+                    Image(systemName: "person.crop.circle")
+                }
+                .accessibilityLabel("Account")
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Button(action: onOpenSettings) {
                     Image(systemName: "gearshape")

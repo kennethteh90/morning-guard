@@ -3,6 +3,11 @@ import SwiftUI
 @main
 struct MorningGuardApp: App {
     @State private var appState = AppState()
+
+    init() {
+        SentryBootstrap.startIfConfigured()
+    }
+
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {

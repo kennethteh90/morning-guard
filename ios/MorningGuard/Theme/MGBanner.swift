@@ -56,7 +56,8 @@ enum MGBanner {
     static func present(
         _ payload: MGBannerPayload,
         binding: Binding<MGBannerPayload?>,
-        duration: TimeInterval? = nil
+        duration: TimeInterval? = nil,
+        onAutoDismiss: (() -> Void)? = nil
     ) {
         binding.wrappedValue = payload
         let seconds = duration ?? (payload.showsUndo ? 5 : 2.5)
@@ -65,6 +66,7 @@ enum MGBanner {
             await MainActor.run {
                 if binding.wrappedValue == payload {
                     binding.wrappedValue = nil
+                    onAutoDismiss?()
                 }
             }
         }

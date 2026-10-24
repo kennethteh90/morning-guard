@@ -8,32 +8,114 @@ final class UserDataSyncService {
     private let settingsStore: SettingsStore
     private let highlightStore: BibleHighlightStore
     private let noteEncryption: NoteEncryptionService
+    private let errorReporter: ErrorReporter
 
     init(
         auth: SupabaseAuthService,
         settingsStore: SettingsStore,
         highlightStore: BibleHighlightStore,
-        noteEncryption: NoteEncryptionService
+        noteEncryption: NoteEncryptionService,
+        errorReporter: ErrorReporter = AppMonitoring.errorReporter
     ) {
         self.auth = auth
         self.settingsStore = settingsStore
         self.highlightStore = highlightStore
         self.noteEncryption = noteEncryption
+        self.errorReporter = errorReporter
     }
 
     func syncAllIfSignedIn() async {
         guard settingsStore.userSettings.dataStorageMode == .cloudSync else { return }
-        guard SupabaseConfig.isConfigured, auth.isSignedIn else { return }
-        guard let client = makeClient() else { return }
+        guard SupabaseConfig.isConfigured, auth.isSignedIn, let client = auth.clientOrNil() else { return }
         try? noteEncryption.ensureDekReady()
         highlightStore.migrateLegacyPlaintextNotes()
+        await syncMorningHistory(client: client)
         await syncNoteCrypto(client: client)
         await syncHighlights(client: client)
     }
 
-    private func makeClient() -> SupabaseClient? {
-        guard SupabaseConfig.isConfigured, let url = URL(string: SupabaseConfig.url) else { return nil }
-        return SupabaseClient(supabaseURL: url, supabaseKey: SupabaseConfig.anonKey)
+    func syncMorningHistoryIfSignedIn() async {
+        guard settingsStore.userSettings.dataStorageMode == .cloudSync else { return }
+        guard SupabaseConfig.isConfigured, auth.isSignedIn, let client = auth.clientOrNil() else { return }
+        await syncMorningHistory(client: client)
+    }
+
+    func deleteHighlight(_ highlight: BibleHighlight) async -> Result<Void, Error> {
+        guard let client = auth.clientOrNil() else {
+            highlightStore.deleteHighlight(id: highlight.id)
+            return .success(())
+        }
+        guard auth.isSignedIn else {
+            highlightStore.deleteHighlight(id: highlight.id)
+            return .success(())
+        }
+        do {
+            let userId = try await auth.currentUserId()
+            if highlight.remoteId > 0 {
+                try await client.from("bible_highlights")
+                    .delete()
+                    .eq("id", value: highlight.remoteId)
+                    .eq("user_id", value: userId)
+                    .execute()
+            } else if highlight.id > 0 {
+                try await client.from("bible_highlights")
+                    .delete()
+                    .eq("client_id", value: highlight.id)
+                    .eq("user_id", value: userId)
+                    .execute()
+            } else if let verse = highlight.verse {
+                try await client.from("bible_highlights")
+                    .delete()
+                    .eq("user_id", value: userId)
+                    .eq("translation_id", value: highlight.translationId)
+                    .eq("book", value: highlight.book)
+                    .eq("chapter", value: highlight.chapter)
+                    .eq("verse", value: verse)
+                    .execute()
+            }
+            highlightStore.deleteHighlight(id: highlight.id)
+            errorReporter.breadcrumb(category: "supabase_sync", message: "bible_highlights delete ok")
+            return .success(())
+        } catch {
+            highlightStore.deleteHighlight(id: highlight.id)
+            recordFailure(phase: "bible_highlights delete", error: error)
+            return .failure(error)
+        }
+    }
+
+    private func syncMorningHistory(client: SupabaseClient) async {
+        do {
+            let userId = try await auth.currentUserId()
+            let remoteRows: [MorningDayRecordRow] = try await client
+                .from("morning_day_records")
+                .select()
+                .execute()
+                .value
+            let domain = remoteRows.compactMap { $0.toDomain() }
+            settingsStore.mergeMorningHistoryFromRemote(domain)
+            errorReporter.breadcrumb(category: "supabase_sync", message: "morning_day_records pull \(domain.count)")
+
+            let local = settingsStore.goalProgressStore.morningHistory
+            if local.isEmpty {
+                errorReporter.breadcrumb(category: "supabase_sync", message: "morning_day_records push skipped empty")
+                return
+            }
+            let pushRows = local.map { record in
+                MorningDayRecordRow(
+                    userId: userId,
+                    dateKey: record.dateKey,
+                    outcome: record.outcome.rawValue,
+                    recordedAt: isoString(epochMs: record.recordedAtEpochMs),
+                    timeOnGoalSeconds: record.timeOnGoalSeconds
+                )
+            }
+            try await client.from("morning_day_records")
+                .upsert(pushRows, onConflict: "user_id,date_key")
+                .execute()
+            errorReporter.breadcrumb(category: "supabase_sync", message: "morning_day_records push \(pushRows.count)")
+        } catch {
+            recordFailure(phase: "morning_day_records sync", error: error)
+        }
     }
 
     private func syncNoteCrypto(client: SupabaseClient) async {
@@ -69,7 +151,7 @@ final class UserDataSyncService {
                 try await client.from("user_note_crypto").upsert(row, onConflict: "user_id").execute()
             }
         } catch {
-            // Non-fatal; sync retries on next sign-in or save.
+            recordFailure(phase: "user_note_crypto sync", error: error)
         }
     }
 
@@ -97,8 +179,7 @@ final class UserDataSyncService {
             )
 
             if !noteEncryption.requiresCloudRecovery() {
-                let domain = remoteRows.compactMap { $0.toDomain() }
-                highlightStore.reconcileWithRemote(domain)
+                highlightStore.reconcileWithRemote(remoteRows.compactMap { $0.toDomain() })
             }
 
             if noteEncryption.requiresCloudRecovery() { return }
@@ -125,8 +206,9 @@ final class UserDataSyncService {
             if !noteEncryption.requiresCloudRecovery() {
                 highlightStore.reconcileWithRemote(refreshed.compactMap { $0.toDomain() })
             }
+            errorReporter.breadcrumb(category: "supabase_sync", message: "bible_highlights sync ok")
         } catch {
-            // logged on next attempt
+            recordFailure(phase: "bible_highlights sync", error: error)
         }
     }
 
@@ -181,9 +263,45 @@ final class UserDataSyncService {
         }
     }
 
+    private func recordFailure(phase: String, error: Error) {
+        errorReporter.reportNonFatal(
+            throwable: error,
+            tags: ["feature": "supabase_sync", "sync.phase": phase],
+            extras: ["detail": error.localizedDescription]
+        )
+    }
+
     private func isoString(epochMs: Int64) -> String {
         let date = Date(timeIntervalSince1970: TimeInterval(epochMs) / 1000)
         return ISO8601DateFormatter().string(from: date)
+    }
+}
+
+private struct MorningDayRecordRow: Codable {
+    var userId: String
+    var dateKey: String
+    var outcome: String
+    var recordedAt: String?
+    var timeOnGoalSeconds: Int
+
+    enum CodingKeys: String, CodingKey {
+        case userId = "user_id"
+        case dateKey = "date_key"
+        case outcome
+        case recordedAt = "recorded_at"
+        case timeOnGoalSeconds = "time_on_goal_seconds"
+    }
+
+    func toDomain() -> MorningDayRecord? {
+        guard let parsed = MorningDayOutcome(rawValue: outcome) else { return nil }
+        let recordedMs = recordedAt.flatMap { ISO8601DateFormatter().date(from: $0)?.timeIntervalSince1970 }
+            .map { Int64($0 * 1000) } ?? Int64(Date().timeIntervalSince1970 * 1000)
+        return MorningDayRecord(
+            dateKey: dateKey,
+            outcome: parsed,
+            recordedAtEpochMs: recordedMs,
+            timeOnGoalSeconds: timeOnGoalSeconds
+        )
     }
 }
 

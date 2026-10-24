@@ -21,8 +21,6 @@ struct SettingsView: View {
     @State private var notesNewPassword = ""
     @State private var notesConfirmNewPassword = ""
     @State private var notesMessage: String?
-    @State private var magicLinkEmail = ""
-    @State private var accountMessage: String?
     @State private var backupMessage: String?
     @State private var backupPasswordMode: LocalBackupPasswordSheet.Mode?
     @State private var showRestoreConfirm = false
@@ -60,7 +58,15 @@ struct SettingsView: View {
             RecoveryPasswordBannerView()
             notesEncryptionSection
             backupSection
-            accountSection
+
+            Section {
+                NavigationLink("Account") {
+                    AccountView()
+                }
+                Text("Magic-link sign-in, sign-out, and account deletion.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
 
             Section("Emergency passphrase") {
                 SecureField("New passphrase (8+ characters)", text: $newPassphrase)
@@ -230,50 +236,6 @@ struct SettingsView: View {
             }
         } header: {
             Text("Local backup")
-        }
-    }
-
-    @ViewBuilder
-    private var accountSection: some View {
-        Section {
-            switch appState.supabaseAuth.state {
-            case .unconfigured:
-                Text("Cloud sync is not configured in this build.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                if let hint = SupabaseConfig.missingPieceMessage {
-                    Text(hint).font(.caption2).foregroundStyle(.secondary)
-                }
-            case .signedIn(let user):
-                Text("Signed in as \(user.email ?? "your account"). Streaks and highlights sync while cloud sync is enabled.")
-                    .font(.caption)
-                Button("Sign out", role: .destructive) {
-                    Task {
-                        await appState.signOut()
-                        accountMessage = "Signed out on this device."
-                    }
-                }
-            case .signedOut, .error:
-                TextField("Email for magic link", text: $magicLinkEmail)
-                    .textContentType(.emailAddress)
-                    .keyboardType(.emailAddress)
-                    .autocapitalization(.none)
-                Button("Send sign-in link") {
-                    Task {
-                        do {
-                            try await appState.sendMagicLink(email: magicLinkEmail)
-                            accountMessage = "Check your email and open the link on this iPhone."
-                        } catch {
-                            accountMessage = error.localizedDescription
-                        }
-                    }
-                }
-            }
-            if let accountMessage {
-                Text(accountMessage).font(.caption).foregroundStyle(.secondary)
-            }
-        } header: {
-            Text("Account")
         }
     }
 

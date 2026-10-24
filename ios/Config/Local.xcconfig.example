@@ -11,3 +11,6 @@
 // Cloud sync (same values as Android local.properties SUPABASE_* — never commit real keys)
 // SUPABASE_URL = https:/$()/your-project.supabase.co
 // SUPABASE_ANON_KEY = your-anon-or-publishable-key
+//
+// Crash reporting (optional — leave empty to disable Sentry in local builds)
+// SENTRY_DSN = https:/$()/examplePublicKey@o0.ingest.sentry.io/0

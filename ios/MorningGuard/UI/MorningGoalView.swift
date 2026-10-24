@@ -245,6 +245,7 @@ struct MorningGoalView: View {
         appState.shieldController.refreshShields()
         MGHaptics.success()
         stopTicker()
+        Task { await appState.userDataSync.syncMorningHistoryIfSignedIn() }
     }
 
     private func leaveGoalScreen() {
