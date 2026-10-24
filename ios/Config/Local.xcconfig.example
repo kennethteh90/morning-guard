@@ -7,3 +7,7 @@
 // xcconfig treats "//" in URLs as a comment — use https:/$()/ instead of https://
 // BIBLE_PROXY_BASE_URL = https:/$()/morning-guard-bible-cache.your-subdomain.workers.dev
 // Licensed translations use App Attest on device (no proxy token in the app).
+//
+// Cloud sync (same values as Android local.properties SUPABASE_* — never commit real keys)
+// SUPABASE_URL = https:/$()/your-project.supabase.co
+// SUPABASE_ANON_KEY = your-anon-or-publishable-key
