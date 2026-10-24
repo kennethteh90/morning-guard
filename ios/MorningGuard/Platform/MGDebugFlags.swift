@@ -4,7 +4,8 @@ import Foundation
 enum MGDebugFlags {
     /// Set `true` in Info.plist for screenshot automation builds (hides debug panels while still DEBUG).
     static var screenshotMode: Bool {
-        (Bundle.main.object(forInfoDictionaryKey: "MORNING_GUARD_SCREENSHOT_MODE") as? Bool) == true
+        if ProcessInfo.processInfo.arguments.contains("-MGScreenshotMode") { return true }
+        return (Bundle.main.object(forInfoDictionaryKey: "MORNING_GUARD_SCREENSHOT_MODE") as? Bool) == true
     }
 
     /// Debug cards in Settings, step overlays, etc.

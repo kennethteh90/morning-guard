@@ -192,6 +192,7 @@ struct MorningGoalView: View {
                             completeGoalExplicitly()
                         } label: {
                             Label("Complete morning goal", systemImage: "checkmark.circle.fill")
+                                .accessibilityLabel("Complete morning goal")
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)

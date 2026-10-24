@@ -123,6 +123,14 @@ schemes:
     build:
       targets:
         MorningGuard: all
+  MorningGuard-Screenshots:
+    build:
+      targets:
+        MorningGuard: all
+    run:
+      config: Debug
+      commandLineArguments:
+        "-MGScreenshotMode": true
     run:
       config: Debug
     archive:

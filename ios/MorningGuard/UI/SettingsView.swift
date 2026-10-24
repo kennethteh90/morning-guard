@@ -55,6 +55,23 @@ struct SettingsView: View {
                 }
             }
 
+            Section("Bible") {
+                NavigationLink {
+                    BibleTranslationPickerSheet(
+                        selectedTranslationId: appState.settingsStore.userSettings.morningGoal.bibleTranslation,
+                        onSelect: { appState.setBibleTranslation($0) }
+                    )
+                } label: {
+                    HStack {
+                        Text("Default translation")
+                        Spacer()
+                        Text(BibleTranslations.chipLabel(id: appState.settingsStore.userSettings.morningGoal.bibleTranslation))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .accessibilityLabel("Default Bible translation")
+            }
+
             RecoveryPasswordBannerView()
             notesEncryptionSection
             backupSection
@@ -79,9 +96,22 @@ struct SettingsView: View {
             }
 
             Section("Privacy") {
-                if let url = SettingsView.privacyPolicyURL {
-                    Link("Privacy policy", destination: url)
+                NavigationLink("Privacy policy (in app)") {
+                    PrivacyPolicyView()
                 }
+                if let url = SettingsView.privacyPolicyURL {
+                    Link("Privacy policy on the web", destination: url)
+                }
+            }
+
+            Section("Setup") {
+                Button("Run setup guide again") {
+                    appState.replayOnboarding()
+                }
+                .accessibilityLabel("Run setup guide again")
+                Text("Reopens the onboarding flow. Your data and settings stay on this device.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             Section("On iPhone") {

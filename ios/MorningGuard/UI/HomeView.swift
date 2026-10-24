@@ -130,6 +130,8 @@ struct HomeView: View {
                 }
                 .buttonStyle(.plain)
                 .listRowBackground(MGTheme.accent)
+                .accessibilityLabel("Start morning goal")
+                .accessibilityHint("Opens today's verifiable morning goal")
             }
         } else if evaluation.state == .inactive {
             Section {

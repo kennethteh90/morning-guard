@@ -44,7 +44,7 @@ In Xcode:
 | MorningGuard | `com.morningguard.app` | Main SwiftUI app |
 | MorningGuardMonitor | `com.morningguard.app.monitor` | Device Activity Monitor — applies/clears shields from app group state |
 | MorningGuardShieldConfig | `com.morningguard.app.shieldconfig` | Branded shield UI |
-| MorningGuardShieldAction | `com.morningguard.app.shieldaction` | Shield button dismisses; open Morning Guard from the Home Screen |
+| MorningGuardShieldAction | `com.morningguard.app.shieldaction` | Primary **Open goal** returns `.defer` to foreground the app (Apple does not pass a custom URL from the extension). Deep link `morningguard://goal` works when opened from elsewhere (e.g. magic link flows). |
 
 Shared logic lives in the local Swift package **MorningGuardCore** (`ios/MorningGuardCore`).
 
@@ -68,4 +68,9 @@ Set `BIBLE_PROXY_BASE_URL` in `ios/Config/Local.xcconfig` (see `Local.xcconfig.e
 
 ## Privacy
 
-`PrivacyInfo.xcprivacy` declares UserDefaults (`CA92.1`). Settings links the hosted privacy policy. Screen Time copy: [docs/ios/PRIVACY-SCREEN-TIME.md](../docs/ios/PRIVACY-SCREEN-TIME.md). **Downtime & Focus (user guides, hosted):** https://morning-guard.codingagents.cc/iphone/ — sources in `docs/ios/downtime-and-focus-*.html`.
+`PrivacyInfo.xcprivacy` declares UserDefaults (`CA92.1`), optional crash data when Sentry is configured, HealthKit steps, and email when cloud sync is used. App Store answers: [`docs/app-store-privacy-labels.md`](../docs/app-store-privacy-labels.md). Settings includes an in-app privacy policy plus the hosted URL. Screen Time copy: [docs/ios/PRIVACY-SCREEN-TIME.md](../docs/ios/PRIVACY-SCREEN-TIME.md).
+
+## Screenshot / store capture mode
+
+- Launch argument: `-MGScreenshotMode` (Xcode scheme **MorningGuard-Screenshots**), or set `MORNING_GUARD_SCREENSHOT_MODE` = `YES` in Info.plist for a dedicated build.
+- Seeds Psalm 23, streak history, and a sample highlight (`ScreenshotDemoSeeder`).
