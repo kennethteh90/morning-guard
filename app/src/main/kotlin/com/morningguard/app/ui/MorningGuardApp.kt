@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.morningguard.app.ui.onboarding.OnboardingFlowScreen
+import com.morningguard.app.ui.recovery.RecoveryPasswordHost
 
 @Composable
 fun MorningGuardApp(screenshotScene: String? = null) {
@@ -26,7 +27,9 @@ fun MorningGuardApp(screenshotScene: String? = null) {
             OnboardingFlowScreen()
         }
         AppRoute.Main -> {
-            MorningGuardNavHost(screenshotScene = screenshotScene)
+            RecoveryPasswordHost {
+                MorningGuardNavHost(screenshotScene = screenshotScene)
+            }
         }
     }
 }

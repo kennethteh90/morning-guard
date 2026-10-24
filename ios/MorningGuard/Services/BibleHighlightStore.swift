@@ -32,7 +32,7 @@ final class BibleHighlightStore {
 
     func saveHighlight(_ highlight: BibleHighlight) {
         var copy = highlight
-        copy.note = noteEncryption.encryptForStorage(copy.note)
+        copy.note = (try? noteEncryption.encryptForStorage(copy.note)) ?? copy.note
         if copy.id == 0 {
             copy.id = (highlights.map(\.id).max() ?? 0) + 1
         }

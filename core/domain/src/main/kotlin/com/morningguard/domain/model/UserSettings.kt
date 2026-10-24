@@ -39,4 +39,9 @@ data class UserSettings(
     val dataStorageMode: DataStorageMode = DataStorageMode.LOCAL_ONLY,
     /** Last Supabase user id that owned local sync data on this device. */
     val syncBoundUserId: String? = null,
+    /** Recovery-password onboarding (cloud sync). */
+    val recoveryPasswordPromptShownAfterSignIn: Boolean = false,
+    val recoveryPasswordLaterCount: Int = 0,
+    val recoveryPasswordPromptLastDismissedEpochMs: Long = 0,
+    val noteSaveCountForRecoveryPrompt: Int = 0,
 )

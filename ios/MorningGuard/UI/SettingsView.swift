@@ -158,23 +158,32 @@ struct SettingsView: View {
     @ViewBuilder
     private var notesEncryptionSection: some View {
         Section {
-            Text("Uses the device Keychain on this phone plus a password you choose. After reinstall, enter the same password once to unlock notes.")
+            Text("Reflection notes are always encrypted on this device (Keychain). Set a recovery password to open them after reinstall or on a new phone.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            if !appState.noteEncryption.cryptoState.enabled {
-                SecureField("Notes encryption password", text: $notesPassword)
-                Button("Enable note encryption") { setupNotesEncryption() }
+            Text(
+                appState.noteEncryption.cryptoState.hasRecoveryPassword()
+                    ? "Recovery password: set"
+                    : "Recovery password: not set — notes cannot be recovered on a new device"
+            )
+            .font(.subheadline)
+            .foregroundStyle(
+                appState.noteEncryption.cryptoState.hasRecoveryPassword() ? MGTheme.accent : .orange
+            )
+            if !appState.noteEncryption.cryptoState.hasRecoveryPassword() {
+                SecureField("Recovery password (8+ characters)", text: $notesPassword)
+                Button("Set recovery password") { setupNotesEncryption() }
                     .disabled(notesPassword.count < 8)
             } else if !appState.noteEncryption.isUnlocked {
-                SecureField("Notes encryption password", text: $notesPassword)
+                SecureField("Recovery password", text: $notesPassword)
                 Button("Unlock notes") { unlockNotesEncryption() }
                     .disabled(notesPassword.count < 8)
             } else {
                 Text("Notes unlocked on this device.")
                     .foregroundStyle(MGTheme.accent)
-                SecureField("Current notes password", text: $notesPassword)
-                SecureField("New notes password", text: $notesNewPassword)
-                Button("Change notes password") { changeNotesPassword() }
+                SecureField("Current recovery password", text: $notesPassword)
+                SecureField("New recovery password", text: $notesNewPassword)
+                Button("Change recovery password") { changeNotesPassword() }
                     .disabled(notesPassword.count < 8 || notesNewPassword.count < 8)
             }
             if let notesMessage {
@@ -183,7 +192,7 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
             }
         } header: {
-            Text("Encrypted highlight notes")
+            Text("Highlight notes")
         }
     }
 

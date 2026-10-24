@@ -477,6 +477,9 @@ class MorningGoalViewModel @Inject constructor(
             val excerpt = BibleVerseCopyFormat.formatBody(
                 sorted.map { BibleVerseLine(it.number, it.text) },
             ).take(4_000)
+            if (note.trim().isNotEmpty()) {
+                settingsRepository.incrementNoteSaveCountForRecoveryPrompt()
+            }
             bibleHighlightRepository.save(
                 BibleHighlight(
                     translationId = goal.bibleTranslation,

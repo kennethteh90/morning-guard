@@ -73,6 +73,7 @@ class AppInitializer @Inject constructor(
             gateStateHolder.refreshNow()
             peaceSessionRepository.reconcileStoredPeaceSession()
             morningAlarmScheduler.schedule(settingsRepository.currentSettings().alarm)
+            noteEncryptionRepository.ensureDekReady()
             noteEncryptionRepository.tryUnlockFromKeystore()
             settingsRepository.ensureDefaultBypassPackages()
             authRepository.restoreSession()

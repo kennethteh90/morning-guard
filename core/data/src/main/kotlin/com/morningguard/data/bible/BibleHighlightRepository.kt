@@ -5,6 +5,8 @@ import com.morningguard.data.local.entity.BibleHighlightEntity
 import com.morningguard.data.local.entity.toDomain
 import com.morningguard.data.local.entity.toEntity
 import com.morningguard.data.security.HighlightNoteCipher
+import com.morningguard.data.security.NoteContentCipher
+import com.morningguard.data.security.NoteEncryptionRepository
 import com.morningguard.domain.bible.BibleHighlight
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -16,6 +18,7 @@ import javax.inject.Singleton
 class BibleHighlightRepository @Inject constructor(
     private val dao: BibleHighlightDao,
     private val noteCipher: HighlightNoteCipher,
+    private val noteEncryptionRepository: NoteEncryptionRepository,
 ) {
     val highlights: Flow<List<BibleHighlight>> =
         dao.observeAll().map { list -> list.map { it.toDomainDecrypted() } }
@@ -23,8 +26,10 @@ class BibleHighlightRepository @Inject constructor(
     suspend fun listAll(): List<BibleHighlight> =
         dao.listAll().map { it.toDomainDecrypted() }
 
-    suspend fun save(highlight: BibleHighlight): Long =
-        dao.insert(highlight.withEncryptedNote().copy(id = 0).toEntity())
+    suspend fun save(highlight: BibleHighlight): Long {
+        noteEncryptionRepository.ensureDekReady().getOrThrow()
+        return dao.insert(highlight.withEncryptedNote().copy(id = 0).toEntity())
+    }
 
     suspend fun listAllStoredForBackup(): List<BibleHighlight> =
         dao.listAll().map { it.toDomainDecrypted() }
@@ -34,12 +39,25 @@ class BibleHighlightRepository @Inject constructor(
     }
 
     suspend fun reencryptAllStoredNotes() {
+        noteEncryptionRepository.ensureDekReady().getOrThrow()
         for (entity in dao.listAll()) {
-            val plain = noteCipher.decryptFromStorage(entity.note)
+            val plain = when {
+                NoteContentCipher.isCiphertext(entity.note) -> noteCipher.decryptFromStorage(entity.note)
+                else -> entity.note
+            }
             val stored = noteCipher.encryptForStorage(plain)
             if (stored != entity.note) {
                 dao.update(entity.copy(note = stored))
             }
+        }
+    }
+
+    suspend fun migrateLegacyPlaintextNotes() {
+        noteEncryptionRepository.ensureDekReady().getOrThrow()
+        for (entity in dao.listAll()) {
+            if (!NoteContentCipher.isLegacyPlaintext(entity.note)) continue
+            val stored = noteCipher.encryptForStorage(entity.note)
+            dao.update(entity.copy(note = stored))
         }
     }
 
@@ -85,48 +103,55 @@ class BibleHighlightRepository @Inject constructor(
     }
 
     private suspend fun mergeFromRemote(remoteHighlights: List<BibleHighlight>) {
+        noteEncryptionRepository.ensureDekReady().getOrThrow()
         remoteHighlights.filter { it.remoteId > 0 }.forEach { mergeOneRemote(it) }
     }
 
     private suspend fun mergeOneRemote(remote: BibleHighlight) {
+        val noteStored = when {
+            NoteContentCipher.isLegacyPlaintext(remote.note) ->
+                noteCipher.encryptForStorage(remote.note)
+            else -> remote.note
+        }
+        val remoteNormalized = remote.copy(note = noteStored)
         val existingByRemote = dao.findByRemoteId(remote.remoteId)
         if (existingByRemote != null) {
             dao.update(
                 existingByRemote.copy(
-                    translationId = remote.translationId,
-                    book = remote.book,
-                    chapter = remote.chapter,
-                    label = remote.label,
-                    excerpt = remote.excerpt,
-                    verse = remote.verse,
-                    verseEnd = remote.verseEnd,
-                    verseNumbers = remote.verseNumbers,
-                    colorKey = remote.colorKey,
-                    note = remote.note,
+                    translationId = remoteNormalized.translationId,
+                    book = remoteNormalized.book,
+                    chapter = remoteNormalized.chapter,
+                    label = remoteNormalized.label,
+                    excerpt = remoteNormalized.excerpt,
+                    verse = remoteNormalized.verse,
+                    verseEnd = remoteNormalized.verseEnd,
+                    verseNumbers = remoteNormalized.verseNumbers,
+                    colorKey = remoteNormalized.colorKey,
+                    note = remoteNormalized.note,
                     selectionStart = remote.selectionStart,
                     selectionEnd = remote.selectionEnd,
-                    createdAtEpochMs = remote.createdAtEpochMs,
+                    createdAtEpochMs = remoteNormalized.createdAtEpochMs,
                 ),
             )
             return
         }
-        val localId = remote.id.takeIf { it > 0 }
+        val localId = remoteNormalized.id.takeIf { it > 0 }
         if (localId != null) {
             val local = dao.listAll().find { it.id == localId }
             if (local != null) {
                 dao.update(
                     local.copy(
-                        remoteId = remote.remoteId,
-                        translationId = remote.translationId,
-                        book = remote.book,
-                        chapter = remote.chapter,
-                        label = remote.label,
-                        excerpt = remote.excerpt,
-                        verse = remote.verse,
-                        verseEnd = remote.verseEnd,
-                        verseNumbers = remote.verseNumbers,
-                        colorKey = remote.colorKey,
-                        note = remote.note,
+                        remoteId = remoteNormalized.remoteId,
+                        translationId = remoteNormalized.translationId,
+                        book = remoteNormalized.book,
+                        chapter = remoteNormalized.chapter,
+                        label = remoteNormalized.label,
+                        excerpt = remoteNormalized.excerpt,
+                        verse = remoteNormalized.verse,
+                        verseEnd = remoteNormalized.verseEnd,
+                        verseNumbers = remoteNormalized.verseNumbers,
+                        colorKey = remoteNormalized.colorKey,
+                        note = remoteNormalized.note,
                         selectionStart = remote.selectionStart,
                         selectionEnd = remote.selectionEnd,
                     ),
@@ -135,7 +160,7 @@ class BibleHighlightRepository @Inject constructor(
             }
         }
         dao.insert(
-            remote.copy(id = 0).toEntity().copy(remoteId = remote.remoteId),
+            remoteNormalized.copy(id = 0).toEntity().copy(remoteId = remoteNormalized.remoteId),
         )
     }
 }

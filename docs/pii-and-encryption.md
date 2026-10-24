@@ -62,8 +62,8 @@ Nothing in the APK is secret: a rooted device or backup dump can be attacked off
 | Data | Local | Cloud (signed in) | Encrypted E2E |
 |------|-------|-------------------|---------------|
 | Email | Session only | `auth.users` | No (Auth) |
-| Highlight notes | Room (`mgenc1:` when enabled) | `bible_highlights.note` ciphertext | **Yes** (optional, Settings) |
-| Note DEK wrap | `note_crypto.json` + Keystore | `user_note_crypto` password wrap | Password + Keystore |
+| Highlight notes | Room (`mgenc1:` always) | `bible_highlights.note` ciphertext | **Yes** (device key + optional recovery password) |
+| Note DEK wrap | `note_crypto.json` + Keystore | `user_note_crypto` recovery password wrap | Keystore + optional recovery password |
 | Digest notifications | Room | Not synced | N/A |
 | Emergency passphrase | Salted hash | Not synced | Hash only |
 

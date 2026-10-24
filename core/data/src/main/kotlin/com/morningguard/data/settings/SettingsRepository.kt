@@ -299,4 +299,22 @@ class SettingsRepository @Inject constructor(
         val merged = maxOf(map[dateKey] ?: 0, steps)
         return if (merged == map[dateKey]) map else map + (dateKey to merged)
     }
+
+    suspend fun markRecoveryPasswordPromptShownAfterSignIn() {
+        updateSettings { it.copy(recoveryPasswordPromptShownAfterSignIn = true) }
+    }
+
+    suspend fun recordRecoveryPasswordPromptDismissed() {
+        updateSettings {
+            it.copy(
+                recoveryPasswordPromptShownAfterSignIn = true,
+                recoveryPasswordLaterCount = it.recoveryPasswordLaterCount + 1,
+                recoveryPasswordPromptLastDismissedEpochMs = System.currentTimeMillis(),
+            )
+        }
+    }
+
+    suspend fun incrementNoteSaveCountForRecoveryPrompt() {
+        updateSettings { it.copy(noteSaveCountForRecoveryPrompt = it.noteSaveCountForRecoveryPrompt + 1) }
+    }
 }

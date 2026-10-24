@@ -54,7 +54,7 @@ class SettingsViewModel @Inject constructor(
     private val _notesEncryptionMessage = MutableStateFlow<String?>(null)
     val notesEncryptionMessage: StateFlow<String?> = _notesEncryptionMessage.asStateFlow()
 
-    private val _notesUnlocked = MutableStateFlow(noteEncryptionRepository.isEncryptionEnabled())
+    private val _notesUnlocked = MutableStateFlow(noteEncryptionRepository.isDekUnlocked())
     val notesUnlocked: StateFlow<Boolean> = _notesUnlocked.asStateFlow()
 
     val authState: StateFlow<AuthState> = authRepository.state
@@ -214,12 +214,17 @@ class SettingsViewModel @Inject constructor(
 
     fun setupNotesEncryption(password: String) {
         viewModelScope.launch {
-            noteEncryptionRepository.setupWithPassword(password.toCharArray())
+            noteEncryptionRepository.ensureDekReady().onFailure { err ->
+                _notesEncryptionMessage.value = err.message
+                return@launch
+            }
+            noteEncryptionRepository.setRecoveryPassword(password.toCharArray())
                 .onSuccess {
                     bibleHighlightRepository.reencryptAllStoredNotes()
                     userDataSyncService.syncAllIfSignedIn()
                     _notesUnlocked.value = true
-                    _notesEncryptionMessage.value = "Highlight notes are encrypted on this device and in cloud sync."
+                    _notesEncryptionMessage.value =
+                        "Recovery password saved. Store it in a password manager to open notes on a new phone."
                 }
                 .onFailure { err ->
                     _notesEncryptionMessage.value = err.message
@@ -254,7 +259,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun refreshNotesUnlocked() {
-        _notesUnlocked.value = noteEncryptionRepository.isEncryptionEnabled()
+        _notesUnlocked.value = noteEncryptionRepository.isDekUnlocked()
     }
 }
 

@@ -38,9 +38,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -56,7 +54,6 @@ import com.morningguard.app.platform.NotificationListenerRegistrationProbe
 import com.morningguard.app.screenshot.ScreenshotIntents
 import com.morningguard.app.screenshot.ScreenshotReadyNotifier
 import kotlinx.coroutines.delay
-import com.morningguard.app.ui.backup.LocalBackupPasswordDialog
 import com.morningguard.app.ui.components.OnboardingStepScaffold
 import com.morningguard.domain.model.GoalType
 import dagger.hilt.android.EntryPointAccessors
@@ -73,37 +70,6 @@ fun OnboardingFlowScreen(
         if (state.step != OnboardingStep.NotificationAccess) return@LaunchedEffect
         delay(900)
         ScreenshotReadyNotifier.markReady(context, ScreenshotIntents.SCENE_ONBOARDING_NOTIFICATION)
-    }
-    var showExportBackupDialog by remember { mutableStateOf(false) }
-    var pendingBackupPassword by remember { mutableStateOf<String?>(null) }
-    val backupScope = rememberCoroutineScope()
-
-    val exportBackupLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument("application/octet-stream"),
-    ) { uri ->
-        val password = pendingBackupPassword
-        pendingBackupPassword = null
-        if (uri == null || password == null) return@rememberLauncherForActivityResult
-        backupScope.launch {
-            val stream = context.contentResolver.openOutputStream(uri)
-            if (stream == null) {
-                viewModel.backupFileOpenFailed()
-                return@launch
-            }
-            stream.use { viewModel.exportLocalBackup(password, it) }
-        }
-    }
-
-    if (showExportBackupDialog) {
-        LocalBackupPasswordDialog(
-            title = "Encrypt backup",
-            confirmLabel = "Save file",
-            onConfirm = { password ->
-                pendingBackupPassword = password
-                exportBackupLauncher.launch("morning-guard-backup.mgbackup")
-            },
-            onDismiss = { showExportBackupDialog = false },
-        )
     }
     val activityRecognitionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
@@ -470,18 +436,9 @@ fun OnboardingFlowScreen(
             }
             if (state.choseLocalOnly) {
                 Text(
-                    "Your data stays on this device. Save an encrypted backup anytime from Settings — or now:",
+                    "Your data stays on this device. You can export an encrypted backup anytime from Settings.",
                     style = MaterialTheme.typography.bodyMedium,
                 )
-                OutlinedButton(
-                    onClick = { showExportBackupDialog = true },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text("Export encrypted backup")
-                }
-            }
-            state.backupMessage?.let {
-                Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
             }
             Text(
                 "Tip: add bypass apps in Settings if work or family apps must always come through.",

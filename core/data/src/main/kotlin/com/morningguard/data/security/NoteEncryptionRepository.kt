@@ -1,13 +1,8 @@
 package com.morningguard.data.security
 
-import android.util.Base64
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import java.security.SecureRandom
-import javax.crypto.Cipher
-import javax.crypto.spec.GCMParameterSpec
-import javax.crypto.spec.SecretKeySpec
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -24,66 +19,127 @@ class NoteEncryptionRepository @Inject constructor(
 
     val cryptoState: Flow<NoteCryptoState> = store.state
 
-    override fun isEncryptionEnabled(): Boolean = dek != null
+    /** True when the DEK is in memory and notes can be encrypted or decrypted. */
+    fun isDekUnlocked(): Boolean = dek != null
+
+    override fun isEncryptionEnabled(): Boolean = isDekUnlocked()
 
     suspend fun state(): NoteCryptoState = store.current()
+
+    suspend fun hasRecoveryPassword(): Boolean = store.current().hasRecoveryPassword()
+
+    suspend fun requiresCloudRecovery(): Boolean = store.current().hasPendingCloudRecovery()
+
+    suspend fun ensureDekReady(): Result<Unit> = runCatching {
+        mutex.withLock {
+            if (dek != null) return@withLock
+            val saved = store.current()
+            if (saved.enabled) {
+                unlockFromKeystoreInternal(saved)?.let {
+                    dek = it
+                    return@withLock
+                }
+            }
+            val dekBytes = keyManager.generateDek()
+            val keystoreWrap = keyManager.wrapDekWithKeystore(dekBytes)
+            store.update { current ->
+                NoteCryptoState(
+                    enabled = true,
+                    passwordWrappedDekBase64 = current.passwordWrappedDekBase64,
+                    passwordWrapSaltBase64 = current.passwordWrapSaltBase64,
+                    passwordWrapIvBase64 = current.passwordWrapIvBase64,
+                    keystoreWrappedDekBase64 = keystoreWrap.wrappedDekBase64,
+                    keystoreWrapIvBase64 = keystoreWrap.ivBase64,
+                    pendingCloudPasswordWrappedDekBase64 = current.pendingCloudPasswordWrappedDekBase64,
+                    pendingCloudPasswordWrapSaltBase64 = current.pendingCloudPasswordWrapSaltBase64,
+                    pendingCloudPasswordWrapIvBase64 = current.pendingCloudPasswordWrapIvBase64,
+                    cloudRecoveryRequired = current.cloudRecoveryRequired,
+                )
+            }
+            dek = dekBytes
+        }
+    }
 
     suspend fun tryUnlockFromKeystore(): Boolean = mutex.withLock {
         val saved = store.current()
         if (!saved.enabled) return false
-        val wrapped = saved.keystoreWrappedDekBase64 ?: return false
-        val iv = saved.keystoreWrapIvBase64 ?: return false
-        runCatching {
-            val bytes = keyManager.unwrapDekWithKeystore(
-                NoteCryptoKeyManager.KeystoreWrap(wrapped, iv),
-            )
-            dek = bytes
-            true
-        }.getOrDefault(false)
+        val bytes = unlockFromKeystoreInternal(saved) ?: return false
+        dek = bytes
+        true
     }
 
-    suspend fun setupWithPassword(password: CharArray): Result<Unit> {
+    private fun unlockFromKeystoreInternal(saved: NoteCryptoState): ByteArray? {
+        val wrapped = saved.keystoreWrappedDekBase64 ?: return null
+        val iv = saved.keystoreWrapIvBase64 ?: return null
+        return runCatching {
+            keyManager.unwrapDekWithKeystore(NoteCryptoKeyManager.KeystoreWrap(wrapped, iv))
+        }.getOrNull()
+    }
+
+    /**
+     * First-time or additional wrap of the current DEK with a recovery password (same DEK, no note re-encryption).
+     */
+    suspend fun setRecoveryPassword(password: CharArray): Result<Unit> {
         require(password.size >= 8) { "Password must be at least 8 characters." }
         return runCatching {
+            ensureDekReady().getOrThrow()
             mutex.withLock {
-                val dekBytes = keyManager.generateDek()
+                val dekBytes = dek ?: error("Encryption key is not available.")
                 val passwordWrap = keyManager.wrapDekWithPassword(dekBytes, password)
-                val keystoreWrap = keyManager.wrapDekWithKeystore(dekBytes)
                 store.update {
-                    NoteCryptoState(
+                    it.copy(
                         enabled = true,
                         passwordWrappedDekBase64 = passwordWrap.wrappedDekBase64,
                         passwordWrapSaltBase64 = passwordWrap.saltBase64,
                         passwordWrapIvBase64 = passwordWrap.ivBase64,
-                        keystoreWrappedDekBase64 = keystoreWrap.wrappedDekBase64,
-                        keystoreWrapIvBase64 = keystoreWrap.ivBase64,
                     )
                 }
-                dek = dekBytes
             }
         }
     }
 
+    /** @deprecated Use [setRecoveryPassword]; kept for settings UI naming. */
+    suspend fun setupWithPassword(password: CharArray): Result<Unit> = setRecoveryPassword(password)
+
     suspend fun unlockWithPassword(password: CharArray): Result<Unit> = runCatching {
         mutex.withLock {
             val saved = store.current()
-            val wrapped = saved.passwordWrappedDekBase64
-                ?: error("Notes encryption is not set up on this device.")
-            val salt = saved.passwordWrapSaltBase64 ?: error("Missing encryption salt.")
-            val iv = saved.passwordWrapIvBase64 ?: error("Missing encryption metadata.")
-            val dekBytes = keyManager.unwrapDekWithPassword(
-                NoteCryptoKeyManager.PasswordWrap(wrapped, salt, iv),
-                password,
-            )
-            val keystoreWrap = keyManager.wrapDekWithKeystore(dekBytes)
-            store.update {
-                it.copy(
-                    enabled = true,
-                    keystoreWrappedDekBase64 = keystoreWrap.wrappedDekBase64,
-                    keystoreWrapIvBase64 = keystoreWrap.ivBase64,
+            val (wrapped, salt, iv) = when {
+                saved.hasPendingCloudRecovery() -> Triple(
+                    saved.pendingCloudPasswordWrappedDekBase64,
+                    saved.pendingCloudPasswordWrapSaltBase64,
+                    saved.pendingCloudPasswordWrapIvBase64,
+                )
+                else -> Triple(
+                    saved.passwordWrappedDekBase64,
+                    saved.passwordWrapSaltBase64,
+                    saved.passwordWrapIvBase64,
                 )
             }
-            dek = dekBytes
+            val wrappedNonNull = wrapped ?: error("Recovery password is not set up for this account.")
+            val saltNonNull = salt ?: error("Missing encryption salt.")
+            val ivNonNull = iv ?: error("Missing encryption metadata.")
+            val cloudDekBytes = keyManager.unwrapDekWithPassword(
+                NoteCryptoKeyManager.PasswordWrap(wrappedNonNull, saltNonNull, ivNonNull),
+                password,
+            )
+            dek?.takeIf { !it.contentEquals(cloudDekBytes) }?.fill(0)
+            val keystoreWrap = keyManager.wrapDekWithKeystore(cloudDekBytes)
+            store.update {
+                NoteCryptoState(
+                    enabled = true,
+                    passwordWrappedDekBase64 = wrappedNonNull,
+                    passwordWrapSaltBase64 = saltNonNull,
+                    passwordWrapIvBase64 = ivNonNull,
+                    keystoreWrappedDekBase64 = keystoreWrap.wrappedDekBase64,
+                    keystoreWrapIvBase64 = keystoreWrap.ivBase64,
+                    pendingCloudPasswordWrappedDekBase64 = null,
+                    pendingCloudPasswordWrapSaltBase64 = null,
+                    pendingCloudPasswordWrapIvBase64 = null,
+                    cloudRecoveryRequired = false,
+                )
+            }
+            dek = cloudDekBytes
         }
     }
 
@@ -106,6 +162,22 @@ class NoteEncryptionRepository @Inject constructor(
     suspend fun applyCloudWrappedDek(state: NoteCryptoState): Result<Unit> = runCatching {
         mutex.withLock {
             require(state.enabled && state.passwordWrappedDekBase64 != null)
+            val local = store.current()
+            val localHasPassword = local.hasRecoveryPassword()
+            val localAutoDeviceKey = local.enabled && !localHasPassword
+
+            if (localAutoDeviceKey) {
+                store.update {
+                    it.copy(
+                        pendingCloudPasswordWrappedDekBase64 = state.passwordWrappedDekBase64,
+                        pendingCloudPasswordWrapSaltBase64 = state.passwordWrapSaltBase64,
+                        pendingCloudPasswordWrapIvBase64 = state.passwordWrapIvBase64,
+                        cloudRecoveryRequired = true,
+                    )
+                }
+                return@withLock
+            }
+
             val dekBytes = dek
             if (dekBytes != null) {
                 val keystoreWrap = keyManager.wrapDekWithKeystore(dekBytes)
@@ -113,20 +185,36 @@ class NoteEncryptionRepository @Inject constructor(
                     state.copy(
                         keystoreWrappedDekBase64 = keystoreWrap.wrappedDekBase64,
                         keystoreWrapIvBase64 = keystoreWrap.ivBase64,
+                        pendingCloudPasswordWrappedDekBase64 = null,
+                        pendingCloudPasswordWrapSaltBase64 = null,
+                        pendingCloudPasswordWrapIvBase64 = null,
+                        cloudRecoveryRequired = false,
                     )
                 }
             } else {
-                store.update { state }
+                store.update {
+                    state.copy(
+                        pendingCloudPasswordWrappedDekBase64 = null,
+                        pendingCloudPasswordWrapSaltBase64 = null,
+                        pendingCloudPasswordWrapIvBase64 = null,
+                        cloudRecoveryRequired = false,
+                    )
+                }
             }
         }
     }
 
     suspend fun cloudExportState(): NoteCryptoState? {
         val saved = store.current()
-        if (!saved.enabled || saved.passwordWrappedDekBase64 == null) return null
+        if (!saved.enabled || !saved.hasRecoveryPassword()) return null
+        if (saved.cloudRecoveryRequired) return null
         return saved.copy(
             keystoreWrappedDekBase64 = null,
             keystoreWrapIvBase64 = null,
+            pendingCloudPasswordWrappedDekBase64 = null,
+            pendingCloudPasswordWrapSaltBase64 = null,
+            pendingCloudPasswordWrapIvBase64 = null,
+            cloudRecoveryRequired = false,
         )
     }
 
@@ -146,35 +234,26 @@ class NoteEncryptionRepository @Inject constructor(
     }
 
     override fun encryptForStorage(plain: String): String {
-        val trimmed = plain.trim()
-        if (trimmed.isEmpty()) return ""
-        val key = dek ?: return plain
-        val iv = ByteArray(IV_BYTES).also { SecureRandom().nextBytes(it) }
-        val cipher = Cipher.getInstance(AES_GCM)
-        cipher.init(Cipher.ENCRYPT_MODE, SecretKeySpec(key, "AES"), GCMParameterSpec(GCM_TAG_BITS, iv))
-        val ciphertext = cipher.doFinal(trimmed.encodeToByteArray())
-        val payload = iv + ciphertext
-        return CIPHER_PREFIX + Base64.encodeToString(payload, Base64.NO_WRAP)
+        val key = dek ?: error("Notes encryption key is locked. Call ensureDekReady() first.")
+        return NoteContentCipher.encrypt(plain, key)
     }
 
     override fun decryptFromStorage(stored: String): String {
         if (stored.isEmpty()) return ""
-        if (!stored.startsWith(CIPHER_PREFIX)) return stored
-        val key = dek ?: return ENCRYPTED_PLACEHOLDER
-        val payload = Base64.decode(stored.removePrefix(CIPHER_PREFIX), Base64.NO_WRAP)
-        if (payload.size <= IV_BYTES) return ENCRYPTED_PLACEHOLDER
-        val iv = payload.copyOfRange(0, IV_BYTES)
-        val ciphertext = payload.copyOfRange(IV_BYTES, payload.size)
-        val cipher = Cipher.getInstance(AES_GCM)
-        cipher.init(Cipher.DECRYPT_MODE, SecretKeySpec(key, "AES"), GCMParameterSpec(GCM_TAG_BITS, iv))
-        return cipher.doFinal(ciphertext).decodeToString()
+        if (!NoteContentCipher.isCiphertext(stored)) return stored
+        val key = dek ?: return NoteContentCipher.ENCRYPTED_PLACEHOLDER
+        return runCatching { NoteContentCipher.decrypt(stored, key) }
+            .getOrDefault(NoteContentCipher.ENCRYPTED_PLACEHOLDER)
+    }
+
+    suspend fun reencryptPlaintextValue(stored: String): String {
+        if (stored.isEmpty() || NoteContentCipher.isCiphertext(stored)) return stored
+        ensureDekReady().getOrThrow()
+        return encryptForStorage(stored)
     }
 
     companion object {
-        const val CIPHER_PREFIX = "mgenc1:"
-        const val ENCRYPTED_PLACEHOLDER = "🔒 Encrypted note — unlock in Settings"
-        private const val AES_GCM = "AES/GCM/NoPadding"
-        private const val IV_BYTES = 12
-        private const val GCM_TAG_BITS = 128
+        const val CIPHER_PREFIX = NoteContentCipher.CIPHER_PREFIX
+        const val ENCRYPTED_PLACEHOLDER = NoteContentCipher.ENCRYPTED_PLACEHOLDER
     }
 }

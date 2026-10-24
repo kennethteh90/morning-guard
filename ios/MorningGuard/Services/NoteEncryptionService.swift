@@ -9,6 +9,10 @@ struct NoteCryptoState: Codable, Equatable {
     var passwordWrapIvBase64: String?
     var keystoreWrappedDekBase64: String?
     var keystoreWrapIvBase64: String?
+    var pendingCloudPasswordWrappedDekBase64: String?
+    var pendingCloudPasswordWrapSaltBase64: String?
+    var pendingCloudPasswordWrapIvBase64: String?
+    var cloudRecoveryRequired: Bool
 
     init(
         enabled: Bool = false,
@@ -16,7 +20,11 @@ struct NoteCryptoState: Codable, Equatable {
         passwordWrapSaltBase64: String? = nil,
         passwordWrapIvBase64: String? = nil,
         keystoreWrappedDekBase64: String? = nil,
-        keystoreWrapIvBase64: String? = nil
+        keystoreWrapIvBase64: String? = nil,
+        pendingCloudPasswordWrappedDekBase64: String? = nil,
+        pendingCloudPasswordWrapSaltBase64: String? = nil,
+        pendingCloudPasswordWrapIvBase64: String? = nil,
+        cloudRecoveryRequired: Bool = false
     ) {
         self.enabled = enabled
         self.passwordWrappedDekBase64 = passwordWrappedDekBase64
@@ -24,14 +32,23 @@ struct NoteCryptoState: Codable, Equatable {
         self.passwordWrapIvBase64 = passwordWrapIvBase64
         self.keystoreWrappedDekBase64 = keystoreWrappedDekBase64
         self.keystoreWrapIvBase64 = keystoreWrapIvBase64
+        self.pendingCloudPasswordWrappedDekBase64 = pendingCloudPasswordWrappedDekBase64
+        self.pendingCloudPasswordWrapSaltBase64 = pendingCloudPasswordWrapSaltBase64
+        self.pendingCloudPasswordWrapIvBase64 = pendingCloudPasswordWrapIvBase64
+        self.cloudRecoveryRequired = cloudRecoveryRequired
+    }
+
+    func hasRecoveryPassword() -> Bool {
+        guard let wrapped = passwordWrappedDekBase64 else { return false }
+        return !wrapped.isEmpty
     }
 }
 
 @MainActor
 @Observable
 final class NoteEncryptionService {
-    static let cipherPrefix = "mgenc1:"
-    static let encryptedPlaceholder = "🔒 Encrypted note — unlock in Settings"
+    static let cipherPrefix = NoteContentCipher.cipherPrefix
+    static let encryptedPlaceholder = NoteContentCipher.encryptedPlaceholder
 
     private let defaults: UserDefaults
     private let encoder = JSONEncoder()
@@ -49,27 +66,40 @@ final class NoteEncryptionService {
         self.defaults = defaults
         cryptoState = Self.loadState(from: defaults)
         _ = tryUnlockFromKeychain()
+        if dek == nil {
+            try? ensureDekReady()
+        }
     }
 
-    func setupWithPassword(_ password: String) throws {
+    func ensureDekReady() throws {
+        if dek != nil { return }
+        if cryptoState.enabled, tryUnlockFromKeychain() { return }
+        let dekBytes = randomBytes(count: 32)
+        let keystoreWrap = wrapDekWithKeychain(dekBytes: dekBytes)
+        cryptoState.enabled = true
+        cryptoState.keystoreWrappedDekBase64 = keystoreWrap.wrappedDekBase64
+        cryptoState.keystoreWrapIvBase64 = keystoreWrap.ivBase64
+        dek = SymmetricKey(data: dekBytes)
+        persistState()
+    }
+
+    func setRecoveryPassword(_ password: String) throws {
         guard password.count >= 8 else {
             throw NSError(domain: "NotesCrypto", code: 1, userInfo: [
                 NSLocalizedDescriptionKey: "Password must be at least 8 characters.",
             ])
         }
-        let dekBytes = randomBytes(count: 32)
+        try ensureDekReady()
+        guard let dekBytes = dekData() else { throw NSError(domain: "NotesCrypto", code: 3) }
         let passwordWrap = wrapDekWithPassword(dekBytes: dekBytes, password: password)
-        let keystoreWrap = wrapDekWithKeychain(dekBytes: dekBytes)
-        cryptoState = NoteCryptoState(
-            enabled: true,
-            passwordWrappedDekBase64: passwordWrap.wrappedDekBase64,
-            passwordWrapSaltBase64: passwordWrap.saltBase64,
-            passwordWrapIvBase64: passwordWrap.ivBase64,
-            keystoreWrappedDekBase64: keystoreWrap.wrappedDekBase64,
-            keystoreWrapIvBase64: keystoreWrap.ivBase64
-        )
-        dek = SymmetricKey(data: dekBytes)
+        cryptoState.passwordWrappedDekBase64 = passwordWrap.wrappedDekBase64
+        cryptoState.passwordWrapSaltBase64 = passwordWrap.saltBase64
+        cryptoState.passwordWrapIvBase64 = passwordWrap.ivBase64
         persistState()
+    }
+
+    func setupWithPassword(_ password: String) throws {
+        try setRecoveryPassword(password)
     }
 
     func unlockWithPassword(_ password: String) throws {
@@ -152,38 +182,21 @@ final class NoteEncryptionService {
         persistState()
     }
 
-    func encryptForStorage(_ plain: String) -> String {
-        let trimmed = plain.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return "" }
-        guard let key = dek else { return trimmed }
-        do {
-            var iv = Data(count: 12)
-            _ = iv.withUnsafeMutableBytes { SecRandomCopyBytes(kSecRandomDefault, 12, $0.baseAddress!) }
-            let nonce = try AES.GCM.Nonce(data: iv)
-            let sealed = try AES.GCM.seal(Data(trimmed.utf8), using: key, nonce: nonce)
-            let payload = iv + sealed.ciphertext + sealed.tag
-            return Self.cipherPrefix + payload.base64EncodedString()
-        } catch {
-            return trimmed
+    func encryptForStorage(_ plain: String) throws -> String {
+        try ensureDekReady()
+        guard let key = dek else {
+            throw NSError(domain: "NotesCrypto", code: 4, userInfo: [
+                NSLocalizedDescriptionKey: "Notes encryption key is locked.",
+            ])
         }
+        return try NoteContentCipher.encrypt(plain: plain, dek: key)
     }
 
     func decryptFromStorage(_ stored: String) -> String {
         if stored.isEmpty { return "" }
-        guard stored.hasPrefix(Self.cipherPrefix) else { return stored }
+        guard NoteContentCipher.isCiphertext(stored) else { return stored }
         guard let key = dek else { return Self.encryptedPlaceholder }
-        let b64 = String(stored.dropFirst(Self.cipherPrefix.count))
-        guard let payload = Data(base64Encoded: b64), payload.count > 28 else { return Self.encryptedPlaceholder }
-        do {
-            let iv = payload.prefix(12)
-            let tag = payload.suffix(16)
-            let body = payload.dropFirst(12).dropLast(16)
-            let box = try AES.GCM.SealedBox(nonce: try AES.GCM.Nonce(data: iv), ciphertext: body, tag: tag)
-            let data = try AES.GCM.open(box, using: key)
-            return String(data: data, encoding: .utf8) ?? Self.encryptedPlaceholder
-        } catch {
-            return Self.encryptedPlaceholder
-        }
+        return (try? NoteContentCipher.decrypt(stored: stored, dek: key)) ?? Self.encryptedPlaceholder
     }
 
     private struct PasswordWrap {
