@@ -1,8 +1,15 @@
 name: Release
 
 on:
+  workflow_dispatch:
+    inputs:
+      upload_to_play:
+        description: Upload AAB to Play internal track as draft (requires PLAY_SERVICE_ACCOUNT_JSON)
+        type: boolean
+        default: true
   push:
-    branches: [main]
+    tags:
+      - "v*"
 
 permissions:
   contents: read
@@ -15,13 +22,44 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Decode release keystore
+      - name: Validate release secrets
         env:
-          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+          PRIVACY_POLICY_URL: ${{ secrets.PRIVACY_POLICY_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
+          BIBLE_PROXY_BASE_URL: ${{ secrets.BIBLE_PROXY_BASE_URL }}
+          PLAY_CLOUD_PROJECT_NUMBER: ${{ secrets.PLAY_CLOUD_PROJECT_NUMBER }}
         run: |
-          if [ -n "$RELEASE_KEYSTORE_BASE64" ]; then
-            echo "$RELEASE_KEYSTORE_BASE64" | base64 -d > /tmp/morning-guard-release.keystore
+          set -euo pipefail
+          missing=()
+          for name in ANDROID_KEYSTORE_B64 RELEASE_STORE_PASSWORD RELEASE_KEY_ALIAS RELEASE_KEY_PASSWORD \
+            PRIVACY_POLICY_URL SUPABASE_URL SUPABASE_ANON_KEY GOOGLE_WEB_CLIENT_ID \
+            BIBLE_PROXY_BASE_URL PLAY_CLOUD_PROJECT_NUMBER; do
+            eval "val=\${$name:-}"
+            if [ -z "$val" ]; then
+              missing+=("$name")
+            fi
+          done
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "Missing required GitHub Actions secrets (set via ./scripts/push-github-secrets.sh):"
+            printf '  - %s\n' "${missing[@]}"
+            exit 1
           fi
+
+      - name: Decode upload keystore
+        env:
+          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+        run: |
+          set -euo pipefail
+          KEYSTORE_PATH="${RUNNER_TEMP}/morning-guard-upload.keystore"
+          printf '%s' "$ANDROID_KEYSTORE_B64" | base64 -d > "$KEYSTORE_PATH"
+          chmod 600 "$KEYSTORE_PATH"
+          echo "KEYSTORE_PATH=$KEYSTORE_PATH" >> "$GITHUB_ENV"
 
       - name: Configure local.properties
         env:
@@ -32,32 +70,87 @@ jobs:
           BIBLE_PROXY_BASE_URL: ${{ secrets.BIBLE_PROXY_BASE_URL }}
           PLAY_CLOUD_PROJECT_NUMBER: ${{ secrets.PLAY_CLOUD_PROJECT_NUMBER }}
           PRIVACY_POLICY_URL: ${{ secrets.PRIVACY_POLICY_URL }}
-          RELEASE_STORE_FILE: /tmp/morning-guard-release.keystore
+          RELEASE_STORE_FILE: ${{ env.KEYSTORE_PATH }}
           RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
           RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
+          set -euo pipefail
           {
             echo "sdk.dir=${ANDROID_HOME}"
-            [ -n "$SUPABASE_URL" ] && echo "SUPABASE_URL=$SUPABASE_URL"
-            [ -n "$SUPABASE_ANON_KEY" ] && echo "SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY"
+            echo "SUPABASE_URL=$SUPABASE_URL"
+            echo "SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY"
             [ -n "$SENTRY_DSN" ] && echo "SENTRY_DSN=$SENTRY_DSN"
-            [ -n "$GOOGLE_WEB_CLIENT_ID" ] && echo "GOOGLE_WEB_CLIENT_ID=$GOOGLE_WEB_CLIENT_ID"
-            [ -n "$BIBLE_PROXY_BASE_URL" ] && echo "BIBLE_PROXY_BASE_URL=$BIBLE_PROXY_BASE_URL"
-            [ -n "$PLAY_CLOUD_PROJECT_NUMBER" ] && echo "PLAY_CLOUD_PROJECT_NUMBER=$PLAY_CLOUD_PROJECT_NUMBER"
-            [ -n "$PRIVACY_POLICY_URL" ] && echo "PRIVACY_POLICY_URL=$PRIVACY_POLICY_URL"
-            [ -f /tmp/morning-guard-release.keystore ] && echo "RELEASE_STORE_FILE=$RELEASE_STORE_FILE"
-            [ -n "$RELEASE_STORE_PASSWORD" ] && echo "RELEASE_STORE_PASSWORD=$RELEASE_STORE_PASSWORD"
-            [ -n "$RELEASE_KEY_ALIAS" ] && echo "RELEASE_KEY_ALIAS=$RELEASE_KEY_ALIAS"
-            [ -n "$RELEASE_KEY_PASSWORD" ] && echo "RELEASE_KEY_PASSWORD=$RELEASE_KEY_PASSWORD"
+            echo "GOOGLE_WEB_CLIENT_ID=$GOOGLE_WEB_CLIENT_ID"
+            echo "BIBLE_PROXY_BASE_URL=$BIBLE_PROXY_BASE_URL"
+            echo "PLAY_CLOUD_PROJECT_NUMBER=$PLAY_CLOUD_PROJECT_NUMBER"
+            echo "PRIVACY_POLICY_URL=$PRIVACY_POLICY_URL"
+            echo "RELEASE_STORE_FILE=$RELEASE_STORE_FILE"
+            echo "RELEASE_STORE_PASSWORD=$RELEASE_STORE_PASSWORD"
+            echo "RELEASE_KEY_ALIAS=$RELEASE_KEY_ALIAS"
+            echo "RELEASE_KEY_PASSWORD=$RELEASE_KEY_PASSWORD"
           } > local.properties
 
-      - name: Build release App Bundle
-        run: ./gradlew bundleFullRelease --stacktrace
+      - name: Build full release App Bundle
+        run: ./gradlew :app:bundleFullRelease --stacktrace
 
-      - name: Upload release App Bundle
+      - name: Upload App Bundle
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-bundle
+          name: morning-guard-full-release-${{ github.ref_name }}
           path: app/build/outputs/bundle/fullRelease/*.aab
           if-no-files-found: error
+
+      - name: Upload R8 mapping
+        uses: actions/upload-artifact@v4
+        with:
+          name: morning-guard-r8-mapping-${{ github.ref_name }}
+          path: app/build/outputs/mapping/fullRelease/mapping.txt
+          if-no-files-found: warn
+
+      - name: Upload native debug symbols
+        uses: actions/upload-artifact@v4
+        with:
+          name: morning-guard-native-symbols-${{ github.ref_name }}
+          path: app/build/outputs/native-debug-symbols/fullRelease/**
+          if-no-files-found: warn
+
+      - name: Play upload gate
+        id: play_gate
+        if: >-
+          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
+          (github.event_name == 'workflow_dispatch' && inputs.upload_to_play)
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -z "$PLAY_SERVICE_ACCOUNT_JSON" ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "PLAY_SERVICE_ACCOUNT_JSON is not set; skipping Play upload."
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish Play internal draft (with release notes)
+        if: >-
+          steps.play_gate.outputs.enabled == 'true' &&
+          hashFiles('release-notes/**') != ''
+        uses: r0adkll/upload-google-play@v1.1.3
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.morningguard.app
+          releaseFiles: app/build/outputs/bundle/fullRelease/*.aab
+          track: internal
+          status: draft
+          whatsNewDirectory: release-notes
+
+      - name: Publish Play internal draft
+        if: >-
+          steps.play_gate.outputs.enabled == 'true' &&
+          hashFiles('release-notes/**') == ''
+        uses: r0adkll/upload-google-play@v1.1.3
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.morningguard.app
+          releaseFiles: app/build/outputs/bundle/fullRelease/*.aab
+          track: internal
+          status: draft
