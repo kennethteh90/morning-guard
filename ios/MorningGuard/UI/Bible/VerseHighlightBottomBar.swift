@@ -106,22 +106,22 @@ struct VerseHighlightBottomBar: View {
                 label: L10n.tr("bible.highlight.save"),
                 systemImage: "bookmark.fill",
                 prominent: true,
-                action: onSave,
-                accessibilityLabel: L10n.tr("a11y.bible.highlight.save")
+                accessibilityLabel: L10n.tr("a11y.bible.highlight.save"),
+                action: onSave
             )
             HighlightBarAction(
                 label: noteExpanded ? L10n.tr("bible.highlight.hide_note") : L10n.tr("bible.highlight.note"),
                 systemImage: "square.and.pencil",
                 prominent: false,
-                action: { noteExpanded.toggle() },
-                accessibilityLabel: L10n.tr("a11y.bible.highlight.note")
+                accessibilityLabel: L10n.tr("a11y.bible.highlight.note"),
+                action: { noteExpanded.toggle() }
             )
             HighlightBarAction(
                 label: L10n.tr("bible.highlight.copy"),
                 systemImage: "doc.on.doc",
                 prominent: false,
-                action: onCopy,
-                accessibilityLabel: L10n.tr("a11y.bible.highlight.copy")
+                accessibilityLabel: L10n.tr("a11y.bible.highlight.copy"),
+                action: onCopy
             )
         }
     }
@@ -133,15 +133,15 @@ struct VerseHighlightBottomBar: View {
                 systemImage: "trash",
                 prominent: false,
                 destructive: true,
-                action: onDelete,
-                accessibilityLabel: L10n.tr("a11y.bible.highlight.delete")
+                accessibilityLabel: L10n.tr("a11y.bible.highlight.delete"),
+                action: onDelete
             )
             HighlightBarAction(
                 label: L10n.tr("bible.highlight.copy"),
                 systemImage: "doc.on.doc",
                 prominent: false,
-                action: onCopy,
-                accessibilityLabel: L10n.tr("a11y.bible.highlight.copy")
+                accessibilityLabel: L10n.tr("a11y.bible.highlight.copy"),
+                action: onCopy
             )
         }
     }
