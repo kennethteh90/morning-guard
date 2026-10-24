@@ -41,35 +41,41 @@ class NotificationCaptureRepository @Inject constructor(
             return null
         }
         val stableKey = notification.notificationKey?.trim()?.takeIf { it.isNotEmpty() }
+        val normalized = if (stableKey != null) {
+            notification.copy(notificationKey = stableKey)
+        } else {
+            notification.copy(notificationKey = null)
+        }
         if (stableKey != null) {
             dao.upsertByNotificationKey(
-                packageName = notification.packageName,
-                title = notification.title,
-                text = notification.text,
-                postedAtEpochMs = notification.postedAtEpochMs,
-                category = notification.category,
+                packageName = normalized.packageName,
+                title = normalized.title,
+                text = normalized.text,
+                postedAtEpochMs = normalized.postedAtEpochMs,
+                category = normalized.category,
                 notificationKey = stableKey,
             )
             return dao.findByNotificationKey(stableKey)?.id
         }
-        if (dao.existsDuplicate(notification.packageName, notification.title, notification.text)) {
+        if (dao.existsDuplicate(normalized.packageName, normalized.title, normalized.text)) {
             return null
         }
-        if (CaptureQualityPolicy.shouldSkipDuplicateTitle(notification.packageName, notification.title) &&
-            dao.existsSameTitle(notification.packageName, notification.title)
+        if (CaptureQualityPolicy.shouldSkipDuplicateTitle(normalized.packageName, normalized.title) &&
+            dao.existsSameTitle(normalized.packageName, normalized.title)
         ) {
             return null
         }
-        val samePackage = dao.findByPackage(notification.packageName)
+        val samePackage = dao.findByPackage(normalized.packageName)
         if (samePackage.any { entity ->
                 val existing = entity.toDomain()
-                CaptureQualityPolicy.isNearDuplicate(existing, notification) ||
-                    CaptureQualityPolicy.isSameBodyDuplicate(existing, notification)
+                CaptureQualityPolicy.isNearDuplicate(existing, normalized) ||
+                    CaptureQualityPolicy.isSameBodyDuplicate(existing, normalized)
             }
         ) {
             return null
         }
-        return dao.insert(notification.toEntity())
+        val insertedId = dao.insert(normalized.toEntity())
+        return insertedId.takeIf { it != -1L }
     }
 
     suspend fun clearAll() {

@@ -27,7 +27,7 @@ class BibleHighlightRepository @Inject constructor(
         dao.listAll().map { it.toDomainDecrypted() }
 
     suspend fun save(highlight: BibleHighlight): Long {
-        noteEncryptionRepository.ensureDekReady().getOrThrow()
+        if (noteEncryptionRepository.ensureDekReady().isFailure) return 0L
         return dao.insert(highlight.withEncryptedNote().copy(id = 0).toEntity())
     }
 
@@ -39,7 +39,7 @@ class BibleHighlightRepository @Inject constructor(
     }
 
     suspend fun reencryptAllStoredNotes() {
-        noteEncryptionRepository.ensureDekReady().getOrThrow()
+        if (noteEncryptionRepository.ensureDekReady().isFailure) return
         for (entity in dao.listAll()) {
             val plain = when {
                 NoteContentCipher.isCiphertext(entity.note) -> noteCipher.decryptFromStorage(entity.note)
@@ -53,7 +53,7 @@ class BibleHighlightRepository @Inject constructor(
     }
 
     suspend fun migrateLegacyPlaintextNotes() {
-        noteEncryptionRepository.ensureDekReady().getOrThrow()
+        if (noteEncryptionRepository.ensureDekReady().isFailure) return
         for (entity in dao.listAll()) {
             if (!NoteContentCipher.isLegacyPlaintext(entity.note)) continue
             val stored = noteCipher.encryptForStorage(entity.note)
@@ -103,7 +103,7 @@ class BibleHighlightRepository @Inject constructor(
     }
 
     private suspend fun mergeFromRemote(remoteHighlights: List<BibleHighlight>) {
-        noteEncryptionRepository.ensureDekReady().getOrThrow()
+        if (noteEncryptionRepository.ensureDekReady().isFailure) return
         remoteHighlights.filter { it.remoteId > 0 }.forEach { mergeOneRemote(it) }
     }
 

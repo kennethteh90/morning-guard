@@ -5,8 +5,10 @@ import com.morningguard.app.BuildConfig
 import com.morningguard.app.alarm.MorningAlarmScheduler
 import com.morningguard.app.screenshot.ScreenshotDemoSeeder
 import com.morningguard.app.gate.GateStateHolder
+import com.morningguard.app.monitoring.SentryEnvironment
 import com.morningguard.app.sync.UserDataSyncService
 import com.morningguard.data.analytics.AnalyticsTracker
+import com.morningguard.data.monitoring.ErrorReporter
 import com.morningguard.data.auth.AuthRepository
 import com.morningguard.data.auth.AuthState
 import com.morningguard.data.security.NoteEncryptionRepository
@@ -33,11 +35,12 @@ class AppInitializer @Inject constructor(
     private val peaceSessionRepository: PeaceSessionRepository,
     private val morningAlarmScheduler: MorningAlarmScheduler,
     private val screenshotDemoSeeder: ScreenshotDemoSeeder,
+    private val errorReporter: ErrorReporter,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     fun initialize(context: Context) {
-        if (BuildConfig.SENTRY_DSN.isNotBlank()) {
+        if (BuildConfig.SENTRY_DSN.isNotBlank() && !SentryEnvironment.isFirebaseTestLab(context)) {
             try {
                 SentryAndroid.init(context) { options ->
                     options.dsn = BuildConfig.SENTRY_DSN
@@ -51,6 +54,9 @@ class AppInitializer @Inject constructor(
                     options.tracesSampleRate = if (BuildConfig.DEBUG && !BuildConfig.SCREENSHOT_MODE) 0.0 else 0.1
                     options.isSendDefaultPii = false
                     options.beforeSend = SentryOptions.BeforeSendCallback { event, _ ->
+                        if (SentryEnvironment.isFirebaseTestLab(context)) {
+                            return@BeforeSendCallback null
+                        }
                         event.request?.let { request ->
                             request.headers?.remove("Authorization")
                             request.headers?.remove("apikey")
@@ -73,7 +79,13 @@ class AppInitializer @Inject constructor(
             gateStateHolder.refreshNow()
             peaceSessionRepository.reconcileStoredPeaceSession()
             morningAlarmScheduler.schedule(settingsRepository.currentSettings().alarm)
-            noteEncryptionRepository.ensureDekReady()
+            noteEncryptionRepository.ensureDekReady().onFailure { error ->
+                errorReporter.reportNonFatal(
+                    error,
+                    tags = mapOf("area" to "note_crypto"),
+                    extras = mapOf("phase" to "ensureDekReady"),
+                )
+            }
             noteEncryptionRepository.tryUnlockFromKeystore()
             settingsRepository.ensureDefaultBypassPackages()
             authRepository.restoreSession()
