@@ -27,9 +27,11 @@ fun MorningGuardApp(screenshotScene: String? = null) {
             OnboardingFlowScreen()
         }
         AppRoute.Main -> {
-            RecoveryPasswordHost {
-                MorningGuardNavHost(screenshotScene = screenshotScene)
-            }
+            RecoveryPasswordHost(
+                content = {
+                    MorningGuardNavHost(screenshotScene = screenshotScene)
+                },
+            )
         }
     }
 }
