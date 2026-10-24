@@ -11,6 +11,7 @@ import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
+import java.util.Base64
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,21 +23,31 @@ class NoteCryptoKeyManager @Inject constructor() {
     fun wrapDekWithPassword(dek: ByteArray, password: CharArray): PasswordWrap {
         val salt = ByteArray(SALT_BYTES).also { SecureRandom().nextBytes(it) }
         val iv = ByteArray(IV_BYTES).also { SecureRandom().nextBytes(it) }
+        return wrapDekWithPassword(dek, password, salt, iv)
+    }
+
+    /** Fixed salt/IV for cross-platform test vectors (iOS MorningGuardCore interop). */
+    fun wrapDekWithPassword(
+        dek: ByteArray,
+        password: CharArray,
+        salt: ByteArray,
+        iv: ByteArray,
+    ): PasswordWrap {
         val key = derivePasswordKey(password, salt)
         val cipher = Cipher.getInstance(AES_GCM)
         cipher.init(Cipher.ENCRYPT_MODE, key, GCMParameterSpec(GCM_TAG_BITS, iv))
         val ciphertext = cipher.doFinal(dek)
         return PasswordWrap(
-            wrappedDekBase64 = android.util.Base64.encodeToString(ciphertext, android.util.Base64.NO_WRAP),
-            saltBase64 = android.util.Base64.encodeToString(salt, android.util.Base64.NO_WRAP),
-            ivBase64 = android.util.Base64.encodeToString(iv, android.util.Base64.NO_WRAP),
+            wrappedDekBase64 = Base64.getEncoder().encodeToString(ciphertext),
+            saltBase64 = Base64.getEncoder().encodeToString(salt),
+            ivBase64 = Base64.getEncoder().encodeToString(iv),
         )
     }
 
     fun unwrapDekWithPassword(wrap: PasswordWrap, password: CharArray): ByteArray {
-        val salt = android.util.Base64.decode(wrap.saltBase64, android.util.Base64.NO_WRAP)
-        val iv = android.util.Base64.decode(wrap.ivBase64, android.util.Base64.NO_WRAP)
-        val ciphertext = android.util.Base64.decode(wrap.wrappedDekBase64, android.util.Base64.NO_WRAP)
+        val salt = Base64.getDecoder().decode(wrap.saltBase64)
+        val iv = Base64.getDecoder().decode(wrap.ivBase64)
+        val ciphertext = Base64.getDecoder().decode(wrap.wrappedDekBase64)
         val key = derivePasswordKey(password, salt)
         val cipher = Cipher.getInstance(AES_GCM)
         cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(GCM_TAG_BITS, iv))
@@ -49,14 +60,14 @@ class NoteCryptoKeyManager @Inject constructor() {
         cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKeystoreKey(), GCMParameterSpec(GCM_TAG_BITS, iv))
         val ciphertext = cipher.doFinal(dek)
         return KeystoreWrap(
-            wrappedDekBase64 = android.util.Base64.encodeToString(ciphertext, android.util.Base64.NO_WRAP),
-            ivBase64 = android.util.Base64.encodeToString(iv, android.util.Base64.NO_WRAP),
+            wrappedDekBase64 = Base64.getEncoder().encodeToString(ciphertext),
+            ivBase64 = Base64.getEncoder().encodeToString(iv),
         )
     }
 
     fun unwrapDekWithKeystore(wrap: KeystoreWrap): ByteArray {
-        val iv = android.util.Base64.decode(wrap.ivBase64, android.util.Base64.NO_WRAP)
-        val ciphertext = android.util.Base64.decode(wrap.wrappedDekBase64, android.util.Base64.NO_WRAP)
+        val iv = Base64.getDecoder().decode(wrap.ivBase64)
+        val ciphertext = Base64.getDecoder().decode(wrap.wrappedDekBase64)
         val cipher = Cipher.getInstance(AES_GCM)
         cipher.init(Cipher.DECRYPT_MODE, getOrCreateKeystoreKey(), GCMParameterSpec(GCM_TAG_BITS, iv))
         return cipher.doFinal(ciphertext)

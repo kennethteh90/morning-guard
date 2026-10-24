@@ -282,8 +282,13 @@ struct BibleReadingScreen: View {
                 colorKey: bar.colorKey,
                 note: bar.note.trimmingCharacters(in: .whitespacesAndNewlines),
                 createdAtEpochMs: nowMs
-            )
+            ),
+            onNoteSaved: {
+                appState.recoveryPassword.onNoteSaved()
+                Task { await appState.userDataSync.syncAllIfSignedIn() }
+            }
         )
+        Task { await appState.userDataSync.syncAllIfSignedIn() }
         MGHaptics.success()
         withAnimation(.spring(duration: 0.35)) {
             highlightBarState = nil

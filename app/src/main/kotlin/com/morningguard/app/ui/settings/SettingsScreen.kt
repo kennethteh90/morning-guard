@@ -54,6 +54,7 @@ import com.morningguard.app.demo.DemoSession
 import com.morningguard.app.platform.AppDebugFlags
 import com.morningguard.app.platform.PresenterMode
 import com.morningguard.app.ui.backup.LocalBackupPasswordDialog
+import com.morningguard.app.ui.recovery.RecoveryPasswordBanner
 import com.morningguard.app.ui.components.SelectableSettingsCard
 import com.morningguard.domain.bible.BibleTranslations
 import androidx.compose.foundation.text.KeyboardOptions
@@ -80,7 +81,9 @@ fun SettingsScreen(
     val notesEncryptionMessage by viewModel.notesEncryptionMessage.collectAsStateWithLifecycle()
     var emergencyPassphraseDraft by remember { mutableStateOf("") }
     var notesPasswordDraft by remember { mutableStateOf("") }
+    var notesConfirmPasswordDraft by remember { mutableStateOf("") }
     var notesNewPasswordDraft by remember { mutableStateOf("") }
+    var notesConfirmNewPasswordDraft by remember { mutableStateOf("") }
     val stepSensorAvailable by viewModel.stepSensorAvailable.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val backupScope = rememberCoroutineScope()
@@ -420,48 +423,77 @@ fun SettingsScreen(
                 }
             }
 
+            RecoveryPasswordBanner(modifier = Modifier.padding(bottom = 8.dp))
+
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("Encrypted highlight notes", style = MaterialTheme.typography.titleLarge)
+                    Text("Highlight notes", style = MaterialTheme.typography.titleLarge)
                     Text(
-                        "Uses Android Keystore on this device plus a password you choose. " +
-                            "Supabase only stores encrypted note text and a password-wrapped key. " +
-                            "After reinstall or a new phone, enter the same password once to unlock.",
+                        "Reflection notes are always encrypted on this device (Android Keystore). " +
+                            "Cloud sync stores ciphertext only. Verse excerpts and highlight metadata are not encrypted.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                    Text(
+                        if (noteCrypto.hasRecoveryPassword()) {
+                            "Recovery password: set — you can open synced notes on a new phone."
+                        } else {
+                            "Recovery password: not set — notes cannot be recovered on a new device until you set one."
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (noteCrypto.hasRecoveryPassword()) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.error
+                        },
+                    )
                     when {
-                        !noteCrypto.enabled -> {
+                        !noteCrypto.hasRecoveryPassword() -> {
+                            Text(
+                                "Use at least 8 characters with a letter and a number. Save it in a password manager.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                             OutlinedTextField(
                                 value = notesPasswordDraft,
                                 onValueChange = { notesPasswordDraft = it },
                                 modifier = Modifier.fillMaxWidth(),
-                                label = { Text("Notes encryption password") },
+                                label = { Text("Recovery password") },
+                                singleLine = true,
+                                visualTransformation = PasswordVisualTransformation(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            )
+                            OutlinedTextField(
+                                value = notesConfirmPasswordDraft,
+                                onValueChange = { notesConfirmPasswordDraft = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("Confirm recovery password") },
                                 singleLine = true,
                                 visualTransformation = PasswordVisualTransformation(),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                             )
                             OutlinedButton(
                                 onClick = {
-                                    viewModel.setupNotesEncryption(notesPasswordDraft)
+                                    viewModel.setupNotesEncryption(notesPasswordDraft, notesConfirmPasswordDraft)
                                     notesPasswordDraft = ""
+                                    notesConfirmPasswordDraft = ""
                                 },
                                 modifier = Modifier.fillMaxWidth(),
-                                enabled = notesPasswordDraft.length >= 8,
+                                enabled = notesPasswordDraft.length >= 8 && notesConfirmPasswordDraft.length >= 8,
                             ) {
-                                Text("Enable note encryption")
+                                Text("Set recovery password")
                             }
                         }
                         !notesUnlocked -> {
                             Text(
-                                "Encryption is set up but locked. Enter your password to read notes on this device.",
+                                "Enter your recovery password to read notes on this device.",
                                 style = MaterialTheme.typography.bodyMedium,
                             )
                             OutlinedTextField(
                                 value = notesPasswordDraft,
                                 onValueChange = { notesPasswordDraft = it },
                                 modifier = Modifier.fillMaxWidth(),
-                                label = { Text("Notes encryption password") },
+                                label = { Text("Recovery password") },
                                 singleLine = true,
                                 visualTransformation = PasswordVisualTransformation(),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -502,17 +534,30 @@ fun SettingsScreen(
                                 visualTransformation = PasswordVisualTransformation(),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                             )
+                            OutlinedTextField(
+                                value = notesConfirmNewPasswordDraft,
+                                onValueChange = { notesConfirmNewPasswordDraft = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("Confirm new notes password") },
+                                singleLine = true,
+                                visualTransformation = PasswordVisualTransformation(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            )
                             OutlinedButton(
                                 onClick = {
                                     viewModel.changeNotesEncryptionPassword(
                                         notesPasswordDraft,
                                         notesNewPasswordDraft,
+                                        notesConfirmNewPasswordDraft,
                                     )
                                     notesPasswordDraft = ""
                                     notesNewPasswordDraft = ""
+                                    notesConfirmNewPasswordDraft = ""
                                 },
                                 modifier = Modifier.fillMaxWidth(),
-                                enabled = notesPasswordDraft.length >= 8 && notesNewPasswordDraft.length >= 8,
+                                enabled = notesPasswordDraft.length >= 8 &&
+                                    notesNewPasswordDraft.length >= 8 &&
+                                    notesConfirmNewPasswordDraft.length >= 8,
                             ) {
                                 Text("Change notes password")
                             }

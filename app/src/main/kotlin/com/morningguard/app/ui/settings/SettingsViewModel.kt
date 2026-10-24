@@ -12,6 +12,7 @@ import com.morningguard.data.bible.BibleHighlightRepository
 import com.morningguard.data.security.EmergencyBypassRepository
 import com.morningguard.data.security.NoteCryptoState
 import com.morningguard.data.security.NoteEncryptionRepository
+import com.morningguard.data.security.RecoveryPasswordRules
 import com.morningguard.app.sync.UserDataSyncService
 import com.morningguard.data.settings.SettingsRepository
 import com.morningguard.domain.model.AlarmSettings
@@ -54,7 +55,7 @@ class SettingsViewModel @Inject constructor(
     private val _notesEncryptionMessage = MutableStateFlow<String?>(null)
     val notesEncryptionMessage: StateFlow<String?> = _notesEncryptionMessage.asStateFlow()
 
-    private val _notesUnlocked = MutableStateFlow(noteEncryptionRepository.isEncryptionEnabled())
+    private val _notesUnlocked = MutableStateFlow(noteEncryptionRepository.isDekUnlocked())
     val notesUnlocked: StateFlow<Boolean> = _notesUnlocked.asStateFlow()
 
     val authState: StateFlow<AuthState> = authRepository.state
@@ -212,14 +213,27 @@ class SettingsViewModel @Inject constructor(
         _emergencyPassphraseMessage.value = null
     }
 
-    fun setupNotesEncryption(password: String) {
+    fun setupNotesEncryption(password: String, confirmation: String) {
         viewModelScope.launch {
-            noteEncryptionRepository.setupWithPassword(password.toCharArray())
+            RecoveryPasswordRules.validate(password.toCharArray())?.let {
+                _notesEncryptionMessage.value = it
+                return@launch
+            }
+            if (password != confirmation) {
+                _notesEncryptionMessage.value = "Passwords do not match."
+                return@launch
+            }
+            noteEncryptionRepository.ensureDekReady().onFailure { err ->
+                _notesEncryptionMessage.value = err.message
+                return@launch
+            }
+            noteEncryptionRepository.setRecoveryPassword(password.toCharArray())
                 .onSuccess {
                     bibleHighlightRepository.reencryptAllStoredNotes()
                     userDataSyncService.syncAllIfSignedIn()
                     _notesUnlocked.value = true
-                    _notesEncryptionMessage.value = "Highlight notes are encrypted on this device and in cloud sync."
+                    _notesEncryptionMessage.value =
+                        "Recovery password saved. Store it in a password manager to open notes on a new phone."
                 }
                 .onFailure { err ->
                     _notesEncryptionMessage.value = err.message
@@ -240,8 +254,16 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun changeNotesEncryptionPassword(current: String, newPassword: String) {
+    fun changeNotesEncryptionPassword(current: String, newPassword: String, confirmation: String) {
         viewModelScope.launch {
+            RecoveryPasswordRules.validate(newPassword.toCharArray())?.let {
+                _notesEncryptionMessage.value = it
+                return@launch
+            }
+            if (newPassword != confirmation) {
+                _notesEncryptionMessage.value = "Passwords do not match."
+                return@launch
+            }
             noteEncryptionRepository.changePassword(current.toCharArray(), newPassword.toCharArray())
                 .onSuccess {
                     userDataSyncService.syncAllIfSignedIn()
@@ -254,7 +276,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun refreshNotesUnlocked() {
-        _notesUnlocked.value = noteEncryptionRepository.isEncryptionEnabled()
+        _notesUnlocked.value = noteEncryptionRepository.isDekUnlocked()
     }
 }
 

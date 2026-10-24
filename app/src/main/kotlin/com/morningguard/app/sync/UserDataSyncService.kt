@@ -4,6 +4,8 @@ import com.morningguard.app.supabase.SupabaseClientProvider
 import com.morningguard.data.bible.BibleHighlightRepository
 import com.morningguard.data.monitoring.ErrorReporter
 import com.morningguard.data.security.HighlightNoteCipher
+import com.morningguard.data.security.HighlightSyncNotePolicy
+import com.morningguard.data.security.NoteContentCipher
 import com.morningguard.data.security.NoteCryptoKeyManager
 import com.morningguard.data.security.NoteCryptoState
 import com.morningguard.data.security.NoteEncryptionRepository
@@ -55,7 +57,7 @@ private data class BibleHighlightRow(
     @SerialName("verse_end") val verseEnd: Int? = null,
     @SerialName("verse_numbers") val verseNumbers: String? = null,
     @SerialName("color_key") val colorKey: String,
-    val note: String,
+    val note: String? = null,
     @SerialName("selection_start") val selectionStart: Int? = null,
     @SerialName("selection_end") val selectionEnd: Int? = null,
     @SerialName("created_at") val createdAt: String? = null,
@@ -84,6 +86,10 @@ class UserDataSyncService @Inject constructor(
         if (client.auth.currentSessionOrNull() == null) {
             return preconditionFailure(SyncPreconditionFailure.NotSignedIn())
         }
+        noteEncryptionRepository.ensureDekReady().onFailure { error ->
+            recordSyncFailure("note_crypto ensureDek", error)
+        }
+        bibleHighlightRepository.migrateLegacyPlaintextNotes()
         val report = UserDataSyncReport.merge(
             listOf(
                 syncMorningHistory(client),
@@ -126,6 +132,8 @@ class UserDataSyncService @Inject constructor(
         if (client.auth.currentSessionOrNull() == null) {
             return preconditionFailure(SyncPreconditionFailure.NotSignedIn())
         }
+        noteEncryptionRepository.ensureDekReady()
+        bibleHighlightRepository.migrateLegacyPlaintextNotes()
         val report = syncHighlights(client)
         finishSyncRun("syncHighlights", report)
         return report.toResult()
@@ -291,7 +299,18 @@ class UserDataSyncService @Inject constructor(
         }
         settingsRepository.setBoundUserId(userId)
 
-        pullHighlights(client)?.let { outcomes += it }
+        val pullOutcome = pullHighlights(client)
+        val remoteNoteByServerId = pullOutcome?.remoteNoteByServerId ?: emptyMap()
+        pullOutcome?.outcome?.let { outcomes += it }
+
+        if (noteEncryptionRepository.requiresCloudRecovery()) {
+            SyncLog.skipped(PHASE_HIGHLIGHTS_PUSH, "cloud recovery password required")
+            outcomes += SyncPhaseOutcome.Skipped(
+                PHASE_HIGHLIGHTS_PUSH,
+                "enter recovery password before syncing notes",
+            )
+            return UserDataSyncReport(outcomes)
+        }
 
         if (!SyncOwnership.shouldUploadLocalHighlights(bound, userId)) {
             SyncLog.skipped(PHASE_HIGHLIGHTS_PUSH, "local highlights owned by another account")
@@ -309,30 +328,12 @@ class UserDataSyncService @Inject constructor(
             return UserDataSyncReport(outcomes)
         }
 
-        val toPush = local.map { highlight ->
-            BibleHighlightRow(
-                id = highlight.remoteId.takeIf { it > 0 },
-                userId = userId,
-                clientId = highlight.id.takeIf { it > 0 },
-                translationId = highlight.translationId,
-                book = highlight.book,
-                chapter = highlight.chapter,
-                label = highlight.label,
-                excerpt = highlight.excerpt,
-                verse = highlight.verse,
-                verseEnd = highlight.verseEnd,
-                verseNumbers = highlight.verseNumbers,
-                colorKey = highlight.colorKey.ifBlank { BibleHighlightColors.DEFAULT_KEY },
-                note = if (noteCipher.isEncryptionEnabled()) {
-                    noteCipher.encryptForStorage(highlight.note.trim())
-                } else {
-                    ""
-                },
-                selectionStart = highlight.selectionStart,
-                selectionEnd = highlight.selectionEnd,
-                createdAt = instantToIso(highlight.createdAtEpochMs),
-            )
-        }
+        val toPush = buildHighlightPushRows(
+            local = local,
+            userId = userId,
+            remoteNoteByServerId = remoteNoteByServerId,
+            dekUnlocked = noteEncryptionRepository.isDekUnlocked(),
+        )
 
         val pushResult = runCatching {
             client.postgrest.from(TABLE_HIGHLIGHTS).upsert(toPush) {
@@ -351,9 +352,52 @@ class UserDataSyncService @Inject constructor(
             },
         )
 
-        pullHighlights(client)?.let { outcomes += it }
+        pullHighlights(client)?.outcome?.let { outcomes += it }
 
         return UserDataSyncReport(outcomes)
+    }
+
+    private fun buildHighlightPushRows(
+        local: List<BibleHighlight>,
+        userId: String,
+        remoteNoteByServerId: Map<Long, String>,
+        dekUnlocked: Boolean,
+    ): List<BibleHighlightRow> = local.mapNotNull { highlight ->
+        val remoteNote = highlight.remoteId.takeIf { it > 0 }?.let { remoteNoteByServerId[it] }
+        val decision = HighlightSyncNotePolicy.resolve(
+            localPlainNote = highlight.note,
+            remoteNote = remoteNote,
+            dekUnlocked = dekUnlocked,
+        )
+        if (decision is HighlightSyncNotePolicy.NotePushValue.OmitNote) {
+            return@mapNotNull null
+        }
+        val wireNote = HighlightSyncNotePolicy.toWireValue(decision) { plain ->
+            noteCipher.encryptForStorage(plain)
+        }
+        val noteForRow = when {
+            wireNote != null -> wireNote
+            remoteNote != null && NoteContentCipher.isCiphertext(remoteNote) -> remoteNote
+            else -> ""
+        }
+        BibleHighlightRow(
+            id = highlight.remoteId.takeIf { it > 0 },
+            userId = userId,
+            clientId = highlight.id.takeIf { it > 0 },
+            translationId = highlight.translationId,
+            book = highlight.book,
+            chapter = highlight.chapter,
+            label = highlight.label,
+            excerpt = highlight.excerpt,
+            verse = highlight.verse,
+            verseEnd = highlight.verseEnd,
+            verseNumbers = highlight.verseNumbers,
+            colorKey = highlight.colorKey.ifBlank { BibleHighlightColors.DEFAULT_KEY },
+            note = noteForRow,
+            selectionStart = highlight.selectionStart,
+            selectionEnd = highlight.selectionEnd,
+            createdAt = instantToIso(highlight.createdAtEpochMs),
+        )
     }
 
     /** @return pull outcome, or null if pull was already recorded as failed and callers should stop. */
@@ -415,7 +459,12 @@ class UserDataSyncService @Inject constructor(
         return UserDataSyncReport(outcomes)
     }
 
-    private suspend fun pullHighlights(client: SupabaseClient): SyncPhaseOutcome? {
+    private data class HighlightPullResult(
+        val outcome: SyncPhaseOutcome,
+        val remoteNoteByServerId: Map<Long, String>,
+    )
+
+    private suspend fun pullHighlights(client: SupabaseClient): HighlightPullResult? {
         val pullResult = runCatching {
             client.postgrest.from(TABLE_HIGHLIGHTS)
                 .select()
@@ -423,8 +472,16 @@ class UserDataSyncService @Inject constructor(
         }
         val remoteRows = pullResult.getOrElse { error ->
             recordSyncFailure(PHASE_HIGHLIGHTS_PULL, error)
-            return SyncPhaseOutcome.Failed(PHASE_HIGHLIGHTS_PULL, error)
+            return HighlightPullResult(
+                SyncPhaseOutcome.Failed(PHASE_HIGHLIGHTS_PULL, error),
+                emptyMap(),
+            )
         }
+
+        val remoteNoteByServerId = remoteRows.mapNotNull { row ->
+            val id = row.id ?: return@mapNotNull null
+            id to row.note.orEmpty()
+        }.toMap()
 
         val domainRows = remoteRows.mapNotNull { it.toDomain() }
         val parseSkipped = remoteRows.size - domainRows.size
@@ -432,9 +489,16 @@ class UserDataSyncService @Inject constructor(
             SyncLog.info("$PHASE_HIGHLIGHTS_PULL ignored $parseSkipped row(s) without server id")
         }
 
-        bibleHighlightRepository.reconcileWithRemote(domainRows)
+        if (!noteEncryptionRepository.requiresCloudRecovery()) {
+            bibleHighlightRepository.reconcileWithRemote(domainRows)
+        } else {
+            SyncLog.skipped(PHASE_HIGHLIGHTS_PULL, "cloud recovery password required — notes not merged")
+        }
         SyncLog.ok(PHASE_HIGHLIGHTS_PULL, "reconciled ${domainRows.size} row(s)")
-        return SyncPhaseOutcome.Ok(PHASE_HIGHLIGHTS_PULL, "${domainRows.size} remote row(s)")
+        return HighlightPullResult(
+            SyncPhaseOutcome.Ok(PHASE_HIGHLIGHTS_PULL, "${domainRows.size} remote row(s)"),
+            remoteNoteByServerId,
+        )
     }
 
     private fun MorningDayRecordRow.toDomain(): MorningDayRecord? {
@@ -463,7 +527,7 @@ class UserDataSyncService @Inject constructor(
             verseEnd = verseEnd,
             verseNumbers = verseNumbers,
             colorKey = colorKey ?: BibleHighlightColors.DEFAULT_KEY,
-            note = note.orEmpty(),
+            note = note?.orEmpty() ?: "",
             selectionStart = selectionStart,
             selectionEnd = selectionEnd,
             createdAtEpochMs = createdMs,

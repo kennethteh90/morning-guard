@@ -11,7 +11,6 @@ import com.morningguard.app.platform.NotificationListenerRegistrationProbe
 import android.util.Patterns
 import com.morningguard.data.auth.AuthRepository
 import com.morningguard.data.auth.AuthState
-import com.morningguard.data.backup.LocalBackupRepository
 import com.morningguard.data.security.EmergencyBypassRepository
 import com.morningguard.data.settings.SettingsRepository
 import com.morningguard.domain.model.DataStorageMode
@@ -53,7 +52,6 @@ data class OnboardingUiState(
     val magicLinkError: String? = null,
     val isSendingMagicLink: Boolean = false,
     val choseLocalOnly: Boolean = false,
-    val backupMessage: String? = null,
     val signedInForOnboarding: Boolean = false,
     val signedInEmail: String? = null,
 ) {
@@ -65,7 +63,6 @@ data class OnboardingUiState(
 class OnboardingViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val authRepository: AuthRepository,
-    private val localBackupRepository: LocalBackupRepository,
     private val emergencyBypassRepository: EmergencyBypassRepository,
     private val accessChecker: NotificationAccessChecker,
     private val listenerProbe: NotificationListenerRegistrationProbe,
@@ -240,24 +237,6 @@ class OnboardingViewModel @Inject constructor(
             alarmScheduler.schedule(alarm)
             settingsRepository.updateSettings { it.copy(onboardingCompleted = true) }
         }
-    }
-
-    suspend fun exportLocalBackup(password: String, output: java.io.OutputStream) {
-        runCatching {
-            localBackupRepository.exportEncrypted(password.toCharArray(), output)
-        }.onSuccess {
-            _state.update { it.copy(backupMessage = "Encrypted backup saved.") }
-        }.onFailure { err ->
-            _state.update { it.copy(backupMessage = err.message ?: "Backup failed.") }
-        }
-    }
-
-    fun backupFileOpenFailed() {
-        _state.update { it.copy(backupMessage = "Could not open backup file.") }
-    }
-
-    fun clearBackupMessage() {
-        _state.update { it.copy(backupMessage = null) }
     }
 
     private suspend fun persistPartialSettings() {

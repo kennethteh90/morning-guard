@@ -35,6 +35,7 @@
 		6C1C798D7D2CDB85C58F9519 /* MGTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBE493E65A0A9FD8BEAC9040 /* MGTheme.swift */; };
 		778139E733F7AE04A44F98BC /* MorningGuardCore in Frameworks */ = {isa = PBXBuildFile; productRef = 7258E8B77C6E5792FF4818AF /* MorningGuardCore */; };
 		7CB1791FF6DB8C6D796DB933 /* LocalBackupCipher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03D152911B7FD945A2233F09 /* LocalBackupCipher.swift */; };
+		F5A2B3C4D5E6F7080910A1B2 /* NoteContentCipher.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4F1A2B3C4D5E6F7080910A1 /* NoteContentCipher.swift */; };
 		83E741FA658ED17B2E29B2C2 /* BibleReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D194A1FA3E9D61F393EA7E /* BibleReaderView.swift */; };
 		87C3E665E0919E85E69615F2 /* MorningGuardShieldAction.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5C1541EC4FCF1EBB7468EFFE /* MorningGuardShieldAction.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		8BF92AD9C2DFB8AECD0986EE /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6967BC8AA43D1B5C4A20E03C /* SettingsView.swift */; };
@@ -115,6 +116,7 @@
 		00A5F4DD592205A39A9EAF3F /* HighlightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighlightsView.swift; sourceTree = "<group>"; };
 		0251160E737CA417B642CB04 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		03D152911B7FD945A2233F09 /* LocalBackupCipher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalBackupCipher.swift; sourceTree = "<group>"; };
+		E4F1A2B3C4D5E6F7080910A1 /* NoteContentCipher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteContentCipher.swift; sourceTree = "<group>"; };
 		12AEE98B7502F8B576D7F6B1 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		20270B3D7E5FF2F9935AD9E7 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		26F7B8A214D92CED4400BBB7 /* DeviceActivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DeviceActivity.framework; path = System/Library/Frameworks/DeviceActivity.framework; sourceTree = SDKROOT; };
@@ -420,6 +422,7 @@
 			isa = PBXGroup;
 			children = (
 				03D152911B7FD945A2233F09 /* LocalBackupCipher.swift */,
+				E4F1A2B3C4D5E6F7080910A1 /* NoteContentCipher.swift */,
 				72A07D670FC29F66B893EBFC /* PBKDF2.swift */,
 			);
 			path = Crypto;
@@ -577,6 +580,7 @@
 				AA6B01F1B2C3F9072A3CA442 /* HighlightsView.swift in Sources */,
 				1E0F1270747C78ED0AF49303 /* HomeView.swift in Sources */,
 				7CB1791FF6DB8C6D796DB933 /* LocalBackupCipher.swift in Sources */,
+				F5A2B3C4D5E6F7080910A1B2 /* NoteContentCipher.swift in Sources */,
 				0193C1FFD0FCD66F68F47B7D /* LocalBackupModels.swift in Sources */,
 				CF6158EEEA4AB145982FE71B /* LocalBackupPasswordSheet.swift in Sources */,
 				AC49F851F9F09E19243241ED /* LocalBackupRepository.swift in Sources */,

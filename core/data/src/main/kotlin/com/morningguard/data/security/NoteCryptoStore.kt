@@ -23,7 +23,20 @@ data class NoteCryptoState(
     val passwordWrapIvBase64: String? = null,
     val keystoreWrappedDekBase64: String? = null,
     val keystoreWrapIvBase64: String? = null,
-)
+    /** Cloud password wrap waiting for user entry (multi-device / new install). */
+    val pendingCloudPasswordWrappedDekBase64: String? = null,
+    val pendingCloudPasswordWrapSaltBase64: String? = null,
+    val pendingCloudPasswordWrapIvBase64: String? = null,
+    val cloudRecoveryRequired: Boolean = false,
+) {
+    fun hasRecoveryPassword(): Boolean = !passwordWrappedDekBase64.isNullOrBlank()
+
+    fun hasPendingCloudRecovery(): Boolean =
+        cloudRecoveryRequired &&
+            !pendingCloudPasswordWrappedDekBase64.isNullOrBlank() &&
+            !pendingCloudPasswordWrapSaltBase64.isNullOrBlank() &&
+            !pendingCloudPasswordWrapIvBase64.isNullOrBlank()
+}
 
 private object NoteCryptoStateSerializer : Serializer<NoteCryptoState> {
     override val defaultValue = NoteCryptoState()

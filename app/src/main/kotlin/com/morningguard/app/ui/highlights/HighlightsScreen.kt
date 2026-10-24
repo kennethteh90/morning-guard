@@ -33,6 +33,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.morningguard.app.ui.recovery.RecoveryPasswordBanner
 import com.morningguard.app.ui.components.ConfirmRemoveHighlightDialog
 import com.morningguard.app.ui.components.SavedHighlightBottomBar
 import com.morningguard.app.ui.components.ScreenScaffold
@@ -94,6 +95,7 @@ fun HighlightsScreen(
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
+                    RecoveryPasswordBanner()
                     Text(
                         "Tap a highlight for Delete or Share. Cloud sync is optional (Account).",
                         style = MaterialTheme.typography.bodyMedium,

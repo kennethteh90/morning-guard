@@ -6,6 +6,10 @@
 	<string>https://bible-api.com/</string>
 	<key>BIBLE_PROXY_BASE_URL</key>
 	<string>$(BIBLE_PROXY_BASE_URL)</string>
+	<key>SUPABASE_URL</key>
+	<string>$(SUPABASE_URL)</string>
+	<key>SUPABASE_ANON_KEY</key>
+	<string>$(SUPABASE_ANON_KEY)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

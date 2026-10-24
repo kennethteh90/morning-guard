@@ -103,6 +103,47 @@ final class SettingsStore {
         goalProgressStore = transform(goalProgressStore)
     }
 
+    func setBoundUserId(_ userId: String) {
+        updateUserSettings { settings in
+            var copy = settings
+            copy.syncBoundUserId = userId
+            return copy
+        }
+    }
+
+    func clearMorningHistory() {
+        updateGoalProgress { store in
+            var copy = store
+            copy.morningHistory = []
+            copy.goalTimeSecondsByDate = [:]
+            copy.goalStepsByDate = [:]
+            return copy
+        }
+    }
+
+    func markRecoveryPasswordPromptShownAfterSignIn() {
+        updateUserSettings { $0.withRecoveryPromptShown() }
+    }
+
+    func recordRecoveryPasswordPromptDismissed() {
+        let nowMs = Int64(Date().timeIntervalSince1970 * 1000)
+        updateUserSettings { settings in
+            var copy = settings
+            copy.recoveryPasswordPromptShownAfterSignIn = true
+            copy.recoveryPasswordLaterCount = settings.recoveryPasswordLaterCount + 1
+            copy.recoveryPasswordPromptLastDismissedEpochMs = nowMs
+            return copy
+        }
+    }
+
+    func incrementNoteSaveCountForRecoveryPrompt() {
+        updateUserSettings { settings in
+            var copy = settings
+            copy.noteSaveCountForRecoveryPrompt = settings.noteSaveCountForRecoveryPrompt + 1
+            return copy
+        }
+    }
+
     func clearLegacyPassphraseHashFromSharedStorage() {
         sharedDefaults?.removeObject(forKey: AppGroupKeys.emergencyPassphraseHash)
         if var data = defaults.data(forKey: LocalKey.goalProgress),
@@ -168,5 +209,13 @@ final class SettingsStore {
             return decoded
         }
         return GoalProgressStore()
+    }
+}
+
+private extension UserSettings {
+    func withRecoveryPromptShown() -> UserSettings {
+        var copy = self
+        copy.recoveryPasswordPromptShownAfterSignIn = true
+        return copy
     }
 }

@@ -17,6 +17,9 @@ final class AppState {
     let healthKitStepReader: HealthKitStepReader
     let alarmScheduler: MorningAlarmScheduler
     let peaceSessionService: PeaceSessionService
+    let supabaseAuth: SupabaseAuthService
+    let userDataSync: UserDataSyncService
+    let recoveryPassword: RecoveryPasswordCoordinator
 
     private let emergencyPolicy = EmergencyBypassPolicy()
     private var gateRefreshTask: Task<Void, Never>?
@@ -43,6 +46,21 @@ final class AppState {
         )
         self.healthKitStepReader = HealthKitStepReader()
         self.alarmScheduler = MorningAlarmScheduler()
+        let supabaseAuth = SupabaseAuthService()
+        self.supabaseAuth = supabaseAuth
+        self.userDataSync = UserDataSyncService(
+            auth: supabaseAuth,
+            settingsStore: settings,
+            highlightStore: self.bibleHighlightStore,
+            noteEncryption: noteEncryption
+        )
+        self.recoveryPassword = RecoveryPasswordCoordinator(
+            settingsStore: settings,
+            auth: supabaseAuth,
+            noteEncryption: noteEncryption,
+            highlightStore: self.bibleHighlightStore,
+            syncService: self.userDataSync
+        )
 
         gate.refresh()
         shieldController.refreshShields()
@@ -229,8 +247,47 @@ final class AppState {
 
     func handleDeepLink(_ url: URL) {
         guard url.scheme?.lowercased() == "morningguard" else { return }
+        if url.host?.lowercased() == "auth" || url.path.contains("auth") {
+            Task {
+                do {
+                    try await supabaseAuth.handleAuthCallback(url: url)
+                    settingsStore.updateUserSettings { settings in
+                        var copy = settings
+                        copy.dataStorageMode = .cloudSync
+                        return copy
+                    }
+                    recoveryPassword.onSignedIn()
+                    await userDataSync.syncAllIfSignedIn()
+                } catch {
+                    // Auth service updates state
+                }
+            }
+            return
+        }
         if url.host?.lowercased() == "goal" || url.path == "/goal" {
             deepLinkGoalPending = true
+        }
+    }
+
+    func signOut() async {
+        bibleHighlightStore.clearAll()
+        settingsStore.clearMorningHistory()
+        noteEncryption.lock()
+        settingsStore.updateUserSettings { settings in
+            var copy = settings
+            copy.dataStorageMode = .localOnly
+            copy.syncBoundUserId = nil
+            return copy
+        }
+        try? await supabaseAuth.signOut()
+    }
+
+    func sendMagicLink(email: String) async throws {
+        try await supabaseAuth.sendMagicLink(email: email)
+        settingsStore.updateUserSettings { settings in
+            var copy = settings
+            copy.dataStorageMode = .cloudSync
+            return copy
         }
     }
 
