@@ -54,7 +54,7 @@ final class UserDataSyncService {
             if highlight.remoteId > 0 {
                 try await client.from("bible_highlights")
                     .delete()
-                    .eq("id", value: highlight.remoteId)
+                    .eq("id", value: Int(highlight.remoteId))
                     .eq("user_id", value: userId)
                     .execute()
             } else if highlight.id > 0 {
