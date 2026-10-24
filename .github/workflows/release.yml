@@ -19,6 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: cimg/android:2024.04.1
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
 
