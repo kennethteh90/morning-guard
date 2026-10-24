@@ -74,7 +74,7 @@ final class AppState {
 
     func onAppear() {
         refreshGateAndShields()
-        AppMonitoring.analytics.track("app_open")
+        AppMonitoring.analytics.track("app_open", properties: [:])
         Task { await userDataSync.syncAllIfSignedIn() }
     }
 
