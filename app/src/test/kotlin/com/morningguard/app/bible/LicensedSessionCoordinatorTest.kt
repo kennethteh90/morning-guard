@@ -55,6 +55,35 @@ class LicensedSessionCoordinatorTest {
     }
 
     @Test
+    fun `cooldown blocks mint after non-transient failure`() = runBlocking {
+        val mints = AtomicInteger(0)
+        var now = 0L
+        val coordinator = LicensedSessionCoordinator(
+            mintSession = {
+                mints.incrementAndGet()
+                throw BibleProxyLicensedAuthException("Licensed Bible session failed (401)")
+            },
+            isTransientFailure = { false },
+            nowEpochMs = { now },
+            sleepMs = {},
+            maxAttempts = 1,
+        )
+        try {
+            coordinator.sessionToken()
+            fail("expected failure")
+        } catch (_: BibleProxyLicensedAuthException) {
+        }
+        assertEquals(1, mints.get())
+        now = 1L
+        try {
+            coordinator.sessionToken()
+            fail("expected cooldown failure")
+        } catch (_: BibleProxyLicensedAuthException) {
+        }
+        assertEquals(1, mints.get())
+    }
+
+    @Test
     fun `maps exhausted transient failure to licensed auth IOException`() = runBlocking {
         val coordinator = LicensedSessionCoordinator(
             mintSession = { throw FakeTransient("throttled") },

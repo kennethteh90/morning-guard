@@ -55,9 +55,11 @@ class NoteCryptoKeyManager @Inject constructor() {
     }
 
     fun wrapDekWithKeystore(dek: ByteArray): KeystoreWrap {
-        val iv = ByteArray(IV_BYTES).also { SecureRandom().nextBytes(it) }
         val cipher = Cipher.getInstance(AES_GCM)
-        cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKeystoreKey(), GCMParameterSpec(GCM_TAG_BITS, iv))
+        // Keystore AES-GCM keys require a random IV from the provider on encrypt (no caller IV).
+        cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKeystoreKey())
+        val iv = cipher.iv
+        require(iv.size == IV_BYTES) { "Unexpected Keystore GCM IV length: ${iv.size}" }
         val ciphertext = cipher.doFinal(dek)
         return KeystoreWrap(
             wrappedDekBase64 = Base64.getEncoder().encodeToString(ciphertext),

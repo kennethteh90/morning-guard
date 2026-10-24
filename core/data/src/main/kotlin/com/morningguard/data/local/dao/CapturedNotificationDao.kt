@@ -2,6 +2,7 @@ package com.morningguard.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.morningguard.data.local.entity.CapturedNotificationEntity
@@ -10,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 @Suppress("TooManyFunctions")
 interface CapturedNotificationDao {
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(entity: CapturedNotificationEntity): Long
 
     @Update

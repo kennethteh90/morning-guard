@@ -42,28 +42,27 @@ class PlayIntegrityBibleProxyLicensedAuth @Inject constructor(
         isTransientFailure = ::isTransientIntegrityFailure,
     )
 
+    private val failureGate = LicensedAuthFailureGate(errorReporter)
+
     override fun applyLicensedHeaders(builder: Request.Builder) {
         val cloudProject = BuildConfig.PLAY_CLOUD_PROJECT_NUMBER.trim().toLongOrNull() ?: 0L
         if (!config.isConfigured || cloudProject <= 0L) {
             return
         }
+        if (failureGate.inCooldown()) {
+            throw BibleProxyLicensedAuthException()
+        }
         try {
             val headers = runBlocking { licensedHeaders() }
             headers.forEach { (key, value) -> builder.header(key, value) }
         } catch (e: BibleProxyLicensedAuthException) {
-            errorReporter.reportNonFatal(
-                e,
-                tags = mapOf("area" to "bible_licensed_auth"),
-                extras = mapOf("cause" to (e.cause?.javaClass?.simpleName ?: "none")),
-            )
+            failureGate.markFailure()
+            failureGate.reportFailure(e)
             throw e
         } catch (e: Exception) {
             val wrapped = BibleProxyLicensedAuthException(cause = e)
-            errorReporter.reportNonFatal(
-                wrapped,
-                tags = mapOf("area" to "bible_licensed_auth"),
-                extras = mapOf("cause" to e.javaClass.simpleName),
-            )
+            failureGate.markFailure()
+            failureGate.reportFailure(wrapped)
             throw wrapped
         }
     }

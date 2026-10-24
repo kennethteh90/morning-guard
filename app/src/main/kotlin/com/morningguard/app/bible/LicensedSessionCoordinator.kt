@@ -60,9 +60,7 @@ class LicensedSessionCoordinator(
             } catch (e: Throwable) {
                 lastError = e
                 if (!isTransientFailure(e) || attempt == maxAttempts - 1) {
-                    if (isTransientFailure(e)) {
-                        cooldownUntilElapsedMs.set(nowEpochMs() + COOLDOWN_AFTER_EXHAUSTED_MS)
-                    }
+                    cooldownUntilElapsedMs.set(nowEpochMs() + COOLDOWN_AFTER_EXHAUSTED_MS)
                     throw wrap(e)
                 }
                 sleepMs(backoffMs(attempt))
