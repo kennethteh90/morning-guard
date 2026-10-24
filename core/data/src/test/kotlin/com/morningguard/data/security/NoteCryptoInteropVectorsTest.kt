@@ -8,12 +8,18 @@ class NoteCryptoInteropVectorsTest {
 
     @Test
     fun `password wrap unwrap matches shared DEK`() {
-        val wrap = NoteCryptoKeyManager.PasswordWrap(
-            wrappedDekBase64 = Vectors.PASSWORD_WRAPPED_DEK_B64,
-            saltBase64 = Vectors.SALT_B64,
-            ivBase64 = Vectors.IV_B64,
-        )
         val keyManager = NoteCryptoKeyManager()
+        val salt = ByteArray(16) { it.toByte() }
+        val iv = ByteArray(12) { it.toByte() }
+        val wrap = keyManager.wrapDekWithPassword(
+            Vectors.DEK_BYTES,
+            Vectors.PASSWORD.toCharArray(),
+            salt,
+            iv,
+        )
+        assertEquals(Vectors.SALT_B64, wrap.saltBase64)
+        assertEquals(Vectors.IV_B64, wrap.ivBase64)
+        assertEquals(Vectors.PASSWORD_WRAPPED_DEK_B64, wrap.wrappedDekBase64)
         val dek = keyManager.unwrapDekWithPassword(wrap, Vectors.PASSWORD.toCharArray())
         assertArrayEquals(Vectors.DEK_BYTES, dek)
     }

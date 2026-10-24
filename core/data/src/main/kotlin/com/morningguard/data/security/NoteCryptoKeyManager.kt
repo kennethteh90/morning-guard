@@ -22,6 +22,16 @@ class NoteCryptoKeyManager @Inject constructor() {
     fun wrapDekWithPassword(dek: ByteArray, password: CharArray): PasswordWrap {
         val salt = ByteArray(SALT_BYTES).also { SecureRandom().nextBytes(it) }
         val iv = ByteArray(IV_BYTES).also { SecureRandom().nextBytes(it) }
+        return wrapDekWithPassword(dek, password, salt, iv)
+    }
+
+    /** Fixed salt/IV for cross-platform test vectors (iOS MorningGuardCore interop). */
+    fun wrapDekWithPassword(
+        dek: ByteArray,
+        password: CharArray,
+        salt: ByteArray,
+        iv: ByteArray,
+    ): PasswordWrap {
         val key = derivePasswordKey(password, salt)
         val cipher = Cipher.getInstance(AES_GCM)
         cipher.init(Cipher.ENCRYPT_MODE, key, GCMParameterSpec(GCM_TAG_BITS, iv))
