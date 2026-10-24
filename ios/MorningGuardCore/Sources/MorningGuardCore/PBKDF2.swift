@@ -1,8 +1,17 @@
-import Foundation
 import CommonCrypto
+import Foundation
 
-enum PBKDF2 {
-    static func deriveKey(password: Data, salt: Data, iterations: Int = 120_000, keyLength: Int = 32) -> Data {
+public enum NoteCryptoConstants {
+    public static let pbkdf2Iterations = 120_000
+}
+
+public enum PBKDF2 {
+    public static func deriveKey(
+        password: Data,
+        salt: Data,
+        iterations: Int = NoteCryptoConstants.pbkdf2Iterations,
+        keyLength: Int = 32
+    ) -> Data {
         var derived = Data(count: keyLength)
         let status = derived.withUnsafeMutableBytes { derivedBytes in
             salt.withUnsafeBytes { saltBytes in

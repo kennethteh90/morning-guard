@@ -1,19 +1,19 @@
 import CryptoKit
 import Foundation
 
-enum NoteContentCipher {
-    static let cipherPrefix = "mgenc1:"
-    static let encryptedPlaceholder = "🔒 Encrypted note — unlock in Settings"
+public enum NoteContentCipher {
+    public static let cipherPrefix = "mgenc1:"
+    public static let encryptedPlaceholder = "🔒 Encrypted note — unlock in Settings"
 
-    static func isCiphertext(_ stored: String) -> Bool {
+    public static func isCiphertext(_ stored: String) -> Bool {
         stored.hasPrefix(cipherPrefix)
     }
 
-    static func isLegacyPlaintext(_ stored: String) -> Bool {
+    public static func isLegacyPlaintext(_ stored: String) -> Bool {
         !stored.isEmpty && !isCiphertext(stored)
     }
 
-    static func encrypt(plain: String, dek: SymmetricKey) throws -> String {
+    public static func encrypt(plain: String, dek: SymmetricKey) throws -> String {
         let trimmed = plain.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return "" }
         var iv = Data(count: 12)
@@ -24,7 +24,11 @@ enum NoteContentCipher {
         return cipherPrefix + payload.base64EncodedString()
     }
 
-    static func decrypt(stored: String, dek: SymmetricKey) throws -> String {
+    public static func encrypt(plain: String, dekBytes: Data) throws -> String {
+        try encrypt(plain: plain, dek: SymmetricKey(data: dekBytes))
+    }
+
+    public static func decrypt(stored: String, dek: SymmetricKey) throws -> String {
         if stored.isEmpty { return "" }
         guard isCiphertext(stored) else { return stored }
         let b64 = String(stored.dropFirst(cipherPrefix.count))
@@ -35,5 +39,9 @@ enum NoteContentCipher {
         let box = try AES.GCM.SealedBox(nonce: try AES.GCM.Nonce(data: iv), ciphertext: body, tag: tag)
         let data = try AES.GCM.open(box, using: dek)
         return String(data: data, encoding: .utf8) ?? encryptedPlaceholder
+    }
+
+    public static func decrypt(stored: String, dekBytes: Data) throws -> String {
+        try decrypt(stored: stored, dek: SymmetricKey(data: dekBytes))
     }
 }

@@ -254,8 +254,16 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun changeNotesEncryptionPassword(current: String, newPassword: String) {
+    fun changeNotesEncryptionPassword(current: String, newPassword: String, confirmation: String) {
         viewModelScope.launch {
+            RecoveryPasswordRules.validate(newPassword.toCharArray())?.let {
+                _notesEncryptionMessage.value = it
+                return@launch
+            }
+            if (newPassword != confirmation) {
+                _notesEncryptionMessage.value = "Passwords do not match."
+                return@launch
+            }
             noteEncryptionRepository.changePassword(current.toCharArray(), newPassword.toCharArray())
                 .onSuccess {
                     userDataSyncService.syncAllIfSignedIn()

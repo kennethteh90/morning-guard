@@ -1,5 +1,6 @@
 import CryptoKit
 import Foundation
+import MorningGuardCore
 
 enum LocalBackupCipher {
     private static let saltBytes = 16

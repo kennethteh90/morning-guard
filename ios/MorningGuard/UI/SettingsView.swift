@@ -17,8 +17,12 @@ struct SettingsView: View {
     @State private var newPassphrase = ""
     @State private var passphraseMessage: String?
     @State private var notesPassword = ""
+    @State private var notesConfirmPassword = ""
     @State private var notesNewPassword = ""
+    @State private var notesConfirmNewPassword = ""
     @State private var notesMessage: String?
+    @State private var magicLinkEmail = ""
+    @State private var accountMessage: String?
     @State private var backupMessage: String?
     @State private var backupPasswordMode: LocalBackupPasswordSheet.Mode?
     @State private var showRestoreConfirm = false
@@ -53,8 +57,10 @@ struct SettingsView: View {
                 }
             }
 
+            RecoveryPasswordBannerView()
             notesEncryptionSection
             backupSection
+            accountSection
 
             Section("Emergency passphrase") {
                 SecureField("New passphrase (8+ characters)", text: $newPassphrase)
@@ -171,9 +177,13 @@ struct SettingsView: View {
                 appState.noteEncryption.cryptoState.hasRecoveryPassword() ? MGTheme.accent : .orange
             )
             if !appState.noteEncryption.cryptoState.hasRecoveryPassword() {
-                SecureField("Recovery password (8+ characters)", text: $notesPassword)
+                Text("Use at least 8 characters with a letter and a number. Save it in a password manager.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                SecureField("Recovery password", text: $notesPassword)
+                SecureField("Confirm recovery password", text: $notesConfirmPassword)
                 Button("Set recovery password") { setupNotesEncryption() }
-                    .disabled(notesPassword.count < 8)
+                    .disabled(notesPassword.count < 8 || notesConfirmPassword.count < 8)
             } else if !appState.noteEncryption.isUnlocked {
                 SecureField("Recovery password", text: $notesPassword)
                 Button("Unlock notes") { unlockNotesEncryption() }
@@ -183,8 +193,13 @@ struct SettingsView: View {
                     .foregroundStyle(MGTheme.accent)
                 SecureField("Current recovery password", text: $notesPassword)
                 SecureField("New recovery password", text: $notesNewPassword)
+                SecureField("Confirm new recovery password", text: $notesConfirmNewPassword)
                 Button("Change recovery password") { changeNotesPassword() }
-                    .disabled(notesPassword.count < 8 || notesNewPassword.count < 8)
+                    .disabled(
+                        notesPassword.count < 8
+                            || notesNewPassword.count < 8
+                            || notesConfirmNewPassword.count < 8
+                    )
             }
             if let notesMessage {
                 Text(notesMessage)
@@ -218,11 +233,66 @@ struct SettingsView: View {
         }
     }
 
+    @ViewBuilder
+    private var accountSection: some View {
+        Section {
+            switch appState.supabaseAuth.state {
+            case .unconfigured:
+                Text("Cloud sync is not configured in this build.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if let hint = SupabaseConfig.missingPieceMessage {
+                    Text(hint).font(.caption2).foregroundStyle(.secondary)
+                }
+            case .signedIn(let user):
+                Text("Signed in as \(user.email ?? "your account"). Streaks and highlights sync while cloud sync is enabled.")
+                    .font(.caption)
+                Button("Sign out", role: .destructive) {
+                    Task {
+                        await appState.signOut()
+                        accountMessage = "Signed out on this device."
+                    }
+                }
+            case .signedOut, .error:
+                TextField("Email for magic link", text: $magicLinkEmail)
+                    .textContentType(.emailAddress)
+                    .keyboardType(.emailAddress)
+                    .autocapitalization(.none)
+                Button("Send sign-in link") {
+                    Task {
+                        do {
+                            try await appState.sendMagicLink(email: magicLinkEmail)
+                            accountMessage = "Check your email and open the link on this iPhone."
+                        } catch {
+                            accountMessage = error.localizedDescription
+                        }
+                    }
+                }
+            }
+            if let accountMessage {
+                Text(accountMessage).font(.caption).foregroundStyle(.secondary)
+            }
+        } header: {
+            Text("Account")
+        }
+    }
+
     private func setupNotesEncryption() {
+        if let validation = RecoveryPasswordRules.validate(password: notesPassword) {
+            notesMessage = validation
+            return
+        }
+        if notesPassword != notesConfirmPassword {
+            notesMessage = "Passwords do not match."
+            return
+        }
         do {
             try appState.noteEncryption.setupWithPassword(notesPassword)
+            appState.bibleHighlightStore.reencryptAllStoredNotes()
             notesPassword = ""
+            notesConfirmPassword = ""
             notesMessage = "Recovery password saved. Store it in a password manager."
+            Task { await appState.userDataSync.syncAllIfSignedIn() }
         } catch {
             notesMessage = error.localizedDescription
         }
@@ -239,11 +309,21 @@ struct SettingsView: View {
     }
 
     private func changeNotesPassword() {
+        if let validation = RecoveryPasswordRules.validate(password: notesNewPassword) {
+            notesMessage = validation
+            return
+        }
+        if notesNewPassword != notesConfirmNewPassword {
+            notesMessage = "Passwords do not match."
+            return
+        }
         do {
             try appState.noteEncryption.changePassword(oldPassword: notesPassword, newPassword: notesNewPassword)
             notesPassword = ""
             notesNewPassword = ""
+            notesConfirmNewPassword = ""
             notesMessage = "Notes password updated."
+            Task { await appState.userDataSync.syncAllIfSignedIn() }
         } catch {
             notesMessage = error.localizedDescription
         }

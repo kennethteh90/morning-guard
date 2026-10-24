@@ -83,6 +83,7 @@ fun SettingsScreen(
     var notesPasswordDraft by remember { mutableStateOf("") }
     var notesConfirmPasswordDraft by remember { mutableStateOf("") }
     var notesNewPasswordDraft by remember { mutableStateOf("") }
+    var notesConfirmNewPasswordDraft by remember { mutableStateOf("") }
     val stepSensorAvailable by viewModel.stepSensorAvailable.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val backupScope = rememberCoroutineScope()
@@ -533,17 +534,30 @@ fun SettingsScreen(
                                 visualTransformation = PasswordVisualTransformation(),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                             )
+                            OutlinedTextField(
+                                value = notesConfirmNewPasswordDraft,
+                                onValueChange = { notesConfirmNewPasswordDraft = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("Confirm new notes password") },
+                                singleLine = true,
+                                visualTransformation = PasswordVisualTransformation(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            )
                             OutlinedButton(
                                 onClick = {
                                     viewModel.changeNotesEncryptionPassword(
                                         notesPasswordDraft,
                                         notesNewPasswordDraft,
+                                        notesConfirmNewPasswordDraft,
                                     )
                                     notesPasswordDraft = ""
                                     notesNewPasswordDraft = ""
+                                    notesConfirmNewPasswordDraft = ""
                                 },
                                 modifier = Modifier.fillMaxWidth(),
-                                enabled = notesPasswordDraft.length >= 8 && notesNewPasswordDraft.length >= 8,
+                                enabled = notesPasswordDraft.length >= 8 &&
+                                    notesNewPasswordDraft.length >= 8 &&
+                                    notesConfirmNewPasswordDraft.length >= 8,
                             ) {
                                 Text("Change notes password")
                             }

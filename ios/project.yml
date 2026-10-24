@@ -14,6 +14,9 @@ configFiles:
 packages:
   MorningGuardCore:
     path: MorningGuardCore
+  Supabase:
+    url: https://github.com/supabase/supabase-swift
+    from: 2.20.0
 settings:
   base:
     SWIFT_VERSION: "5.9"
@@ -37,6 +40,8 @@ targets:
     dependencies:
       - package: MorningGuardCore
         product: MorningGuardCore
+      - package: Supabase
+        product: Supabase
       - target: MorningGuardMonitor
         embed: true
       - target: MorningGuardShieldConfig

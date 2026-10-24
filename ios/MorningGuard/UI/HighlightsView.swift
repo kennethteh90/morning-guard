@@ -20,6 +20,9 @@ struct HighlightsView: View {
 
     var body: some View {
         List {
+            RecoveryPasswordBannerView()
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
             if filtered.isEmpty {
                 ContentUnavailableView(
                     search.isEmpty ? "No highlights yet" : "No matches",

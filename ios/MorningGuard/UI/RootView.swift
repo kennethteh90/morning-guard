@@ -10,6 +10,7 @@ struct RootView: View {
     @State private var showStats = false
 
     var body: some View {
+        RecoveryPasswordHostView {
         Group {
             if appState.settingsStore.userSettings.onboardingCompleted {
                 NavigationStack {
@@ -43,6 +44,7 @@ struct RootView: View {
             } else {
                 OnboardingFlowView()
             }
+        }
         }
         .onChange(of: appState.deepLinkGoalPending) { _, pending in
             if pending, appState.settingsStore.userSettings.onboardingCompleted {

@@ -2,6 +2,8 @@ import Foundation
 import MorningGuardCore
 import Observation
 
+// Highlight notes are stored encrypted; sync uses plaintext only in memory via displayNote().
+
 @MainActor
 @Observable
 final class BibleHighlightStore {
@@ -30,8 +32,9 @@ final class BibleHighlightStore {
         }
     }
 
-    func saveHighlight(_ highlight: BibleHighlight) {
+    func saveHighlight(_ highlight: BibleHighlight, onNoteSaved: (() -> Void)? = nil) {
         var copy = highlight
+        let hadNote = !copy.note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         copy.note = (try? noteEncryption.encryptForStorage(copy.note)) ?? copy.note
         if copy.id == 0 {
             copy.id = (highlights.map(\.id).max() ?? 0) + 1
@@ -39,6 +42,83 @@ final class BibleHighlightStore {
         highlights.removeAll { $0.id == copy.id }
         highlights.append(copy)
         persist()
+        if hadNote { onNoteSaved?() }
+    }
+
+    func migrateLegacyPlaintextNotes() {
+        var changed = false
+        highlights = highlights.map { highlight in
+            guard NoteContentCipher.isLegacyPlaintext(highlight.note) else { return highlight }
+            var copy = highlight
+            copy.note = (try? noteEncryption.reencryptPlaintextValue(highlight.note)) ?? highlight.note
+            changed = true
+            return copy
+        }
+        if changed { persist() }
+    }
+
+    func reencryptAllStoredNotes() {
+        var changed = false
+        highlights = highlights.map { highlight in
+            let plain = noteEncryption.decryptFromStorage(highlight.note)
+            guard !plain.isEmpty else { return highlight }
+            var copy = highlight
+            copy.note = (try? noteEncryption.encryptForStorage(plain)) ?? highlight.note
+            changed = true
+            return copy
+        }
+        if changed { persist() }
+    }
+
+    func reconcileWithRemote(_ remoteHighlights: [BibleHighlight]) {
+        let remoteIds = Set(remoteHighlights.map(\.remoteId).filter { $0 > 0 })
+        highlights.removeAll { local in
+            local.remoteId > 0 && !remoteIds.contains(local.remoteId)
+        }
+        for remote in remoteHighlights where remote.remoteId > 0 {
+            mergeOneRemote(remote)
+        }
+        persist()
+    }
+
+    func clearAll() {
+        highlights = []
+        persist()
+    }
+
+    private func mergeOneRemote(_ remote: BibleHighlight) {
+        let noteStored: String
+        if NoteContentCipher.isLegacyPlaintext(remote.note) {
+            noteStored = (try? noteEncryption.encryptForStorage(remote.note)) ?? remote.note
+        } else {
+            noteStored = remote.note
+        }
+        let remoteNormalized = BibleHighlight(
+            id: remote.id,
+            remoteId: remote.remoteId,
+            translationId: remote.translationId,
+            book: remote.book,
+            chapter: remote.chapter,
+            label: remote.label,
+            excerpt: remote.excerpt,
+            verse: remote.verse,
+            verseEnd: remote.verseEnd,
+            verseNumbers: remote.verseNumbers,
+            colorKey: remote.colorKey,
+            note: noteStored,
+            selectionStart: remote.selectionStart,
+            selectionEnd: remote.selectionEnd,
+            createdAtEpochMs: remote.createdAtEpochMs
+        )
+        if let index = highlights.firstIndex(where: { $0.remoteId == remoteNormalized.remoteId }) {
+            highlights[index] = remoteNormalized
+            return
+        }
+        if remoteNormalized.id > 0, let index = highlights.firstIndex(where: { $0.id == remoteNormalized.id }) {
+            highlights[index] = remoteNormalized
+            return
+        }
+        highlights.append(remoteNormalized)
     }
 
     func replaceAll(_ newHighlights: [BibleHighlight]) {
