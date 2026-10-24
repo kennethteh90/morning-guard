@@ -8,7 +8,7 @@ class RecoveryPasswordRulesTest {
 
     @Test
     fun `accepts letter and digit`() {
-        assertNull(RecoveryPasswordRules.validate("secure1".toCharArray()))
+        assertNull(RecoveryPasswordRules.validate("password1".toCharArray()))
     }
 
     @Test
