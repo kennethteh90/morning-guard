@@ -23,7 +23,7 @@ struct AccountView: View {
     var body: some View {
         Form {
             Section {
-                Text("Sign in to sync streaks and highlights across devices. Your reflection notes stay encrypted; set a recovery password in Settings.")
+                Text(L10n.tr("account.intro"))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -52,8 +52,10 @@ struct AccountView: View {
                 }
             }
         }
-        .navigationTitle("Account")
+        .navigationTitle(L10n.tr("account.title"))
         .navigationBarTitleDisplayMode(.inline)
+        .accessibilityLabel(L10n.tr("a11y.account.title"))
+        .accessibilityHint(L10n.tr("a11y.account.title.hint"))
         .onAppear { syncPhaseFromAuth() }
         .onChange(of: appState.supabaseAuth.state) { _, _ in syncPhaseFromAuth() }
         .task(id: phase) {
@@ -64,23 +66,24 @@ struct AccountView: View {
             }
         }
         .confirmationDialog(
-            "Delete account?",
+            L10n.tr("account.delete_confirm.title"),
             isPresented: $showDeleteConfirm,
             titleVisibility: .visible
         ) {
-            Button("Delete account", role: .destructive) {
+            Button(L10n.tr("account.delete"), role: .destructive) {
                 Task { await performDeleteAccount() }
             }
-            Button("Cancel", role: .cancel) {}
+            .accessibilityLabel(L10n.tr("a11y.account.delete_confirm"))
+            Button(L10n.tr("common.cancel"), role: .cancel) {}
         } message: {
-            Text("This permanently deletes your Morning Guard account and cloud data. Local streaks and highlights on this device will be cleared.")
+            Text(L10n.tr("account.delete_confirm.message"))
         }
     }
 
     @ViewBuilder
     private var unconfiguredSection: some View {
         Section {
-            Text("Cloud sync is not configured in this build.")
+            Text(L10n.tr("account.unconfigured"))
                 .foregroundStyle(.secondary)
             if let hint = SupabaseConfig.missingPieceMessage {
                 Text(hint).font(.caption).foregroundStyle(.secondary)
@@ -91,21 +94,23 @@ struct AccountView: View {
     @ViewBuilder
     private func signedInSection(user: AuthUser) -> some View {
         Section {
-            Label(user.email ?? "Signed in", systemImage: "person.crop.circle")
-            Text("Streaks and highlights sync while cloud sync is enabled.")
+            Label(user.email ?? L10n.tr("account.signed_in_label"), systemImage: "person.crop.circle")
+            Text(L10n.tr("account.sync_enabled"))
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            Button("Sign out", role: .destructive) {
+            Button(L10n.tr("account.sign_out"), role: .destructive) {
                 Task {
                     await appState.signOut()
-                    statusMessage = "Signed out on this device."
+                    statusMessage = L10n.tr("account.signed_out")
                     errorMessage = nil
                 }
             }
-            Button("Delete account", role: .destructive) {
+            .accessibilityLabel(L10n.tr("a11y.account.sign_out"))
+            Button(L10n.tr("account.delete"), role: .destructive) {
                 showDeleteConfirm = true
             }
             .disabled(isDeleting)
+            .accessibilityLabel(L10n.tr("a11y.account.delete"))
         }
     }
 
@@ -114,32 +119,34 @@ struct AccountView: View {
         switch phase {
         case .enterEmail:
             Section {
-                TextField("Email", text: $email)
+                TextField(L10n.tr("account.email"), text: $email)
                     .textContentType(.emailAddress)
                     .keyboardType(.emailAddress)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
+                    .accessibilityLabel(L10n.tr("a11y.account.email"))
                 Button {
                     Task { await sendMagicLink() }
                 } label: {
                     if isSending {
                         ProgressView()
                     } else {
-                        Text("Send sign-in link")
+                        Text(L10n.tr("account.send_link"))
                     }
                 }
                 .disabled(isSending || email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .accessibilityLabel(L10n.tr("a11y.account.send_link"))
             } header: {
-                Text("Magic link")
+                Text(L10n.tr("account.magic_link.header"))
             } footer: {
-                Text("Open the link on this iPhone. Check spam if it does not arrive within a minute.")
+                Text(L10n.tr("account.magic_link.footer"))
             }
         case .awaitingInbox:
             Section {
-                Label("Check your inbox", systemImage: "envelope.open")
+                Label(L10n.tr("account.inbox.check"), systemImage: "envelope.open")
                 Text(pendingEmail ?? email)
                     .font(.headline)
-                Text("Tap the link in the email to finish signing in.")
+                Text(L10n.tr("account.inbox.tap_link"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Button {
@@ -148,19 +155,21 @@ struct AccountView: View {
                     if isSending {
                         ProgressView()
                     } else if resendCooldownSeconds > 0 {
-                        Text("Resend in \(resendCooldownSeconds)s")
+                        Text(L10n.tr("account.resend_format", resendCooldownSeconds))
                     } else {
-                        Text("Resend link")
+                        Text(L10n.tr("account.resend_link"))
                     }
                 }
                 .disabled(isSending || resendCooldownSeconds > 0)
-                Button("Use a different email") {
+                .accessibilityLabel(L10n.tr("a11y.account.resend_link"))
+                Button(L10n.tr("account.different_email")) {
                     phase = .enterEmail
                     pendingEmail = nil
                     email = ""
                     errorMessage = nil
                     statusMessage = nil
                 }
+                .accessibilityLabel(L10n.tr("a11y.account.different_email"))
             }
         }
     }
@@ -185,7 +194,7 @@ struct AccountView: View {
         let normalized = (resend ? (pendingEmail ?? email) : email)
             .trimmingCharacters(in: .whitespacesAndNewlines)
         guard normalized.contains("@") else {
-            errorMessage = "Enter a valid email address."
+            errorMessage = L10n.tr("account.invalid_email")
             return
         }
         let clientWait = MagicLinkRateLimitStore.secondsUntilResend(email: normalized)
@@ -193,7 +202,7 @@ struct AccountView: View {
             phase = .awaitingInbox
             pendingEmail = normalized
             resendCooldownSeconds = clientWait
-            errorMessage = "Please wait \(clientWait) seconds before requesting another link."
+            errorMessage = L10n.tr("account.rate_limit_format", clientWait)
             return
         }
         isSending = true
@@ -204,7 +213,7 @@ struct AccountView: View {
             try await appState.sendMagicLink(email: normalized)
             phase = .awaitingInbox
             resendCooldownSeconds = MagicLinkRateLimitStore.secondsUntilResend(email: normalized)
-            statusMessage = "We sent a link to \(normalized). Open it on this iPhone."
+            statusMessage = L10n.tr("account.link_sent_format", normalized)
         } catch let limited as MagicLinkRateLimitedError {
             phase = .awaitingInbox
             resendCooldownSeconds = limited.retryAfterSeconds
@@ -229,7 +238,7 @@ struct AccountView: View {
         errorMessage = nil
         do {
             try await appState.deleteAccount()
-            statusMessage = "Your account was deleted."
+            statusMessage = L10n.tr("account.deleted")
             dismiss()
         } catch {
             errorMessage = error.localizedDescription

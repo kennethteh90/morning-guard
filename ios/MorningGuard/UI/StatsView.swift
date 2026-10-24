@@ -17,34 +17,42 @@ struct StatsView: View {
                 Text(state.leadCopy)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                    .accessibilityLabel(L10n.tr("a11y.stats.lead"))
 
                 if state.showTimeOnGoalStat {
-                    statCard(label: "Time on morning goal", value: MorningGoalTimeFormat.format(seconds: state.totalGoalTimeSeconds))
+                    statCard(label: L10n.tr("stats.time_on_goal"), value: MorningGoalTimeFormat.format(seconds: state.totalGoalTimeSeconds))
                 }
 
                 if state.showStepsStat {
                     HStack(spacing: 12) {
-                        statCard(label: "Steps today", value: "\(state.todaySteps)")
-                        statCard(label: "Total steps logged", value: "\(state.totalGoalSteps)")
+                        statCard(label: L10n.tr("stats.steps_today"), value: "\(state.todaySteps)")
+                        statCard(label: L10n.tr("stats.steps_total"), value: "\(state.totalGoalSteps)")
                     }
                 }
 
                 HStack(spacing: 12) {
-                    statCard(label: "Current streak", value: "\(state.currentStreak) day(s)")
-                    statCard(label: "Best streak", value: "\(state.bestStreak) day(s)")
+                    statCard(
+                        label: L10n.tr("stats.current_streak"),
+                        value: L10n.tr("stats.streak_days_format", state.currentStreak)
+                    )
+                    statCard(
+                        label: L10n.tr("stats.best_streak"),
+                        value: L10n.tr("stats.streak_days_format", state.bestStreak)
+                    )
                 }
 
                 HStack(spacing: 12) {
-                    statCard(label: "Goals completed", value: "\(state.completedDays)")
-                    statCard(label: "Emergency bypass", value: "\(state.bypassDays)")
+                    statCard(label: L10n.tr("stats.goals_completed"), value: "\(state.completedDays)")
+                    statCard(label: L10n.tr("stats.emergency_bypass"), value: "\(state.bypassDays)")
                 }
 
                 if state.recent.isEmpty {
-                    Text("No history yet — complete a morning goal or use emergency bypass to start tracking.")
+                    Text(L10n.tr("stats.empty_history"))
                         .foregroundStyle(.secondary)
                 } else {
-                    Text("History")
+                    Text(L10n.tr("stats.history"))
                         .font(.title2.bold())
+                        .accessibilityAddTraits(.isHeader)
                     ForEach(state.recent) { record in
                         historyRow(record)
                     }
@@ -53,8 +61,10 @@ struct StatsView: View {
             .padding(MGTheme.standardPadding)
         }
         .background(MGTheme.background)
-        .navigationTitle("Streak & stats")
+        .navigationTitle(L10n.tr("stats.title"))
         .navigationBarTitleDisplayMode(.inline)
+        .accessibilityLabel(L10n.tr("a11y.stats.title"))
+        .accessibilityHint(L10n.tr("a11y.stats.title.hint"))
     }
 
     private func statCard(label: String, value: String) -> some View {
@@ -68,6 +78,7 @@ struct StatsView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .accessibilityElement(children: .combine)
     }
 
     private func historyRow(_ record: MorningDayRecord) -> some View {
@@ -82,17 +93,23 @@ struct StatsView: View {
                             .foregroundStyle(.secondary)
                     }
                     if state.showStepsStat, record.stepsOnGoal > 0 {
-                        Text("\(record.stepsOnGoal) steps")
+                        Text(L10n.tr("stats.steps_row_format", record.stepsOnGoal))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
                 Spacer()
-                Text(record.outcome == .goalCompleted ? "Goal completed" : "Emergency bypass")
-                    .font(.subheadline)
-                    .foregroundStyle(MGTheme.accent)
+                Text(
+                    record.outcome == .goalCompleted
+                        ? L10n.tr("stats.outcome.completed")
+                        : L10n.tr("stats.outcome.bypass")
+                )
+                .font(.subheadline)
+                .foregroundStyle(MGTheme.accent)
             }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(L10n.tr("a11y.stats.history_row"))
     }
 }
 
@@ -112,9 +129,9 @@ private struct StatsUiState {
 
     var leadCopy: String {
         if showStepsStat {
-            return "Days you finish the morning goal count toward your streak. Step counts update while the goal screen is open."
+            return L10n.tr("stats.lead.steps")
         }
-        return "Days you finish the morning goal count toward your streak. Time adds up while the goal screen is open (Bible and focus goals)."
+        return L10n.tr("stats.lead.time")
     }
 
     static func make(settings: UserSettings, goalStore: GoalProgressStore) -> StatsUiState {

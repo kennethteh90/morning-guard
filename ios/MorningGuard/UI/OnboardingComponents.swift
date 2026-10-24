@@ -22,14 +22,18 @@ struct OnboardingStepHeader: View {
             }
             .accessibilityHidden(true)
 
-            Text("Set up Morning Guard")
+            Text(L10n.tr("onboarding.header.title"))
                 .font(.title.bold())
+                .accessibilityAddTraits(.isHeader)
 
             HStack(spacing: 8) {
                 ForEach(Array(steps.enumerated()), id: \.offset) { index, title in
                     stepPill(index: index, title: title)
                 }
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(L10n.tr("a11y.onboarding.header"))
+            .accessibilityValue(L10n.tr("a11y.onboarding.step_format", currentIndex + 1, steps.count))
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 8)
@@ -60,6 +64,7 @@ struct OnboardingStepHeader: View {
                 .minimumScaleFactor(0.8)
         }
         .frame(maxWidth: .infinity)
+        .accessibilityHidden(true)
     }
 }
 
@@ -70,6 +75,7 @@ struct OnboardingSimulatorBanner: View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: "iphone.gen3")
                 .foregroundStyle(MGTheme.accent)
+                .accessibilityHidden(true)
             Text(text)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -78,6 +84,7 @@ struct OnboardingSimulatorBanner: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(MGTheme.accent.opacity(0.12))
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -89,10 +96,12 @@ struct OnboardingSectionTitle: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title)
                 .font(.title2.bold())
+                .accessibilityAddTraits(.isHeader)
             Text(subtitle)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
     }
 }

@@ -11,20 +11,18 @@ struct RecoveryPasswordHostView<Content: View>: View {
     var body: some View {
         content()
             .confirmationDialog(
-                "Start fresh on this phone?",
+                L10n.tr("recovery.start_fresh.title"),
                 isPresented: $showStartFreshConfirm,
                 titleVisibility: .visible
             ) {
-                Button("Start fresh on this device", role: .destructive) {
+                Button(L10n.tr("recovery.start_fresh.button"), role: .destructive) {
                     appState.recoveryPassword.startFreshWithoutCloudNotes()
                 }
-                Button("Cancel", role: .cancel) {}
+                .accessibilityLabel(L10n.tr("a11y.recovery.start_fresh"))
+                .accessibilityHint(L10n.tr("a11y.recovery.start_fresh.hint"))
+                Button(L10n.tr("common.cancel"), role: .cancel) {}
             } message: {
-                Text(
-                    "Notes encrypted with your old recovery password cannot be opened without that password. "
-                        + "Your cloud data will not be deleted, but this device will create new notes with a new key. "
-                        + "Only continue if you accept losing access to older cloud notes."
-                )
+                Text(L10n.tr("recovery.start_fresh.message"))
             }
             .sheet(isPresented: blockingBinding) {
                 blockingRecoverySheet
@@ -57,26 +55,26 @@ struct RecoveryPasswordHostView<Content: View>: View {
         NavigationStack {
             Form {
                 Section {
-                    Text(
-                        "Your account has encrypted notes from another device. "
-                            + "Enter your recovery password to open them here."
-                    )
-                    SecureField("Recovery password", text: $password)
+                    Text(L10n.tr("recovery.blocking.intro"))
+                    SecureField(L10n.tr("settings.notes.recovery_field"), text: $password)
+                        .accessibilityLabel(L10n.tr("a11y.recovery.password"))
                     if let error = appState.recoveryPassword.errorMessage {
                         Text(error).foregroundStyle(.red).font(.caption)
                     }
-                    Button("Forgot password? Start fresh on this device") {
+                    Button(L10n.tr("recovery.blocking.forgot")) {
                         showStartFreshConfirm = true
                     }
+                    .accessibilityLabel(L10n.tr("a11y.recovery.forgot"))
                 }
                 Section {
-                    Button("Unlock") {
+                    Button(L10n.tr("recovery.blocking.unlock")) {
                         appState.recoveryPassword.unlockCloudRecovery(password: password)
                         password = ""
                     }
+                    .accessibilityLabel(L10n.tr("a11y.recovery.unlock"))
                 }
             }
-            .navigationTitle("Enter recovery password")
+            .navigationTitle(L10n.tr("recovery.blocking.title"))
             .interactiveDismissDisabled()
         }
     }
@@ -85,19 +83,16 @@ struct RecoveryPasswordHostView<Content: View>: View {
         NavigationStack {
             Form {
                 Section {
-                    Text("Protect your notes on a new phone")
+                    Text(L10n.tr("recovery.dedicated.title"))
                         .font(.headline)
-                    Text(
-                        "Your reflection notes are encrypted with a key that stays on this phone. "
-                            + "Without a recovery password, reinstalling or switching phones means "
-                            + "cloud copies cannot be opened."
-                    )
-                    .font(.subheadline)
-                    Text("Use at least 8 characters with a letter and a number. Save it in a password manager.")
+                    Text(L10n.tr("recovery.dedicated.body"))
+                        .font(.subheadline)
+                    Text(L10n.tr("settings.notes.rules"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    SecureField("Recovery password", text: $password)
-                    SecureField("Confirm recovery password", text: $confirmation)
+                    SecureField(L10n.tr("settings.notes.recovery_field"), text: $password)
+                        .accessibilityLabel(L10n.tr("a11y.recovery.password"))
+                    SecureField(L10n.tr("settings.notes.confirm_field"), text: $confirmation)
                     if let error = appState.recoveryPassword.errorMessage {
                         Text(error).foregroundStyle(.red).font(.caption)
                     }
@@ -106,20 +101,21 @@ struct RecoveryPasswordHostView<Content: View>: View {
                     }
                 }
                 Section {
-                    Button("Set recovery password") {
+                    Button(L10n.tr("settings.notes.set_button")) {
                         appState.recoveryPassword.setRecoveryPassword(password: password, confirmation: confirmation)
                         password = ""
                         confirmation = ""
                         appState.recoveryPassword.markPromptShown()
                     }
                     .disabled(password.count < 8 || confirmation.count < 8)
-                    Button("Later — I may lose notes on a new phone") {
+                    .accessibilityLabel(L10n.tr("a11y.recovery.set"))
+                    Button(L10n.tr("recovery.dedicated.later")) {
                         appState.recoveryPassword.dismissLater()
                         appState.recoveryPassword.markPromptShown()
                     }
                 }
             }
-            .navigationTitle("Recovery password")
+            .navigationTitle(L10n.tr("recovery.dedicated.title"))
         }
     }
 }
@@ -130,18 +126,20 @@ struct RecoveryPasswordBannerView: View {
     var body: some View {
         if appState.recoveryPassword.showBanner, !appState.noteEncryption.cryptoState.hasRecoveryPassword() {
             VStack(alignment: .leading, spacing: 6) {
-                Text("Recovery password not set").font(.subheadline.weight(.semibold))
-                Text("Notes are encrypted on this device but cannot be recovered on a new phone until you set one.")
+                Text(L10n.tr("recovery.banner.not_set.title")).font(.subheadline.weight(.semibold))
+                Text(L10n.tr("recovery.banner.not_set.body"))
                     .font(.caption)
-                Button("Set recovery password") {
+                Button(L10n.tr("recovery.banner.set_password")) {
                     appState.recoveryPassword.onSignedIn()
                 }
                 .font(.caption)
+                .accessibilityLabel(L10n.tr("a11y.recovery.banner.set"))
             }
             .padding(12)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(MGTheme.accent.opacity(0.12))
             .clipShape(RoundedRectangle(cornerRadius: 10))
+            .accessibilityElement(children: .contain)
         }
     }
 }

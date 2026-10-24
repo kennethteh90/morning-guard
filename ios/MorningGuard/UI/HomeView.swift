@@ -39,41 +39,67 @@ struct HomeView: View {
                 peaceActiveSection(until: until)
             } else if PeaceSessionPolicy.canOfferPeaceBreak(evaluation: evaluation, peaceSessionActive: peaceActive) {
                 Section {
-                    listNavButton(title: "Start peace break (1 hour)", systemImage: "timer") {
-                        appState.startOrExtendPeaceSession()
-                    }
+                    listNavButton(
+                        title: L10n.tr("home.peace_break.start"),
+                        systemImage: "timer",
+                        accessibilityLabel: L10n.tr("a11y.home.peace_break"),
+                        accessibilityHint: L10n.tr("a11y.home.peace_break.hint"),
+                        action: { appState.startOrExtendPeaceSession() }
+                    )
                 }
             }
 
             Section {
-                listNavButton(title: "Read Bible", systemImage: "book.fill", action: onOpenBibleReader)
-                listNavButton(title: "Streak & stats", systemImage: "chart.bar", action: onOpenStats)
-                listNavButton(title: "Saved highlights", systemImage: "bookmark", action: onOpenHighlights)
+                listNavButton(
+                    title: L10n.tr("home.read_bible"),
+                    systemImage: "book.fill",
+                    accessibilityLabel: L10n.tr("a11y.home.read_bible"),
+                    accessibilityHint: L10n.tr("a11y.home.read_bible.hint"),
+                    action: onOpenBibleReader
+                )
+                listNavButton(
+                    title: L10n.tr("home.streak_stats"),
+                    systemImage: "chart.bar",
+                    accessibilityLabel: L10n.tr("a11y.home.stats"),
+                    accessibilityHint: L10n.tr("a11y.home.stats.hint"),
+                    action: onOpenStats
+                )
+                listNavButton(
+                    title: L10n.tr("home.highlights"),
+                    systemImage: "bookmark",
+                    accessibilityLabel: L10n.tr("a11y.home.highlights"),
+                    accessibilityHint: L10n.tr("a11y.home.highlights.hint"),
+                    action: onOpenHighlights
+                )
             }
 
             if evaluation.state == .locked, evaluation.reason == "morning_window" {
                 Section {
-                    Button("Emergency bypass", action: onOpenEmergency)
+                    Button(L10n.tr("home.emergency_bypass"), action: onOpenEmergency)
                         .buttonStyle(.plain)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .center)
+                        .accessibilityLabel(L10n.tr("a11y.home.emergency"))
+                        .accessibilityHint(L10n.tr("a11y.home.emergency.hint"))
                 }
             }
         }
         .listStyle(.insetGrouped)
-        .navigationTitle("Morning Guard")
+        .navigationTitle(L10n.tr("home.title"))
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button(action: onOpenAccount) {
                     Image(systemName: "person.crop.circle")
                 }
-                .accessibilityLabel("Account")
+                .accessibilityLabel(L10n.tr("a11y.home.account"))
+                .accessibilityHint(L10n.tr("a11y.home.account.hint"))
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button(action: onOpenSettings) {
                     Image(systemName: "gearshape")
                 }
-                .accessibilityLabel("Settings")
+                .accessibilityLabel(L10n.tr("a11y.home.settings"))
+                .accessibilityHint(L10n.tr("a11y.home.settings.hint"))
             }
         }
         .onAppear {
@@ -81,11 +107,19 @@ struct HomeView: View {
         }
     }
 
-    private func listNavButton(title: String, systemImage: String, action: @escaping () -> Void) -> some View {
+    private func listNavButton(
+        title: String,
+        systemImage: String,
+        accessibilityLabel: String,
+        accessibilityHint: String,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
             MGListNavigationRow(title: title, systemImage: systemImage)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityHint(accessibilityHint)
     }
 
     private var gateStatusRow: some View {
@@ -97,24 +131,28 @@ struct HomeView: View {
                 .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(L10n.tr("a11y.home.gate_status"))
+        .accessibilityValue("\(gateTitle). \(gateSubtitle)")
+        .accessibilityHint(L10n.tr("a11y.home.gate_status.hint"))
     }
 
     @ViewBuilder
     private var shieldStatusRows: some View {
         if appState.shieldController.isAuthorized {
-            LabeledContent("Apps shielded") {
+            LabeledContent(L10n.tr("home.shields.apps_shielded")) {
                 Text("\(appState.shieldController.shieldedAppCount)")
             }
-            LabeledContent("Status") {
-                Text(appState.shieldController.shieldsApplied ? "Active" : "Off")
+            LabeledContent(L10n.tr("home.shields.status")) {
+                Text(appState.shieldController.shieldsApplied ? L10n.tr("home.shields.active") : L10n.tr("home.shields.off"))
                     .foregroundStyle(appState.shieldController.shieldsApplied ? .orange : .secondary)
             }
         } else if MGDebugFlags.relaxesShieldOnboarding {
-            Text("Screen Time not authorized (OK in Simulator). Shields apply on a real device after authorization.")
+            Text(L10n.tr("home.shields.simulator_ok"))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         } else {
-            Text("Screen Time not authorized")
+            Text(L10n.tr("home.shields.not_authorized"))
                 .foregroundStyle(.secondary)
         }
     }
@@ -126,24 +164,26 @@ struct HomeView: View {
         } else if evaluation.state == .locked, evaluation.reason == "morning_window" {
             Section {
                 Button(action: onOpenGoal) {
-                    MGListPrimaryActionLabel(title: "Start morning goal")
+                    MGListPrimaryActionLabel(title: L10n.tr("home.start_goal"))
                 }
                 .buttonStyle(.plain)
                 .listRowBackground(MGTheme.accent)
-                .accessibilityLabel("Start morning goal")
-                .accessibilityHint("Opens today's verifiable morning goal")
+                .accessibilityLabel(L10n.tr("a11y.home.start_goal"))
+                .accessibilityHint(L10n.tr("home.start_goal.hint"))
             }
         } else if evaluation.state == .inactive {
             Section {
-                Text("Outside your morning window. The gate activates during the hours you chose in setup.")
+                Text(L10n.tr("home.outside_window"))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                    .accessibilityLabel(L10n.tr("home.outside_window"))
             }
         } else if evaluation.state == .unlocked, evaluation.reason == "goal_complete" {
             Section {
-                Text("Today's morning goal is complete.")
+                Text(L10n.tr("home.goal_complete"))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                    .accessibilityLabel(L10n.tr("home.goal_complete"))
             }
         }
     }
@@ -152,42 +192,48 @@ struct HomeView: View {
         let remainingMin = max(1, Int((until - nowMs()) / 60_000))
         return Section {
             VStack(alignment: .leading, spacing: 10) {
-                Label("Peace break", systemImage: "leaf.fill")
+                Label(L10n.tr("home.peace_break.title"), systemImage: "leaf.fill")
                     .font(.headline)
                     .foregroundStyle(MGTheme.accent)
-                Text("About \(remainingMin) min left. Selected apps stay shielded.")
+                Text(L10n.tr("home.peace_break.remaining_format", remainingMin))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 HStack {
-                    Button("End peace break") {
+                    Button(L10n.tr("home.peace_break.end")) {
                         appState.endPeaceSession()
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(.secondary)
+                    .accessibilityLabel(L10n.tr("a11y.home.end_peace_break"))
+                    .accessibilityHint(L10n.tr("a11y.home.end_peace_break.hint"))
                     Spacer()
-                    Button("Extend 1 hour") {
+                    Button(L10n.tr("home.peace_break.extend")) {
                         appState.startOrExtendPeaceSession()
                     }
                     .buttonStyle(.plain)
                     .font(.body.weight(.semibold))
                     .foregroundStyle(MGTheme.accent)
+                    .accessibilityLabel(L10n.tr("a11y.home.extend_peace_break"))
+                    .accessibilityHint(L10n.tr("a11y.home.extend_peace_break.hint"))
                 }
             }
             .padding(.vertical, 4)
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(L10n.tr("a11y.home.peace_section"))
         }
     }
 
     private var gateTitle: String {
         switch evaluation.reason {
-        case "peace_session": return "Peace break"
-        case "morning_window": return "Morning gate locked"
-        case "goal_complete": return "Unlocked"
-        case "emergency_bypass": return "Unlocked"
+        case "peace_session": return L10n.tr("home.gate.peace_session")
+        case "morning_window": return L10n.tr("home.gate.morning_locked")
+        case "goal_complete": return L10n.tr("home.gate.unlocked")
+        case "emergency_bypass": return L10n.tr("home.gate.unlocked")
         default:
             switch evaluation.state {
-            case .locked: return "Morning gate locked"
-            case .unlocked: return "Unlocked"
-            case .inactive: return "Outside morning window"
+            case .locked: return L10n.tr("home.gate.morning_locked")
+            case .unlocked: return L10n.tr("home.gate.unlocked")
+            case .inactive: return L10n.tr("home.gate.outside_window")
             }
         }
     }
@@ -207,15 +253,15 @@ struct HomeView: View {
     private var gateSubtitle: String {
         switch evaluation.reason {
         case "peace_session":
-            return "Shields stay on for a quiet hour after your goal."
+            return L10n.tr("home.subtitle.peace_session")
         case "morning_window":
-            return "Complete your goal to unlock selected apps."
+            return L10n.tr("home.subtitle.morning_window")
         case "goal_complete":
-            return "Today's goal is complete."
+            return L10n.tr("home.subtitle.goal_complete")
         case "emergency_bypass":
-            return "Emergency bypass is active for one hour."
+            return L10n.tr("home.subtitle.emergency_bypass")
         default:
-            return "Window: \(windowDescription)"
+            return L10n.tr("home.subtitle.window_format", windowDescription)
         }
     }
 
@@ -231,10 +277,11 @@ struct HomeView: View {
     private var debugBuildBanner: some View {
         HStack(spacing: 8) {
             Image(systemName: "ladybug.fill")
-            Text("Debug build — open Settings for test window presets.")
+            Text(L10n.tr("home.debug.banner"))
                 .font(.caption)
         }
         .foregroundStyle(MGTheme.accent)
         .listRowBackground(MGTheme.accent.opacity(0.12))
+        .accessibilityLabel(L10n.tr("home.debug.banner"))
     }
 }

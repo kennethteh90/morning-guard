@@ -1,72 +1,4725 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    "onboarding.step.welcome" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Welcome"
+  "sourceLanguage": "en",
+  "strings": {
+    "a11y.account.delete": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete account"
           }
         }
       }
     },
-    "onboarding.step.your_data" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your data"
+    "a11y.account.delete_confirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm account deletion"
           }
         }
       }
     },
-    "onboarding.step.access" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Access"
+    "a11y.account.different_email": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use a different email address"
           }
         }
       }
     },
-    "onboarding.step.apps" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apps"
+    "a11y.account.email": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email address for magic link sign-in"
           }
         }
       }
     },
-    "onboarding.step.routine" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Routine"
+    "a11y.account.resend_link": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resend magic link email"
           }
         }
       }
     },
-    "onboarding.step.emergency" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Emergency"
+    "a11y.account.send_link": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send magic link email"
+          }
+        }
+      }
+    },
+    "a11y.account.sign_out": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign out"
+          }
+        }
+      }
+    },
+    "a11y.account.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account"
+          }
+        }
+      }
+    },
+    "a11y.account.title.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in, sign out, or delete your cloud account"
+          }
+        }
+      }
+    },
+    "a11y.backup.cancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel backup"
+          }
+        }
+      }
+    },
+    "a11y.backup.confirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm backup password"
+          }
+        }
+      }
+    },
+    "a11y.backup.password": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup encryption password"
+          }
+        }
+      }
+    },
+    "a11y.banner.undo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo last action"
+          }
+        }
+      }
+    },
+    "a11y.bible.book_picker": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose book and chapter"
+          }
+        }
+      }
+    },
+    "a11y.bible.book_row": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bible book"
+          }
+        }
+      }
+    },
+    "a11y.bible.chapter_nav": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current book and chapter"
+          }
+        }
+      }
+    },
+    "a11y.bible.chapter_row": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapter number"
+          }
+        }
+      }
+    },
+    "a11y.bible.highlight.copy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy selected verses"
+          }
+        }
+      }
+    },
+    "a11y.bible.highlight.delete": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove highlight"
+          }
+        }
+      }
+    },
+    "a11y.bible.highlight.dismiss": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear verse selection"
+          }
+        }
+      }
+    },
+    "a11y.bible.highlight.note": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add note to highlight"
+          }
+        }
+      }
+    },
+    "a11y.bible.highlight.save": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save highlight"
+          }
+        }
+      }
+    },
+    "a11y.bible.load_error": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapter failed to load"
+          }
+        }
+      }
+    },
+    "a11y.bible.next_chapter": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next chapter"
+          }
+        }
+      }
+    },
+    "a11y.bible.previous_chapter": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous chapter"
+          }
+        }
+      }
+    },
+    "a11y.bible.reader": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bible reader"
+          }
+        }
+      }
+    },
+    "a11y.bible.reader.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read Scripture and save highlights"
+          }
+        }
+      }
+    },
+    "a11y.bible.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry loading chapter"
+          }
+        }
+      }
+    },
+    "a11y.bible.tip": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How to highlight verses"
+          }
+        }
+      }
+    },
+    "a11y.bible.tip.dismiss": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dismiss Bible reader tip"
+          }
+        }
+      }
+    },
+    "a11y.bible.translation_picker": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose Bible translation"
+          }
+        }
+      }
+    },
+    "a11y.bible.translation_row": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bible translation option"
+          }
+        }
+      }
+    },
+    "a11y.emergency.passphrase": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emergency passphrase"
+          }
+        }
+      }
+    },
+    "a11y.emergency.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emergency bypass"
+          }
+        }
+      }
+    },
+    "a11y.emergency.title.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock shielded apps for one hour with your emergency passphrase"
+          }
+        }
+      }
+    },
+    "a11y.emergency.unlock": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock for one hour"
+          }
+        }
+      }
+    },
+    "a11y.emergency.unlock.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applies a one hour emergency bypass if the passphrase is correct"
+          }
+        }
+      }
+    },
+    "a11y.goal.back_home": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to home"
+          }
+        }
+      }
+    },
+    "a11y.goal.back_home.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Returns to the home screen"
+          }
+        }
+      }
+    },
+    "a11y.goal.complete": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete morning goal"
+          }
+        }
+      }
+    },
+    "a11y.goal.complete.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marks today's morning goal finished and unlocks shielded apps"
+          }
+        }
+      }
+    },
+    "a11y.goal.header": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morning goal details"
+          }
+        }
+      }
+    },
+    "a11y.goal.outside_window": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outside morning window notice"
+          }
+        }
+      }
+    },
+    "a11y.goal.progress": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goal progress"
+          }
+        }
+      }
+    },
+    "a11y.goal.refresh_steps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh HealthKit steps"
+          }
+        }
+      }
+    },
+    "a11y.goal.refresh_steps.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updates step count from HealthKit"
+          }
+        }
+      }
+    },
+    "a11y.goal.timer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focus timer remaining"
+          }
+        }
+      }
+    },
+    "a11y.highlights.delete": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete highlight"
+          }
+        }
+      }
+    },
+    "a11y.highlights.row.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens this passage in the Bible reader"
+          }
+        }
+      }
+    },
+    "a11y.highlights.search": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search saved highlights"
+          }
+        }
+      }
+    },
+    "a11y.highlights.search.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filter saved highlights by verse text or notes"
+          }
+        }
+      }
+    },
+    "a11y.highlights.share": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share highlight"
+          }
+        }
+      }
+    },
+    "a11y.highlights.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved Bible highlights"
+          }
+        }
+      }
+    },
+    "a11y.home.account": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account"
+          }
+        }
+      }
+    },
+    "a11y.home.account.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open account and cloud sync settings"
+          }
+        }
+      }
+    },
+    "a11y.home.emergency": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emergency bypass"
+          }
+        }
+      }
+    },
+    "a11y.home.emergency.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock shielded apps for one hour with your emergency passphrase"
+          }
+        }
+      }
+    },
+    "a11y.home.end_peace_break": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End peace break"
+          }
+        }
+      }
+    },
+    "a11y.home.end_peace_break.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turns off peace break shields early"
+          }
+        }
+      }
+    },
+    "a11y.home.extend_peace_break": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extend peace break one hour"
+          }
+        }
+      }
+    },
+    "a11y.home.extend_peace_break.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adds another hour to your peace break"
+          }
+        }
+      }
+    },
+    "a11y.home.gate_status": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morning gate status"
+          }
+        }
+      }
+    },
+    "a11y.home.gate_status.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shows whether apps are shielded during your morning window"
+          }
+        }
+      }
+    },
+    "a11y.home.highlights": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved highlights"
+          }
+        }
+      }
+    },
+    "a11y.home.highlights.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browse verses you highlighted while reading"
+          }
+        }
+      }
+    },
+    "a11y.home.peace_break": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start peace break"
+          }
+        }
+      }
+    },
+    "a11y.home.peace_break.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shields selected apps for one quiet hour"
+          }
+        }
+      }
+    },
+    "a11y.home.peace_section": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Peace break active"
+          }
+        }
+      }
+    },
+    "a11y.home.read_bible": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read Bible"
+          }
+        }
+      }
+    },
+    "a11y.home.read_bible.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the Bible reader"
+          }
+        }
+      }
+    },
+    "a11y.home.settings": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        }
+      }
+    },
+    "a11y.home.settings.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morning window, goals, backup, and privacy"
+          }
+        }
+      }
+    },
+    "a11y.home.start_goal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start morning goal"
+          }
+        }
+      }
+    },
+    "a11y.home.stats": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Streak and statistics"
+          }
+        }
+      }
+    },
+    "a11y.home.stats.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View morning goal streaks and history"
+          }
+        }
+      }
+    },
+    "a11y.onboarding.app_picker": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps to shield during morning window"
+          }
+        }
+      }
+    },
+    "a11y.onboarding.authorize_screentime": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authorize Screen Time"
+          }
+        }
+      }
+    },
+    "a11y.onboarding.authorize_screentime.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required to shield apps during your morning window"
+          }
+        }
+      }
+    },
+    "a11y.onboarding.back": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to previous setup step"
+          }
+        }
+      }
+    },
+    "a11y.onboarding.continue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue setup"
+          }
+        }
+      }
+    },
+    "a11y.onboarding.data.cloud": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync data to the cloud"
+          }
+        }
+      }
+    },
+    "a11y.onboarding.data.cloud.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Magic link sign-in to sync streaks and highlights"
+          }
+        }
+      }
+    },
+    "a11y.onboarding.data.cloud_signed_in": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep syncing to the cloud"
+          }
+        }
+      }
+    },
+    "a11y.onboarding.data.cloud_signed_in.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stay signed in and sync streaks and highlights"
+          }
+        }
+      }
+    },
+    "a11y.onboarding.data.local": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep data on this device only"
+          }
+        }
+      }
+    },
+    "a11y.onboarding.data.local.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No cloud account; local encrypted backup available in Settings"
+          }
+        }
+      }
+    },
+    "a11y.onboarding.data.local_signed_in": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch to this device only"
+          }
+        }
+      }
+    },
+    "a11y.onboarding.data.local_signed_in.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turns off cloud sync and signs you out on this phone"
+          }
+        }
+      }
+    },
+    "a11y.onboarding.email": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email for magic link"
+          }
+        }
+      }
+    },
+    "a11y.onboarding.emergency_passphrase": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emergency passphrase"
+          }
+        }
+      }
+    },
+    "a11y.onboarding.finish": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish setup"
+          }
+        }
+      }
+    },
+    "a11y.onboarding.header": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setup progress"
+          }
+        }
+      }
+    },
+    "a11y.onboarding.step_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setup step %1$lld of %2$lld"
+          }
+        }
+      }
+    },
+    "a11y.privacy.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy policy summary"
+          }
+        }
+      }
+    },
+    "a11y.privacy.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy policy"
+          }
+        }
+      }
+    },
+    "a11y.privacy.web_link": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open full privacy policy in browser"
+          }
+        }
+      }
+    },
+    "a11y.recovery.banner.set": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set recovery password for notes"
+          }
+        }
+      }
+    },
+    "a11y.recovery.banner.unlock": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock encrypted highlight notes"
+          }
+        }
+      }
+    },
+    "a11y.recovery.forgot": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forgot recovery password"
+          }
+        }
+      }
+    },
+    "a11y.recovery.password": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery password"
+          }
+        }
+      }
+    },
+    "a11y.recovery.set": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set recovery password"
+          }
+        }
+      }
+    },
+    "a11y.recovery.start_fresh": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start fresh on this device"
+          }
+        }
+      }
+    },
+    "a11y.recovery.start_fresh.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creates new note encryption; older cloud notes stay locked"
+          }
+        }
+      }
+    },
+    "a11y.recovery.unlock": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock notes with recovery password"
+          }
+        }
+      }
+    },
+    "a11y.settings.account_link": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account settings"
+          }
+        }
+      }
+    },
+    "a11y.settings.change_notes_password": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change recovery password for notes"
+          }
+        }
+      }
+    },
+    "a11y.settings.clear_shields": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear shields now"
+          }
+        }
+      }
+    },
+    "a11y.settings.clear_shields.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Removes Screen Time shields immediately until the gate refreshes"
+          }
+        }
+      }
+    },
+    "a11y.settings.export_backup": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export encrypted backup"
+          }
+        }
+      }
+    },
+    "a11y.settings.privacy_in_app": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy policy in the app"
+          }
+        }
+      }
+    },
+    "a11y.settings.privacy_web": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy policy on the web"
+          }
+        }
+      }
+    },
+    "a11y.settings.replay_onboarding": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run setup guide again"
+          }
+        }
+      }
+    },
+    "a11y.settings.restore_backup": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore from encrypted backup"
+          }
+        }
+      }
+    },
+    "a11y.settings.save_passphrase": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save emergency passphrase"
+          }
+        }
+      }
+    },
+    "a11y.settings.set_notes_password": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set recovery password for highlight notes"
+          }
+        }
+      }
+    },
+    "a11y.settings.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        }
+      }
+    },
+    "a11y.settings.title.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morning window, goals, backup, privacy, and shields"
+          }
+        }
+      }
+    },
+    "a11y.settings.translation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default Bible translation"
+          }
+        }
+      }
+    },
+    "a11y.settings.unlock_notes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock encrypted highlight notes"
+          }
+        }
+      }
+    },
+    "a11y.stats.history_row": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History entry"
+          }
+        }
+      }
+    },
+    "a11y.stats.lead": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How streaks and stats are calculated"
+          }
+        }
+      }
+    },
+    "a11y.stats.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Streak and statistics"
+          }
+        }
+      }
+    },
+    "a11y.stats.title.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morning goal streaks, history, and totals"
+          }
+        }
+      }
+    },
+    "account.delete": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete account"
+          }
+        }
+      }
+    },
+    "account.delete_confirm.message": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This permanently deletes your Morning Guard account and cloud data. Local streaks and highlights on this device will be cleared."
+          }
+        }
+      }
+    },
+    "account.delete_confirm.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete account?"
+          }
+        }
+      }
+    },
+    "account.deleted": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your account was deleted."
+          }
+        }
+      }
+    },
+    "account.different_email": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use a different email"
+          }
+        }
+      }
+    },
+    "account.email": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email"
+          }
+        }
+      }
+    },
+    "account.inbox.check": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check your inbox"
+          }
+        }
+      }
+    },
+    "account.inbox.tap_link": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap the link in the email to finish signing in."
+          }
+        }
+      }
+    },
+    "account.intro": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to sync streaks and highlights across devices. Your reflection notes stay encrypted; set a recovery password in Settings."
+          }
+        }
+      }
+    },
+    "account.invalid_email": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a valid email address."
+          }
+        }
+      }
+    },
+    "account.link_sent_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We sent a link to %1$@. Open it on this iPhone."
+          }
+        }
+      }
+    },
+    "account.magic_link.footer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the link on this iPhone. Check spam if it does not arrive within a minute."
+          }
+        }
+      }
+    },
+    "account.magic_link.header": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Magic link"
+          }
+        }
+      }
+    },
+    "account.rate_limit_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Please wait %1$lld seconds before requesting another link."
+          }
+        }
+      }
+    },
+    "account.resend_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resend in %1$llds"
+          }
+        }
+      }
+    },
+    "account.resend_link": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resend link"
+          }
+        }
+      }
+    },
+    "account.send_link": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send sign-in link"
+          }
+        }
+      }
+    },
+    "account.sign_out": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign out"
+          }
+        }
+      }
+    },
+    "account.signed_in_label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signed in"
+          }
+        }
+      }
+    },
+    "account.signed_out": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signed out on this device."
+          }
+        }
+      }
+    },
+    "account.sync_enabled": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Streaks and highlights sync while cloud sync is enabled."
+          }
+        }
+      }
+    },
+    "account.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account"
+          }
+        }
+      }
+    },
+    "account.unconfigured": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cloud sync is not configured in this build."
+          }
+        }
+      }
+    },
+    "backup.sheet.confirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue"
+          }
+        }
+      }
+    },
+    "backup.sheet.decrypt_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Decrypt backup"
+          }
+        }
+      }
+    },
+    "backup.sheet.encrypt_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encrypt backup"
+          }
+        }
+      }
+    },
+    "backup.sheet.export_action": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export"
+          }
+        }
+      }
+    },
+    "backup.sheet.export_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export backup"
+          }
+        }
+      }
+    },
+    "backup.sheet.import_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import backup"
+          }
+        }
+      }
+    },
+    "backup.sheet.min_length": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use at least 8 characters."
+          }
+        }
+      }
+    },
+    "backup.sheet.password": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup password"
+          }
+        }
+      }
+    },
+    "backup.sheet.password_hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use a strong password. Without it, the backup cannot be restored."
+          }
+        }
+      }
+    },
+    "backup.sheet.restore_action": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore"
+          }
+        }
+      }
+    },
+    "banner.undo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo"
+          }
+        }
+      }
+    },
+    "bible.book": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Book"
+          }
+        }
+      }
+    },
+    "bible.book_chapter.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick a book and chapter — each column scrolls on its own."
+          }
+        }
+      }
+    },
+    "bible.book_chapter.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Book & chapter"
+          }
+        }
+      }
+    },
+    "bible.chapter": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapter"
+          }
+        }
+      }
+    },
+    "bible.chapter_not_loaded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapter text is not loaded yet. Check your connection."
+          }
+        }
+      }
+    },
+    "bible.copied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copied to clipboard"
+          }
+        }
+      }
+    },
+    "bible.error.web_fallback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not load chapter. Licensed translations use WEB on iOS until API.Bible is configured."
+          }
+        }
+      }
+    },
+    "bible.highlight.clear_selection": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear selection"
+          }
+        }
+      }
+    },
+    "bible.highlight.color_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Highlight color %1$@"
+          }
+        }
+      }
+    },
+    "bible.highlight.copy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy"
+          }
+        }
+      }
+    },
+    "bible.highlight.delete": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        }
+      }
+    },
+    "bible.highlight.hide_note": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide note"
+          }
+        }
+      }
+    },
+    "bible.highlight.note": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Note"
+          }
+        }
+      }
+    },
+    "bible.highlight.note_field": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Note for this highlight"
+          }
+        }
+      }
+    },
+    "bible.highlight.one_verse_selected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 verse selected"
+          }
+        }
+      }
+    },
+    "bible.highlight.save": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        }
+      }
+    },
+    "bible.highlight.select_verses": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select verses"
+          }
+        }
+      }
+    },
+    "bible.highlight.verses_count_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld verses"
+          }
+        }
+      }
+    },
+    "bible.highlight.verses_selected_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld verses selected"
+          }
+        }
+      }
+    },
+    "bible.highlight_removed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Highlight removed"
+          }
+        }
+      }
+    },
+    "bible.load_error.title_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load %1$@ %2$lld (%3$@)"
+          }
+        }
+      }
+    },
+    "bible.loading_chapter": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading chapter…"
+          }
+        }
+      }
+    },
+    "bible.reader.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read Bible"
+          }
+        }
+      }
+    },
+    "bible.reading.progress_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld / %2$lld seconds on screen"
+          }
+        }
+      }
+    },
+    "bible.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        }
+      }
+    },
+    "bible.saved_highlight": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved to highlights"
+          }
+        }
+      }
+    },
+    "bible.tip.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap verses to highlight, then save from the bar below."
+          }
+        }
+      }
+    },
+    "bible.tip.dismiss": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Got it"
+          }
+        }
+      }
+    },
+    "bible.translation.limited_section": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limited use (WEB fallback on iOS)"
+          }
+        }
+      }
+    },
+    "bible.translation.open_section": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open access"
+          }
+        }
+      }
+    },
+    "bible.translation.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bible translation"
+          }
+        }
+      }
+    },
+    "bible.translation.web_fallback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loads as WEB without API.Bible proxy"
+          }
+        }
+      }
+    },
+    "common.apply": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply"
+          }
+        }
+      }
+    },
+    "common.back": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        }
+      }
+    },
+    "common.cancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        }
+      }
+    },
+    "common.continue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue"
+          }
+        }
+      }
+    },
+    "common.done": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        }
+      }
+    },
+    "common.finish": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish"
+          }
+        }
+      }
+    },
+    "common.finish_setup": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish setup"
+          }
+        }
+      }
+    },
+    "emergency.intro": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter your emergency passphrase to unlock apps for one hour. Failed attempts are rate limited."
+          }
+        }
+      }
+    },
+    "emergency.passphrase_field": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passphrase"
+          }
+        }
+      }
+    },
+    "emergency.passphrase_section": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passphrase"
+          }
+        }
+      }
+    },
+    "emergency.success_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bypass active until %1$@."
+          }
+        }
+      }
+    },
+    "emergency.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emergency bypass"
+          }
+        }
+      }
+    },
+    "emergency.unlock_button": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock for 1 hour"
+          }
+        }
+      }
+    },
+    "goal.activate_test_window": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activate test window"
+          }
+        }
+      }
+    },
+    "goal.back_home": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to home"
+          }
+        }
+      }
+    },
+    "goal.chapter.stay_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chapter %1$lld of %2$lld · stay on this screen"
+          }
+        }
+      }
+    },
+    "goal.complete.success_bible": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your apps are unlocked. Keep reading here or go home when you're ready."
+          }
+        }
+      }
+    },
+    "goal.complete.success_other": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your apps are unlocked for today."
+          }
+        }
+      }
+    },
+    "goal.complete.success_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morning goal complete"
+          }
+        }
+      }
+    },
+    "goal.complete_button": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete morning goal"
+          }
+        }
+      }
+    },
+    "goal.debug.can_complete_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can complete: %1$@"
+          }
+        }
+      }
+    },
+    "goal.debug.complete_goal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete goal"
+          }
+        }
+      }
+    },
+    "goal.debug.gate_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gate: %1$@ (%2$@)"
+          }
+        }
+      }
+    },
+    "goal.debug.section": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Debug"
+          }
+        }
+      }
+    },
+    "goal.debug.test_window": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test window"
+          }
+        }
+      }
+    },
+    "goal.detail.bible_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stay on this screen while you read. Chapter %1$lld of %2$lld."
+          }
+        }
+      }
+    },
+    "goal.detail.steps_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk %1$lld steps while this screen is open."
+          }
+        }
+      }
+    },
+    "goal.detail.timed_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld minutes with Morning Guard open."
+          }
+        }
+      }
+    },
+    "goal.header.bible": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read your chapter"
+          }
+        }
+      }
+    },
+    "goal.header.steps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Step count"
+          }
+        }
+      }
+    },
+    "goal.header.timed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timed focus"
+          }
+        }
+      }
+    },
+    "goal.hint.bible": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stay on this screen until you've read for at least 60 seconds, then tap Complete morning goal."
+          }
+        }
+      }
+    },
+    "goal.hint.steps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walk until you reach your step target, then tap Complete morning goal."
+          }
+        }
+      }
+    },
+    "goal.hint.timed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep this screen open until the timer finishes."
+          }
+        }
+      }
+    },
+    "goal.nav_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morning goal"
+          }
+        }
+      }
+    },
+    "goal.outside_window.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading still works here. The home screen only offers the morning goal while the gate is locked."
+          }
+        }
+      }
+    },
+    "goal.outside_window.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outside morning window"
+          }
+        }
+      }
+    },
+    "goal.progress.focus_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focus time: %1$llds / %2$llds"
+          }
+        }
+      }
+    },
+    "goal.progress.reading_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading time: %1$llds / 60s"
+          }
+        }
+      }
+    },
+    "goal.progress.steps_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goal progress: %1$lld / %2$lld steps"
+          }
+        }
+      }
+    },
+    "goal.steps.refresh": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh HealthKit steps"
+          }
+        }
+      }
+    },
+    "goal.steps.today_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steps today: %1$lld / %2$lld"
+          }
+        }
+      }
+    },
+    "goal.steps.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HealthKit is not available on this device."
+          }
+        }
+      }
+    },
+    "goal.timer.stay_open": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep this screen open until the timer finishes."
+          }
+        }
+      }
+    },
+    "highlights.delete": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        }
+      }
+    },
+    "highlights.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No highlights yet"
+          }
+        }
+      }
+    },
+    "highlights.empty.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Highlight verses while reading your morning chapter or in Read Bible."
+          }
+        }
+      }
+    },
+    "highlights.no_matches": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No matches"
+          }
+        }
+      }
+    },
+    "highlights.no_matches.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try a different search."
+          }
+        }
+      }
+    },
+    "highlights.removed_undo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Highlight removed"
+          }
+        }
+      }
+    },
+    "highlights.search_prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search highlights"
+          }
+        }
+      }
+    },
+    "highlights.share": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share"
+          }
+        }
+      }
+    },
+    "highlights.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved highlights"
+          }
+        }
+      }
+    },
+    "home.debug.banner": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Debug build — open Settings for test window presets."
+          }
+        }
+      }
+    },
+    "home.emergency_bypass": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emergency bypass"
+          }
+        }
+      }
+    },
+    "home.gate.morning_locked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morning gate locked"
+          }
+        }
+      }
+    },
+    "home.gate.outside_window": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outside morning window"
+          }
+        }
+      }
+    },
+    "home.gate.peace_session": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Peace break"
+          }
+        }
+      }
+    },
+    "home.gate.unlocked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlocked"
+          }
+        }
+      }
+    },
+    "home.goal_complete": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today's morning goal is complete."
+          }
+        }
+      }
+    },
+    "home.highlights": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved highlights"
+          }
+        }
+      }
+    },
+    "home.outside_window": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outside your morning window. The gate activates during the hours you chose in setup."
+          }
+        }
+      }
+    },
+    "home.peace_break.end": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End peace break"
+          }
+        }
+      }
+    },
+    "home.peace_break.extend": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extend 1 hour"
+          }
+        }
+      }
+    },
+    "home.peace_break.remaining_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About %lld min left. Selected apps stay shielded."
+          }
+        }
+      }
+    },
+    "home.peace_break.start": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start peace break (1 hour)"
+          }
+        }
+      }
+    },
+    "home.peace_break.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Peace break"
+          }
+        }
+      }
+    },
+    "home.read_bible": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read Bible"
+          }
+        }
+      }
+    },
+    "home.shields.active": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active"
+          }
+        }
+      }
+    },
+    "home.shields.apps_shielded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps shielded"
+          }
+        }
+      }
+    },
+    "home.shields.not_authorized": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen Time not authorized"
+          }
+        }
+      }
+    },
+    "home.shields.off": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        }
+      }
+    },
+    "home.shields.simulator_ok": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen Time not authorized (OK in Simulator). Shields apply on a real device after authorization."
+          }
+        }
+      }
+    },
+    "home.shields.status": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status"
+          }
+        }
+      }
+    },
+    "home.start_goal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start morning goal"
+          }
+        }
+      }
+    },
+    "home.start_goal.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens today's verifiable morning goal"
+          }
+        }
+      }
+    },
+    "home.streak_stats": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Streak & stats"
+          }
+        }
+      }
+    },
+    "home.subtitle.emergency_bypass": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emergency bypass is active for one hour."
+          }
+        }
+      }
+    },
+    "home.subtitle.goal_complete": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today's goal is complete."
+          }
+        }
+      }
+    },
+    "home.subtitle.morning_window": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete your goal to unlock selected apps."
+          }
+        }
+      }
+    },
+    "home.subtitle.peace_session": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shields stay on for a quiet hour after your goal."
+          }
+        }
+      }
+    },
+    "home.subtitle.window_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Window: %1$@"
+          }
+        }
+      }
+    },
+    "home.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morning Guard"
+          }
+        }
+      }
+    },
+    "onboarding.apps.need_auth": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authorize Screen Time on the previous step to choose apps."
+          }
+        }
+      }
+    },
+    "onboarding.apps.simulator": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simulator: the app picker may be empty. You can continue without selecting apps."
+          }
+        }
+      }
+    },
+    "onboarding.apps.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose what to limit during your morning window. Leave out Phone and Messages if you need them."
+          }
+        }
+      }
+    },
+    "onboarding.apps.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps to shield"
+          }
+        }
+      }
+    },
+    "onboarding.apps.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Family Controls unavailable in this build."
+          }
+        }
+      }
+    },
+    "onboarding.data.cloud.detail_email_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " as %1$@"
+          }
+        }
+      }
+    },
+    "onboarding.data.cloud.detail_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stay signed in%1$@. Streaks and highlights sync across devices."
+          }
+        }
+      }
+    },
+    "onboarding.data.cloud.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Syncing to cloud"
+          }
+        }
+      }
+    },
+    "onboarding.data.email": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email for magic link"
+          }
+        }
+      }
+    },
+    "onboarding.data.email.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish setup now—open the link on this iPhone when it arrives. Delivery can take a few minutes."
+          }
+        }
+      }
+    },
+    "onboarding.data.local.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No account. Export an encrypted backup from Settings anytime."
+          }
+        }
+      }
+    },
+    "onboarding.data.local.detail_signed_in": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turns off cloud sync and signs you out on this phone. Use encrypted local backup in Settings when you want a copy."
+          }
+        }
+      }
+    },
+    "onboarding.data.local.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep on this device"
+          }
+        }
+      }
+    },
+    "onboarding.data.or_sync": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Or sync with email"
+          }
+        }
+      }
+    },
+    "onboarding.data.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync streaks and highlights with a magic link, or keep everything on this iPhone only."
+          }
+        }
+      }
+    },
+    "onboarding.data.subtitle_signed_in": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You’re signed in. Keep syncing to the cloud or switch to this device only (signs you out)."
+          }
+        }
+      }
+    },
+    "onboarding.data.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your data"
+          }
+        }
+      }
+    },
+    "onboarding.emergency.passphrase": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passphrase (8+ characters)"
+          }
+        }
+      }
+    },
+    "onboarding.emergency.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional. Set a passphrase now or later in Settings for a one-hour unlock during emergencies."
+          }
+        }
+      }
+    },
+    "onboarding.emergency.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emergency bypass"
+          }
+        }
+      }
+    },
+    "onboarding.header.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set up Morning Guard"
+          }
+        }
+      }
+    },
+    "onboarding.magic_link.sent": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Magic link sent. Open it on this iPhone when it arrives."
+          }
+        }
+      }
+    },
+    "onboarding.routine.daily_goal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily goal"
+          }
+        }
+      }
+    },
+    "onboarding.routine.goal.bible": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bible chapter (60s)"
+          }
+        }
+      }
+    },
+    "onboarding.routine.goal.steps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steps"
+          }
+        }
+      }
+    },
+    "onboarding.routine.goal.timed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timed focus"
+          }
+        }
+      }
+    },
+    "onboarding.routine.hint.bible": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "John 1 by default. Stay on the goal screen for about 60 seconds."
+          }
+        }
+      }
+    },
+    "onboarding.routine.hint.steps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Counts steps via HealthKit; Simulator may not update steps."
+          }
+        }
+      }
+    },
+    "onboarding.routine.hint.timed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stay on the goal screen until the timer finishes (default 2 minutes)."
+          }
+        }
+      }
+    },
+    "onboarding.routine.simulator_tip": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tip: set the window to include now, then finish onboarding and tap Start morning goal on Home."
+          }
+        }
+      }
+    },
+    "onboarding.routine.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When this window is active and your goal isn’t done, selected apps stay shielded."
+          }
+        }
+      }
+    },
+    "onboarding.routine.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your morning routine"
+          }
+        }
+      }
+    },
+    "onboarding.routine.window": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morning window"
+          }
+        }
+      }
+    },
+    "onboarding.screentime.authorize": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authorize Screen Time"
+          }
+        }
+      }
+    },
+    "onboarding.screentime.authorized": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authorized"
+          }
+        }
+      }
+    },
+    "onboarding.screentime.individual": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Individual authorization"
+          }
+        }
+      }
+    },
+    "onboarding.screentime.self_control": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Self-control on your device—not parental monitoring."
+          }
+        }
+      }
+    },
+    "onboarding.screentime.simulator": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simulator: authorization isn’t required. Shields only work on a physical device."
+          }
+        }
+      }
+    },
+    "onboarding.screentime.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morning Guard uses Apple’s Screen Time API to shield apps you pick until you finish your morning goal."
+          }
+        }
+      }
+    },
+    "onboarding.screentime.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen Time access"
+          }
+        }
+      }
+    },
+    "onboarding.step.access": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Access"
+          }
+        }
+      }
+    },
+    "onboarding.step.apps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps"
+          }
+        }
+      }
+    },
+    "onboarding.step.emergency": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emergency"
+          }
+        }
+      }
+    },
+    "onboarding.step.routine": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Routine"
+          }
+        }
+      }
+    },
+    "onboarding.step.welcome": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welcome"
+          }
+        }
+      }
+    },
+    "onboarding.step.your_data": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your data"
+          }
+        }
+      }
+    },
+    "onboarding.step_progress_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setup step %1$lld of %2$lld"
+          }
+        }
+      }
+    },
+    "onboarding.welcome.control": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're in control"
+          }
+        }
+      }
+    },
+    "onboarding.welcome.control.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Peace break, emergency passphrase, and local encrypted backup."
+          }
+        }
+      }
+    },
+    "onboarding.welcome.gate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morning gate"
+          }
+        }
+      }
+    },
+    "onboarding.welcome.gate.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protect your first hours with Screen Time shields."
+          }
+        }
+      }
+    },
+    "onboarding.welcome.no_digest": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No notification digest"
+          }
+        }
+      }
+    },
+    "onboarding.welcome.no_digest.detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS cannot hold or summarize notifications from other apps. Use Focus in Settings if you need quiet alerts."
+          }
+        }
+      }
+    },
+    "onboarding.welcome.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start your day with intention. On iPhone we shield apps you pick—not other apps’ notifications."
+          }
+        }
+      }
+    },
+    "onboarding.welcome.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welcome to Morning Guard"
+          }
+        }
+      }
+    },
+    "privacy.cloud": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If you enable cloud sync, streak and highlight metadata sync through Supabase under your account. Highlight reflection notes are encrypted on device; only ciphertext syncs when you set a recovery password."
+          }
+        }
+      }
+    },
+    "privacy.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy"
+          }
+        }
+      }
+    },
+    "privacy.healthkit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morning Guard may read step counts through HealthKit when you choose a step goal. Step data is used only on this device to verify your goal."
+          }
+        }
+      }
+    },
+    "privacy.screentime": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morning Guard on iPhone uses Apple’s Screen Time APIs to shield apps you choose during your morning window. It does not read, hold, or summarize notifications from other apps (unlike Android’s digest)."
+          }
+        }
+      }
+    },
+    "privacy.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy policy"
+          }
+        }
+      }
+    },
+    "privacy.web_link": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full privacy policy on the web"
+          }
+        }
+      }
+    },
+    "recovery.banner.not_set.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notes are encrypted on this device but cannot be recovered on a new phone until you set one."
+          }
+        }
+      }
+    },
+    "recovery.banner.not_set.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery password not set"
+          }
+        }
+      }
+    },
+    "recovery.banner.set_password": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set a recovery password"
+          }
+        }
+      }
+    },
+    "recovery.banner.unlock": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock notes to view encrypted highlights"
+          }
+        }
+      }
+    },
+    "recovery.blocking.forgot": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forgot password? Start fresh on this device"
+          }
+        }
+      }
+    },
+    "recovery.blocking.intro": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your account has encrypted notes from another device. Enter your recovery password to open them here."
+          }
+        }
+      }
+    },
+    "recovery.blocking.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter recovery password"
+          }
+        }
+      }
+    },
+    "recovery.blocking.unlock": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock"
+          }
+        }
+      }
+    },
+    "recovery.dedicated.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your reflection notes are encrypted with a key that stays on this phone. Without a recovery password, reinstalling or switching phones means cloud copies cannot be opened."
+          }
+        }
+      }
+    },
+    "recovery.dedicated.later": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Later — I may lose notes on a new phone"
+          }
+        }
+      }
+    },
+    "recovery.dedicated.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protect your notes on a new phone"
+          }
+        }
+      }
+    },
+    "recovery.start_fresh.button": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start fresh on this device"
+          }
+        }
+      }
+    },
+    "recovery.start_fresh.message": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notes encrypted with your old recovery password cannot be opened without that password. Your cloud data will not be deleted, but this device will create new notes with a new key. Only continue if you accept losing access to older cloud notes."
+          }
+        }
+      }
+    },
+    "recovery.start_fresh.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start fresh on this phone?"
+          }
+        }
+      }
+    },
+    "settings.account.footer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Magic-link sign-in, sign-out, and account deletion."
+          }
+        }
+      }
+    },
+    "settings.account.link": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account"
+          }
+        }
+      }
+    },
+    "settings.backup.choose_save": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose where to save the backup file."
+          }
+        }
+      }
+    },
+    "settings.backup.export": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Export encrypted backup"
+          }
+        }
+      }
+    },
+    "settings.backup.intro": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encrypted backup includes highlights, streaks, and settings on this device (not a cloud export)."
+          }
+        }
+      }
+    },
+    "settings.backup.open_failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not open backup file."
+          }
+        }
+      }
+    },
+    "settings.backup.restore": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore from backup"
+          }
+        }
+      }
+    },
+    "settings.backup.restore_button": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore"
+          }
+        }
+      }
+    },
+    "settings.backup.restore_message": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore replaces settings, streaks, highlights, and goal progress on this device. This cannot be undone."
+          }
+        }
+      }
+    },
+    "settings.backup.restore_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore from backup?"
+          }
+        }
+      }
+    },
+    "settings.backup.restored": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup restored."
+          }
+        }
+      }
+    },
+    "settings.backup.restored_unlock": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup restored. Unlock highlight notes in Settings with your notes password."
+          }
+        }
+      }
+    },
+    "settings.backup.section": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local backup"
+          }
+        }
+      }
+    },
+    "settings.bible.default_translation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default translation"
+          }
+        }
+      }
+    },
+    "settings.bible.section": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bible"
+          }
+        }
+      }
+    },
+    "settings.debug.intro": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quick presets for gate, peace break, and shield testing. Debug builds only."
+          }
+        }
+      }
+    },
+    "settings.debug.preset.active_now": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active now (30 min ago → 3 hr ahead)"
+          }
+        }
+      }
+    },
+    "settings.debug.preset.default_window": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset to default (1:00 – 10:00)"
+          }
+        }
+      }
+    },
+    "settings.debug.preset.full_day": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full day (0:00 – 23:59)"
+          }
+        }
+      }
+    },
+    "settings.debug.reset_goal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset today's goal"
+          }
+        }
+      }
+    },
+    "settings.debug.reset_onboarding": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset onboarding"
+          }
+        }
+      }
+    },
+    "settings.emergency.new_field": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New passphrase (8+ characters)"
+          }
+        }
+      }
+    },
+    "settings.emergency.save": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save passphrase"
+          }
+        }
+      }
+    },
+    "settings.emergency.saved": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emergency passphrase saved."
+          }
+        }
+      }
+    },
+    "settings.emergency.section": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emergency passphrase"
+          }
+        }
+      }
+    },
+    "settings.enabled": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enabled"
+          }
+        }
+      }
+    },
+    "settings.ends": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ends"
+          }
+        }
+      }
+    },
+    "settings.goal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goal"
+          }
+        }
+      }
+    },
+    "settings.goal.bible_chapter": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bible chapter"
+          }
+        }
+      }
+    },
+    "settings.goal.reading_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading: %1$@ %2$lld"
+          }
+        }
+      }
+    },
+    "settings.goal.steps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steps"
+          }
+        }
+      }
+    },
+    "settings.goal.timed_focus": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timed focus"
+          }
+        }
+      }
+    },
+    "settings.goal.type": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type"
+          }
+        }
+      }
+    },
+    "settings.morning_alarm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morning alarm"
+          }
+        }
+      }
+    },
+    "settings.morning_window": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morning window"
+          }
+        }
+      }
+    },
+    "settings.notes.change_button": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change recovery password"
+          }
+        }
+      }
+    },
+    "settings.notes.confirm_field": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm recovery password"
+          }
+        }
+      }
+    },
+    "settings.notes.confirm_new_field": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm new recovery password"
+          }
+        }
+      }
+    },
+    "settings.notes.current_field": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current recovery password"
+          }
+        }
+      }
+    },
+    "settings.notes.intro": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reflection notes are always encrypted on this device (Keychain). Set a recovery password to open them after reinstall or on a new phone."
+          }
+        }
+      }
+    },
+    "settings.notes.new_field": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New recovery password"
+          }
+        }
+      }
+    },
+    "settings.notes.passwords_mismatch": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passwords do not match."
+          }
+        }
+      }
+    },
+    "settings.notes.recovery_field": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery password"
+          }
+        }
+      }
+    },
+    "settings.notes.recovery_not_set": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery password: not set — notes cannot be recovered on a new device"
+          }
+        }
+      }
+    },
+    "settings.notes.recovery_set": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery password: set"
+          }
+        }
+      }
+    },
+    "settings.notes.rules": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use at least 8 characters with a letter and a number. Save it in a password manager."
+          }
+        }
+      }
+    },
+    "settings.notes.saved": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery password saved. Store it in a password manager."
+          }
+        }
+      }
+    },
+    "settings.notes.section": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Highlight notes"
+          }
+        }
+      }
+    },
+    "settings.notes.set_button": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set recovery password"
+          }
+        }
+      }
+    },
+    "settings.notes.unlock_button": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock notes"
+          }
+        }
+      }
+    },
+    "settings.notes.unlocked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notes unlocked on this device."
+          }
+        }
+      }
+    },
+    "settings.notes.unlocked_msg": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notes unlocked."
+          }
+        }
+      }
+    },
+    "settings.notes.updated": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notes password updated."
+          }
+        }
+      }
+    },
+    "settings.on_iphone.peace": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Peace break re-enables app shields instead of holding notifications. Use Focus in Settings for notification quiet."
+          }
+        }
+      }
+    },
+    "settings.on_iphone.section": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On iPhone"
+          }
+        }
+      }
+    },
+    "settings.privacy.in_app": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy policy (in app)"
+          }
+        }
+      }
+    },
+    "settings.privacy.web": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy policy on the web"
+          }
+        }
+      }
+    },
+    "settings.setup.replay": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Run setup guide again"
+          }
+        }
+      }
+    },
+    "settings.setup.replay.footer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reopens the onboarding flow. Your data and settings stay on this device."
+          }
+        }
+      }
+    },
+    "settings.setup.section": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setup"
+          }
+        }
+      }
+    },
+    "settings.shields.clear": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear shields now"
+          }
+        }
+      }
+    },
+    "settings.shields.help": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To fully remove shields, revoke Screen Time access for Morning Guard in Settings → Screen Time, or clear your app selection during onboarding."
+          }
+        }
+      }
+    },
+    "settings.shields.section": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shields"
+          }
+        }
+      }
+    },
+    "settings.starts": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starts"
+          }
+        }
+      }
+    },
+    "settings.time": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time"
+          }
+        }
+      }
+    },
+    "settings.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        }
+      }
+    },
+    "stats.best_streak": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Best streak"
+          }
+        }
+      }
+    },
+    "stats.current_streak": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current streak"
+          }
+        }
+      }
+    },
+    "stats.emergency_bypass": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emergency bypass"
+          }
+        }
+      }
+    },
+    "stats.empty_history": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No history yet — complete a morning goal or use emergency bypass to start tracking."
+          }
+        }
+      }
+    },
+    "stats.goals_completed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goals completed"
+          }
+        }
+      }
+    },
+    "stats.history": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "History"
+          }
+        }
+      }
+    },
+    "stats.lead.steps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Days you finish the morning goal count toward your streak. Step counts update while the goal screen is open."
+          }
+        }
+      }
+    },
+    "stats.lead.time": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Days you finish the morning goal count toward your streak. Time adds up while the goal screen is open (Bible and focus goals)."
+          }
+        }
+      }
+    },
+    "stats.outcome.bypass": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Emergency bypass"
+          }
+        }
+      }
+    },
+    "stats.outcome.completed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goal completed"
+          }
+        }
+      }
+    },
+    "stats.steps_row_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld steps"
+          }
+        }
+      }
+    },
+    "stats.steps_today": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Steps today"
+          }
+        }
+      }
+    },
+    "stats.steps_total": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total steps logged"
+          }
+        }
+      }
+    },
+    "stats.streak_days_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld day(s)"
+          }
+        }
+      }
+    },
+    "stats.time_on_goal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time on morning goal"
+          }
+        }
+      }
+    },
+    "stats.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Streak & stats"
           }
         }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

@@ -9,38 +9,34 @@ struct PrivacyPolicyView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("Privacy")
+                Text(L10n.tr("privacy.heading"))
                     .font(.title2.bold())
+                    .accessibilityAddTraits(.isHeader)
 
-                Text(
-                    "Morning Guard on iPhone uses Apple’s Screen Time APIs to shield apps you choose during your morning window. " +
-                    "It does not read, hold, or summarize notifications from other apps (unlike Android’s digest)."
-                )
-                .font(.body)
+                Text(L10n.tr("privacy.screentime"))
+                    .font(.body)
 
-                Text(
-                    "Morning Guard may read step counts through HealthKit when you choose a step goal. " +
-                    "Step data is used only on this device to verify your goal."
-                )
-                .font(.body)
-                .foregroundStyle(.secondary)
+                Text(L10n.tr("privacy.healthkit"))
+                    .font(.body)
+                    .foregroundStyle(.secondary)
 
-                Text(
-                    "If you enable cloud sync, streak and highlight metadata sync through Supabase under your account. " +
-                    "Highlight reflection notes are encrypted on device; only ciphertext syncs when you set a recovery password."
-                )
-                .font(.body)
-                .foregroundStyle(.secondary)
+                Text(L10n.tr("privacy.cloud"))
+                    .font(.body)
+                    .foregroundStyle(.secondary)
 
                 if let url = Self.policyURL {
-                    Link("Full privacy policy on the web", destination: url)
+                    Link(L10n.tr("privacy.web_link"), destination: url)
                         .font(.body.weight(.semibold))
+                        .accessibilityLabel(L10n.tr("a11y.privacy.web_link"))
                 }
             }
             .padding(MGTheme.standardPadding)
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(L10n.tr("a11y.privacy.body"))
         }
         .background(MGTheme.background)
-        .navigationTitle("Privacy policy")
+        .navigationTitle(L10n.tr("privacy.title"))
         .navigationBarTitleDisplayMode(.inline)
+        .accessibilityLabel(L10n.tr("a11y.privacy.title"))
     }
 }

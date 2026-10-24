@@ -9,22 +9,23 @@ struct BibleTranslationPickerSheet: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("Limited use (WEB fallback on iOS)") {
+                Section(L10n.tr("bible.translation.limited_section")) {
                     ForEach(BibleTranslations.apiBibleOptions(), id: \.id) { option in
                         translationRow(option)
                     }
                 }
-                Section("Open access") {
+                Section(L10n.tr("bible.translation.open_section")) {
                     ForEach(BibleTranslations.openBibleOptions(), id: \.id) { option in
                         translationRow(option)
                     }
                 }
             }
-            .navigationTitle("Bible translation")
+            .navigationTitle(L10n.tr("bible.translation.title"))
             .navigationBarTitleDisplayMode(.inline)
+            .accessibilityLabel(L10n.tr("a11y.bible.translation_picker"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") { dismiss() }
+                    Button(L10n.tr("common.done")) { dismiss() }
                 }
             }
         }
@@ -44,7 +45,7 @@ struct BibleTranslationPickerSheet: View {
                 VStack(alignment: .leading) {
                     Text(option.fullName)
                     if option.source == .apiBible {
-                        Text("Loads as WEB without API.Bible proxy")
+                        Text(L10n.tr("bible.translation.web_fallback"))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -56,6 +57,9 @@ struct BibleTranslationPickerSheet: View {
                 }
             }
         }
+        .accessibilityLabel(L10n.tr("a11y.bible.translation_row"))
+        .accessibilityValue(option.fullName)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
 
@@ -84,7 +88,7 @@ struct BibleBookChapterPickerSheet: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 12) {
-                Text("Pick a book and chapter — each column scrolls on its own.")
+                Text(L10n.tr("bible.book_chapter.hint"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 4)
@@ -97,14 +101,15 @@ struct BibleBookChapterPickerSheet: View {
             .padding(.horizontal, 16)
             .padding(.top, 8)
             .padding(.bottom, 12)
-            .navigationTitle("Book & chapter")
+            .navigationTitle(L10n.tr("bible.book_chapter.title"))
             .navigationBarTitleDisplayMode(.inline)
+            .accessibilityLabel(L10n.tr("a11y.bible.book_picker"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button(L10n.tr("common.cancel")) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Apply") {
+                    Button(L10n.tr("common.apply")) {
                         onSelect(draftBook, draftChapter)
                         dismiss()
                     }
@@ -122,7 +127,7 @@ struct BibleBookChapterPickerSheet: View {
 
     private var bookPanel: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Book")
+            Text(L10n.tr("bible.book"))
                 .font(.subheadline.bold())
             ScrollViewReader { proxy in
                 ScrollView {
@@ -150,6 +155,9 @@ struct BibleBookChapterPickerSheet: View {
                             }
                             .buttonStyle(.plain)
                             .id(book.name)
+                            .accessibilityLabel(L10n.tr("a11y.bible.book_row"))
+                            .accessibilityValue(book.name)
+                            .accessibilityAddTraits(selected ? .isSelected : [])
                             Divider()
                         }
                     }
@@ -174,7 +182,7 @@ struct BibleBookChapterPickerSheet: View {
 
     private var chapterPanel: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Chapter")
+            Text(L10n.tr("bible.chapter"))
                 .font(.subheadline.bold())
             Text(draftBook)
                 .font(.caption2)
@@ -201,6 +209,9 @@ struct BibleBookChapterPickerSheet: View {
                             }
                             .buttonStyle(.plain)
                             .id(chapter)
+                            .accessibilityLabel(L10n.tr("a11y.bible.chapter_row"))
+                            .accessibilityValue("\(chapter)")
+                            .accessibilityAddTraits(selected ? .isSelected : [])
                         }
                     }
                     .padding(8)

@@ -29,8 +29,9 @@ struct MGBannerOverlay: View {
                         .lineLimit(2)
                     Spacer(minLength: 8)
                     if payload.showsUndo, let onUndo {
-                        Button("Undo", action: onUndo)
+                        Button(L10n.tr("banner.undo"), action: onUndo)
                             .font(.subheadline.bold())
+                            .accessibilityLabel(L10n.tr("a11y.banner.undo"))
                     }
                 }
                 .padding(.horizontal, 16)

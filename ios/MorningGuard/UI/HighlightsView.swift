@@ -25,11 +25,13 @@ struct HighlightsView: View {
                 .listRowBackground(Color.clear)
             if filtered.isEmpty {
                 ContentUnavailableView(
-                    search.isEmpty ? "No highlights yet" : "No matches",
+                    search.isEmpty ? L10n.tr("highlights.empty") : L10n.tr("highlights.no_matches"),
                     systemImage: "bookmark",
-                    description: Text(search.isEmpty
-                        ? "Highlight verses while reading your morning chapter or in Read Bible."
-                        : "Try a different search.")
+                    description: Text(
+                        search.isEmpty
+                            ? L10n.tr("highlights.empty.detail")
+                            : L10n.tr("highlights.no_matches.detail")
+                    )
                 )
             } else {
                 ForEach(filtered) { highlight in
@@ -41,19 +43,25 @@ struct HighlightsView: View {
                     .onTapGesture {
                         openPassage(for: highlight)
                     }
+                    .accessibilityLabel(highlight.label)
+                    .accessibilityHint(L10n.tr("a11y.highlights.row.hint"))
                     .swipeActions(edge: .trailing) {
-                        Button("Delete", role: .destructive) {
+                        Button(L10n.tr("highlights.delete"), role: .destructive) {
                             deleteWithUndo(highlight)
                         }
+                        .accessibilityLabel(L10n.tr("a11y.highlights.delete"))
                         ShareLink(item: BibleVerseCopyFormat.shareText(highlight: highlight)) {
-                            Label("Share", systemImage: "square.and.arrow.up")
+                            Label(L10n.tr("highlights.share"), systemImage: "square.and.arrow.up")
                         }
+                        .accessibilityLabel(L10n.tr("a11y.highlights.share"))
                     }
                 }
             }
         }
-        .navigationTitle("Saved highlights")
-        .searchable(text: $search, prompt: "Search highlights")
+        .navigationTitle(L10n.tr("highlights.title"))
+        .searchable(text: $search, prompt: L10n.tr("highlights.search_prompt"))
+        .accessibilityLabel(L10n.tr("a11y.highlights.title"))
+        .accessibilityHint(L10n.tr("a11y.highlights.search.hint"))
         .overlay(alignment: .top) {
             MGBannerOverlay(payload: banner, onUndo: undoDelete)
         }
@@ -71,7 +79,7 @@ struct HighlightsView: View {
     private func deleteWithUndo(_ highlight: BibleHighlight) {
         guard let removed = appState.bibleHighlightStore.deleteHighlightReturningRemoved(id: highlight.id) else { return }
         pendingUndoHighlight = removed
-        MGBanner.present(.undo("Highlight removed"), binding: $banner, duration: 5) {
+        MGBanner.present(.undo(L10n.tr("highlights.removed_undo")), binding: $banner, duration: 5) {
             Task { @MainActor in
                 guard pendingUndoHighlight?.id == removed.id else { return }
                 pendingUndoHighlight = nil
@@ -99,6 +107,7 @@ private struct HighlightRow: View {
                 .fill(BibleHighlightColorsUi.color(for: highlight.colorKey))
                 .frame(width: 4)
                 .padding(.vertical, 2)
+                .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 8) {
                 Text(BibleVerseCopyFormat.referenceLine(highlight: highlight))
