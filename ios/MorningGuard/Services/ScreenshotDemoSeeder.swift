@@ -55,9 +55,9 @@ enum ScreenshotDemoSeeder {
                 dateKey: todayKey,
                 config: MorningGoalConfig(type: .bibleChapter, bibleBook: "Psalm", bibleChapter: 23),
                 startedAtEpochMs: nowMs - 60_000,
-                onScreenSeconds: 45,
+                completedAtEpochMs: nil,
                 stepsAccumulated: 0,
-                completedAtEpochMs: nil
+                onScreenSeconds: 45
             )
             return copy
         }
