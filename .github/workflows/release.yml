@@ -25,6 +25,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install NDK (native debug symbol extraction)
+        run: |
+          set -euo pipefail
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          sdkmanager "ndk;27.0.12077973"
+
       - name: Validate release secrets
         env:
           ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
@@ -118,6 +124,24 @@ jobs:
           path: app/build/outputs/native-debug-symbols/fullRelease/**
           if-no-files-found: warn
 
+      - name: Prepare Play deobfuscation artifacts
+        id: play_deobfuscation
+        run: |
+          set -euo pipefail
+          mapping="app/build/outputs/mapping/fullRelease/mapping.txt"
+          native_zip="app/build/outputs/native-debug-symbols/fullRelease/native-debug-symbols.zip"
+          if [ ! -f "$mapping" ]; then
+            echo "mapping_file=" >> "$GITHUB_OUTPUT"
+          else
+            echo "mapping_file=$mapping" >> "$GITHUB_OUTPUT"
+          fi
+          if [ -f "$native_zip" ]; then
+            echo "native_symbols=$native_zip" >> "$GITHUB_OUTPUT"
+          else
+            echo "native_symbols=" >> "$GITHUB_OUTPUT"
+            echo "No native-debug-symbols.zip produced (dependency .so files may be pre-stripped)."
+          fi
+
       - name: Play upload gate
         id: play_gate
         if: >-
@@ -145,6 +169,8 @@ jobs:
           track: internal
           status: draft
           whatsNewDirectory: release-notes
+          mappingFile: ${{ steps.play_deobfuscation.outputs.mapping_file }}
+          debugSymbols: ${{ steps.play_deobfuscation.outputs.native_symbols }}
 
       - name: Publish Play internal draft
         if: >-
@@ -157,3 +183,5 @@ jobs:
           releaseFiles: app/build/outputs/bundle/fullRelease/*.aab
           track: internal
           status: draft
+          mappingFile: ${{ steps.play_deobfuscation.outputs.mapping_file }}
+          debugSymbols: ${{ steps.play_deobfuscation.outputs.native_symbols }}

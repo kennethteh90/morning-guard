@@ -71,6 +71,10 @@ Artifacts (per run):
 - `morning-guard-r8-mapping-<ref>` — ProGuard/R8 `mapping.txt` (if produced)
 - `morning-guard-native-symbols-<ref>` — native debug symbols zip (if produced)
 
+When `PLAY_SERVICE_ACCOUNT_JSON` is set, the Play upload step also sends R8 `mapping.txt` and `native-debug-symbols.zip` (when Gradle produces it) so Play Console can deobfuscate Java/Kotlin and native crashes.
+
+Release builds set `ndk.debugSymbolLevel = FULL` and pin NDK **27.0.12077973** (installed in the Release workflow). Native symbols are only extractable if packaged `.so` files still contain debug metadata; many Maven AARs (including Sentry) ship stripped libraries, so the zip may be absent and Play may keep showing a native-symbols warning until a future upload includes symbols. That warning does not block internal testing; the next tagged release will pick up this pipeline automatically—no extra release is required for the Gradle/CI change alone.
+
 Example tag release:
 
 ```bash

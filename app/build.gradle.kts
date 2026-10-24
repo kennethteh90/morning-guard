@@ -48,6 +48,7 @@ val hasReleaseSigning = releaseStoreFile != null &&
 android {
     namespace = "com.morningguard.app"
     compileSdk = 36
+    ndkVersion = "27.0.12077973"
 
     defaultConfig {
         applicationId = "com.morningguard.app"
