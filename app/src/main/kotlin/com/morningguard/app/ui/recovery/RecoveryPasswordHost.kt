@@ -24,6 +24,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecoveryPasswordHost(
@@ -33,8 +34,39 @@ fun RecoveryPasswordHost(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var password by rememberSaveable { mutableStateOf("") }
     var confirmation by rememberSaveable { mutableStateOf("") }
+    var showStartFreshConfirm by rememberSaveable { mutableStateOf(false) }
 
     content()
+
+    if (showStartFreshConfirm) {
+        AlertDialog(
+            onDismissRequest = { showStartFreshConfirm = false },
+            title = { Text("Start fresh on this phone?") },
+            text = {
+                Text(
+                    "Notes encrypted with your old recovery password cannot be opened without that password. " +
+                        "Your cloud data will not be deleted, but this device will create new notes with a new key. " +
+                        "Only continue if you accept losing access to older cloud notes.",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showStartFreshConfirm = false
+                        viewModel.startFreshWithoutCloudNotes()
+                    },
+                ) {
+                    Text("Start fresh on this device")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showStartFreshConfirm = false }) {
+                    Text("Cancel")
+                }
+            },
+        )
+    }
 
     if (uiState.showBlockingCloudRecovery) {
         AlertDialog(
@@ -55,6 +87,12 @@ fun RecoveryPasswordHost(
                         singleLine = true,
                         visualTransformation = PasswordVisualTransformation(),
                     )
+                    uiState.errorMessage?.let {
+                        Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    }
+                    TextButton(onClick = { showStartFreshConfirm = true }) {
+                        Text("Forgot password? Start fresh on this device")
+                    }
                 }
             },
             confirmButton = {
@@ -87,11 +125,16 @@ fun RecoveryPasswordHost(
                         "cloud copies cannot be opened.",
                     style = MaterialTheme.typography.bodyMedium,
                 )
+                Text(
+                    "Use at least 8 characters with a letter and a number. Save it in a password manager.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Recovery password (8+ characters)") },
+                    label = { Text("Recovery password") },
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
                 )
@@ -103,6 +146,12 @@ fun RecoveryPasswordHost(
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
                 )
+                uiState.errorMessage?.let {
+                    Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                }
+                uiState.statusMessage?.let {
+                    Text(it, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall)
+                }
                 Button(
                     onClick = {
                         viewModel.setRecoveryPassword(password.toCharArray(), confirmation.toCharArray())

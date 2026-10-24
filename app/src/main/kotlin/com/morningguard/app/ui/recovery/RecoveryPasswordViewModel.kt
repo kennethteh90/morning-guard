@@ -8,6 +8,7 @@ import com.morningguard.data.auth.AuthState
 import com.morningguard.data.bible.BibleHighlightRepository
 import com.morningguard.data.security.NoteEncryptionRepository
 import com.morningguard.data.security.RecoveryPasswordPromptPolicy
+import com.morningguard.data.security.RecoveryPasswordRules
 import com.morningguard.data.settings.SettingsRepository
 import com.morningguard.domain.model.DataStorageMode
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -50,31 +51,40 @@ class RecoveryPasswordViewModel @Inject constructor(
         }
     }
 
+    private val _status = MutableStateFlow<String?>(null)
+    private val _error = MutableStateFlow<String?>(null)
+
     val uiState: StateFlow<RecoveryPasswordUiState> = combine(
-        settingsRepository.settings,
-        authRepository.state,
-        noteEncryptionRepository.cryptoState,
-        sheetRequest,
-        periodicRequest,
-    ) { settings, auth, crypto, sheet, periodic ->
-        val signedIn = auth is AuthState.SignedIn
-        val cloudSync = settings.dataStorageMode == DataStorageMode.CLOUD_SYNC
-        val hasRecovery = crypto.hasRecoveryPassword()
-        val cloudRecovery = crypto.hasPendingCloudRecovery()
-        val dedicated = sheet || periodic ||
-            RecoveryPasswordPromptPolicy.shouldShowDedicatedSheet(
-                settings,
-                hasRecovery,
-                signedIn,
-                cloudRecovery,
-            ) ||
-            RecoveryPasswordPromptPolicy.shouldShowPeriodicSheet(settings, hasRecovery, signedIn)
-        RecoveryPasswordUiState(
-            showDedicatedSheet = dedicated && !cloudRecovery,
-            showBlockingCloudRecovery = cloudRecovery && signedIn && cloudSync,
-            showBanner = RecoveryPasswordPromptPolicy.shouldShowBanner(settings, hasRecovery, signedIn),
-            hasRecoveryPassword = hasRecovery,
-        )
+        combine(
+            settingsRepository.settings,
+            authRepository.state,
+            noteEncryptionRepository.cryptoState,
+            sheetRequest,
+            periodicRequest,
+        ) { settings, auth, crypto, sheet, periodic ->
+            val signedIn = auth is AuthState.SignedIn
+            val cloudSync = settings.dataStorageMode == DataStorageMode.CLOUD_SYNC
+            val hasRecovery = crypto.hasRecoveryPassword()
+            val cloudRecovery = crypto.hasPendingCloudRecovery()
+            val dedicated = sheet || periodic ||
+                RecoveryPasswordPromptPolicy.shouldShowDedicatedSheet(
+                    settings,
+                    hasRecovery,
+                    signedIn,
+                    cloudRecovery,
+                ) ||
+                RecoveryPasswordPromptPolicy.shouldShowPeriodicSheet(settings, hasRecovery, signedIn)
+            RecoveryPasswordUiState(
+                showDedicatedSheet = dedicated && !cloudRecovery,
+                showBlockingCloudRecovery = cloudRecovery && signedIn && cloudSync,
+                showBanner = RecoveryPasswordPromptPolicy.shouldShowBanner(settings, hasRecovery, signedIn),
+                hasRecoveryPassword = hasRecovery,
+            )
+        },
+        _status,
+        _error,
+    ) { base, status, error ->
+        base.copy(statusMessage = status, errorMessage = error)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), RecoveryPasswordUiState())
 
     fun onSignedIn() {
@@ -114,8 +124,8 @@ class RecoveryPasswordViewModel @Inject constructor(
 
     fun setRecoveryPassword(password: CharArray, confirmation: CharArray) {
         viewModelScope.launch {
-            if (password.size < 8) {
-                _error.value = "Use at least 8 characters."
+            RecoveryPasswordRules.validate(password)?.let {
+                _error.value = it
                 return@launch
             }
             if (!password.contentEquals(confirmation)) {
@@ -152,8 +162,20 @@ class RecoveryPasswordViewModel @Inject constructor(
         }
     }
 
-    private val _status = MutableStateFlow<String?>(null)
-    private val _error = MutableStateFlow<String?>(null)
+    fun startFreshWithoutCloudNotes() {
+        viewModelScope.launch {
+            noteEncryptionRepository.abandonPendingCloudRecovery()
+                .onSuccess {
+                    userDataSyncService.syncAllIfSignedIn()
+                    _status.value =
+                        "This device will use its own encryption. Older cloud notes stay locked unless you recover the password later."
+                    _error.value = null
+                }
+                .onFailure { err ->
+                    _error.value = err.message
+                }
+        }
+    }
 
     fun clearMessages() {
         _status.value = null

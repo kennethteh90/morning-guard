@@ -12,6 +12,7 @@ import com.morningguard.data.bible.BibleHighlightRepository
 import com.morningguard.data.security.EmergencyBypassRepository
 import com.morningguard.data.security.NoteCryptoState
 import com.morningguard.data.security.NoteEncryptionRepository
+import com.morningguard.data.security.RecoveryPasswordRules
 import com.morningguard.app.sync.UserDataSyncService
 import com.morningguard.data.settings.SettingsRepository
 import com.morningguard.domain.model.AlarmSettings
@@ -212,8 +213,16 @@ class SettingsViewModel @Inject constructor(
         _emergencyPassphraseMessage.value = null
     }
 
-    fun setupNotesEncryption(password: String) {
+    fun setupNotesEncryption(password: String, confirmation: String) {
         viewModelScope.launch {
+            RecoveryPasswordRules.validate(password.toCharArray())?.let {
+                _notesEncryptionMessage.value = it
+                return@launch
+            }
+            if (password != confirmation) {
+                _notesEncryptionMessage.value = "Passwords do not match."
+                return@launch
+            }
             noteEncryptionRepository.ensureDekReady().onFailure { err ->
                 _notesEncryptionMessage.value = err.message
                 return@launch

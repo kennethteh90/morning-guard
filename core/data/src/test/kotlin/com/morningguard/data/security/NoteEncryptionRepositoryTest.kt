@@ -34,9 +34,9 @@ class NoteEncryptionRepositoryTest {
     fun `setRecoveryPassword wraps existing dek`() = runTest {
         repository.ensureDekReady().getOrThrow()
         val before = repository.encryptForStorage("same text")
-        repository.setRecoveryPassword("password123".toCharArray()).getOrThrow()
+        repository.setRecoveryPassword("password1".toCharArray()).getOrThrow()
         repository.lock()
-        repository.unlockWithPassword("password123".toCharArray()).getOrThrow()
+        repository.unlockWithPassword("password1".toCharArray()).getOrThrow()
         val after = repository.decryptFromStorage(before)
         assertEqualsPlaintext("same text", after)
     }

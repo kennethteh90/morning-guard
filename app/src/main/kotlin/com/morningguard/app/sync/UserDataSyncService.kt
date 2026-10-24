@@ -328,44 +328,12 @@ class UserDataSyncService @Inject constructor(
             return UserDataSyncReport(outcomes)
         }
 
-        val dekUnlocked = noteEncryptionRepository.isDekUnlocked()
-        val toPush = local.mapNotNull { highlight ->
-            val remoteNote = highlight.remoteId.takeIf { it > 0 }?.let { remoteNoteByServerId[it] }
-            val decision = HighlightSyncNotePolicy.resolve(
-                localPlainNote = highlight.note,
-                remoteNote = remoteNote,
-                dekUnlocked = dekUnlocked,
-            )
-            if (decision is HighlightSyncNotePolicy.NotePushValue.OmitNote) {
-                return@mapNotNull null
-            }
-            val wireNote = HighlightSyncNotePolicy.toWireValue(decision) { plain ->
-                noteCipher.encryptForStorage(plain)
-            }
-            val noteForRow = when {
-                wireNote != null -> wireNote
-                remoteNote != null && NoteContentCipher.isCiphertext(remoteNote) -> remoteNote
-                else -> ""
-            }
-            BibleHighlightRow(
-                id = highlight.remoteId.takeIf { it > 0 },
-                userId = userId,
-                clientId = highlight.id.takeIf { it > 0 },
-                translationId = highlight.translationId,
-                book = highlight.book,
-                chapter = highlight.chapter,
-                label = highlight.label,
-                excerpt = highlight.excerpt,
-                verse = highlight.verse,
-                verseEnd = highlight.verseEnd,
-                verseNumbers = highlight.verseNumbers,
-                colorKey = highlight.colorKey.ifBlank { BibleHighlightColors.DEFAULT_KEY },
-                note = noteForRow,
-                selectionStart = highlight.selectionStart,
-                selectionEnd = highlight.selectionEnd,
-                createdAt = instantToIso(highlight.createdAtEpochMs),
-            )
-        }
+        val toPush = buildHighlightPushRows(
+            local = local,
+            userId = userId,
+            remoteNoteByServerId = remoteNoteByServerId,
+            dekUnlocked = noteEncryptionRepository.isDekUnlocked(),
+        )
 
         val pushResult = runCatching {
             client.postgrest.from(TABLE_HIGHLIGHTS).upsert(toPush) {
@@ -387,6 +355,49 @@ class UserDataSyncService @Inject constructor(
         pullHighlights(client)?.outcome?.let { outcomes += it }
 
         return UserDataSyncReport(outcomes)
+    }
+
+    private fun buildHighlightPushRows(
+        local: List<BibleHighlight>,
+        userId: String,
+        remoteNoteByServerId: Map<Long, String>,
+        dekUnlocked: Boolean,
+    ): List<BibleHighlightRow> = local.mapNotNull { highlight ->
+        val remoteNote = highlight.remoteId.takeIf { it > 0 }?.let { remoteNoteByServerId[it] }
+        val decision = HighlightSyncNotePolicy.resolve(
+            localPlainNote = highlight.note,
+            remoteNote = remoteNote,
+            dekUnlocked = dekUnlocked,
+        )
+        if (decision is HighlightSyncNotePolicy.NotePushValue.OmitNote) {
+            return@mapNotNull null
+        }
+        val wireNote = HighlightSyncNotePolicy.toWireValue(decision) { plain ->
+            noteCipher.encryptForStorage(plain)
+        }
+        val noteForRow = when {
+            wireNote != null -> wireNote
+            remoteNote != null && NoteContentCipher.isCiphertext(remoteNote) -> remoteNote
+            else -> ""
+        }
+        BibleHighlightRow(
+            id = highlight.remoteId.takeIf { it > 0 },
+            userId = userId,
+            clientId = highlight.id.takeIf { it > 0 },
+            translationId = highlight.translationId,
+            book = highlight.book,
+            chapter = highlight.chapter,
+            label = highlight.label,
+            excerpt = highlight.excerpt,
+            verse = highlight.verse,
+            verseEnd = highlight.verseEnd,
+            verseNumbers = highlight.verseNumbers,
+            colorKey = highlight.colorKey.ifBlank { BibleHighlightColors.DEFAULT_KEY },
+            note = noteForRow,
+            selectionStart = highlight.selectionStart,
+            selectionEnd = highlight.selectionEnd,
+            createdAt = instantToIso(highlight.createdAtEpochMs),
+        )
     }
 
     /** @return pull outcome, or null if pull was already recorded as failed and callers should stop. */

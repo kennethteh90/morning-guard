@@ -222,7 +222,7 @@ struct SettingsView: View {
         do {
             try appState.noteEncryption.setupWithPassword(notesPassword)
             notesPassword = ""
-            notesMessage = "Note encryption enabled."
+            notesMessage = "Recovery password saved. Store it in a password manager."
         } catch {
             notesMessage = error.localizedDescription
         }

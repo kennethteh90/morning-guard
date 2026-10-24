@@ -81,6 +81,7 @@ fun SettingsScreen(
     val notesEncryptionMessage by viewModel.notesEncryptionMessage.collectAsStateWithLifecycle()
     var emergencyPassphraseDraft by remember { mutableStateOf("") }
     var notesPasswordDraft by remember { mutableStateOf("") }
+    var notesConfirmPasswordDraft by remember { mutableStateOf("") }
     var notesNewPasswordDraft by remember { mutableStateOf("") }
     val stepSensorAvailable by viewModel.stepSensorAvailable.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -447,22 +448,37 @@ fun SettingsScreen(
                     )
                     when {
                         !noteCrypto.hasRecoveryPassword() -> {
+                            Text(
+                                "Use at least 8 characters with a letter and a number. Save it in a password manager.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                             OutlinedTextField(
                                 value = notesPasswordDraft,
                                 onValueChange = { notesPasswordDraft = it },
                                 modifier = Modifier.fillMaxWidth(),
-                                label = { Text("Recovery password (8+ characters)") },
+                                label = { Text("Recovery password") },
+                                singleLine = true,
+                                visualTransformation = PasswordVisualTransformation(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            )
+                            OutlinedTextField(
+                                value = notesConfirmPasswordDraft,
+                                onValueChange = { notesConfirmPasswordDraft = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("Confirm recovery password") },
                                 singleLine = true,
                                 visualTransformation = PasswordVisualTransformation(),
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                             )
                             OutlinedButton(
                                 onClick = {
-                                    viewModel.setupNotesEncryption(notesPasswordDraft)
+                                    viewModel.setupNotesEncryption(notesPasswordDraft, notesConfirmPasswordDraft)
                                     notesPasswordDraft = ""
+                                    notesConfirmPasswordDraft = ""
                                 },
                                 modifier = Modifier.fillMaxWidth(),
-                                enabled = notesPasswordDraft.length >= 8,
+                                enabled = notesPasswordDraft.length >= 8 && notesConfirmPasswordDraft.length >= 8,
                             ) {
                                 Text("Set recovery password")
                             }

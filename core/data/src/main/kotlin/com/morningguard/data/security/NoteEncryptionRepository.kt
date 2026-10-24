@@ -233,6 +233,23 @@ class NoteEncryptionRepository @Inject constructor(
         }
     }
 
+    /**
+     * User chose to continue on this device without unlocking cloud notes. Does not delete remote data.
+     */
+    suspend fun abandonPendingCloudRecovery(): Result<Unit> = runCatching {
+        ensureDekReady().getOrThrow()
+        mutex.withLock {
+            store.update {
+                it.copy(
+                    pendingCloudPasswordWrappedDekBase64 = null,
+                    pendingCloudPasswordWrapSaltBase64 = null,
+                    pendingCloudPasswordWrapIvBase64 = null,
+                    cloudRecoveryRequired = false,
+                )
+            }
+        }
+    }
+
     override fun encryptForStorage(plain: String): String {
         val key = dek ?: error("Notes encryption key is locked. Call ensureDekReady() first.")
         return NoteContentCipher.encrypt(plain, key)
