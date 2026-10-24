@@ -298,12 +298,12 @@ struct BibleReadingScreen: View {
 
     private func deleteHighlight() {
         guard let existing = highlightBarState?.existingHighlight else { return }
-        appState.bibleHighlightStore.deleteHighlight(id: existing.id)
         MGHaptics.lightImpact()
         withAnimation(.spring(duration: 0.35)) {
             highlightBarState = nil
         }
         MGBanner.present(.message("Highlight removed"), binding: $banner)
+        Task { await appState.userDataSync.deleteHighlight(existing) }
     }
 
     private func copySelection() {

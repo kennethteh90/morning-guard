@@ -121,6 +121,52 @@ final class SettingsStore {
         }
     }
 
+    func mergeMorningHistoryFromRemote(_ remoteRecords: [MorningDayRecord]) {
+        guard !remoteRecords.isEmpty else { return }
+        updateGoalProgress { store in
+            var history = store.morningHistory
+            var times = store.goalTimeSecondsByDate
+            var steps = store.goalStepsByDate
+            for record in remoteRecords {
+                history = MorningHistoryMerge.mergeMorningRecord(
+                    history: history,
+                    dateKey: record.dateKey,
+                    outcome: record.outcome,
+                    recordedAtEpochMs: record.recordedAtEpochMs,
+                    timeOnGoalSeconds: record.timeOnGoalSeconds,
+                    stepsOnGoal: record.stepsOnGoal
+                )
+                times = MorningHistoryMerge.mergeGoalTime(
+                    map: times,
+                    dateKey: record.dateKey,
+                    seconds: record.timeOnGoalSeconds
+                )
+                steps = MorningHistoryMerge.mergeGoalSteps(
+                    map: steps,
+                    dateKey: record.dateKey,
+                    steps: record.stepsOnGoal
+                )
+            }
+            var copy = store
+            copy.morningHistory = history
+            copy.goalTimeSecondsByDate = times
+            copy.goalStepsByDate = steps
+            return copy
+        }
+    }
+
+    func clearSensitiveGoalData() {
+        updateGoalProgress { _ in GoalProgressStore() }
+    }
+
+    func clearSyncBoundUserId() {
+        updateUserSettings { settings in
+            var copy = settings
+            copy.syncBoundUserId = nil
+            return copy
+        }
+    }
+
     func markRecoveryPasswordPromptShownAfterSignIn() {
         updateUserSettings { $0.withRecoveryPromptShown() }
     }

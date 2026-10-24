@@ -71,7 +71,13 @@ struct HighlightsView: View {
     private func deleteWithUndo(_ highlight: BibleHighlight) {
         guard let removed = appState.bibleHighlightStore.deleteHighlightReturningRemoved(id: highlight.id) else { return }
         pendingUndoHighlight = removed
-        MGBanner.present(.undo("Highlight removed"), binding: $banner, duration: 5)
+        MGBanner.present(.undo("Highlight removed"), binding: $banner, duration: 5) {
+            Task { @MainActor in
+                guard pendingUndoHighlight?.id == removed.id else { return }
+                pendingUndoHighlight = nil
+                await appState.userDataSync.deleteHighlight(removed)
+            }
+        }
     }
 
     private func undoDelete() {

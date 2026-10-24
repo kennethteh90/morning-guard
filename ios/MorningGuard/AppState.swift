@@ -66,14 +66,21 @@ final class AppState {
         shieldController.refreshShields()
         deviceActivityScheduler.reschedule(for: settings.userSettings.morningWindow)
         Task { await alarmScheduler.apply(alarm: settings.userSettings.alarm) }
+        Task {
+            await supabaseAuth.restoreSession()
+            await userDataSync.syncAllIfSignedIn()
+        }
     }
 
     func onAppear() {
         refreshGateAndShields()
+        AppMonitoring.analytics.track("app_open", properties: [:])
+        Task { await userDataSync.syncAllIfSignedIn() }
     }
 
     func onSceneActive() {
         refreshGateAndShields()
+        Task { await userDataSync.syncAllIfSignedIn() }
     }
 
     func refreshGateAndShields() {
@@ -271,15 +278,28 @@ final class AppState {
 
     func signOut() async {
         bibleHighlightStore.clearAll()
-        settingsStore.clearMorningHistory()
+        settingsStore.clearSensitiveGoalData()
         noteEncryption.lock()
+        settingsStore.clearSyncBoundUserId()
         settingsStore.updateUserSettings { settings in
             var copy = settings
             copy.dataStorageMode = .localOnly
-            copy.syncBoundUserId = nil
             return copy
         }
         try? await supabaseAuth.signOut()
+    }
+
+    func deleteAccount() async throws {
+        try await supabaseAuth.deleteCurrentUser()
+        bibleHighlightStore.clearAll()
+        settingsStore.clearSensitiveGoalData()
+        noteEncryption.lock()
+        settingsStore.clearSyncBoundUserId()
+        settingsStore.updateUserSettings { settings in
+            var copy = settings
+            copy.dataStorageMode = .localOnly
+            return copy
+        }
     }
 
     func sendMagicLink(email: String) async throws {

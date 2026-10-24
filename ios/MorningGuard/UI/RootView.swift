@@ -8,6 +8,7 @@ struct RootView: View {
     @State private var showBibleReader = false
     @State private var showHighlights = false
     @State private var showStats = false
+    @State private var showAccount = false
 
     var body: some View {
         RecoveryPasswordHostView {
@@ -20,6 +21,7 @@ struct RootView: View {
                         onOpenHighlights: { showHighlights = true },
                         onOpenStats: { showStats = true },
                         onOpenSettings: { showSettings = true },
+                        onOpenAccount: { showAccount = true },
                         onOpenEmergency: { showEmergency = true }
                     )
                     .navigationDestination(isPresented: $showGoal) {
@@ -36,6 +38,9 @@ struct RootView: View {
                     }
                     .navigationDestination(isPresented: $showSettings) {
                         SettingsView()
+                    }
+                    .navigationDestination(isPresented: $showAccount) {
+                        AccountView()
                     }
                     .navigationDestination(isPresented: $showEmergency) {
                         EmergencyBypassView()
