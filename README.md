@@ -2,7 +2,7 @@
 
 Open-source morning routine app for **Android** and **iOS**. Android holds non-alarm notifications in a single digest until you complete a verifiable goal; iOS shields apps you choose via Screen Time APIs (see platform notes below). Both support optional alarm, emergency bypass, and morning goals (Bible, focus, steps).
 
-Architecture: Android `:core:domain` (pure Kotlin) + `:core:data` / `:app`; iOS `MorningGuardCore` Swift package mirrors domain rules — see [`docs/PLAN-IOS.md`](docs/PLAN-IOS.md).
+Architecture: Android `:core:domain` (pure Kotlin) + `:core:data` / `:app`; iOS `MorningGuardCore` Swift package mirrors domain rules — see [`docs/PLAN-IOS.md`](docs/PLAN-IOS.md). iOS uses Screen Time shields (no notification digest). Store privacy: [`docs/app-store-privacy-labels.md`](docs/app-store-privacy-labels.md). Android notification listener: [`docs/play-notification-listener-compliance.md`](docs/play-notification-listener-compliance.md).
 
 ## iOS
 

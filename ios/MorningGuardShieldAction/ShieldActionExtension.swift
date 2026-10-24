@@ -8,7 +8,8 @@ final class ShieldActionExtension: ShieldActionDelegate {
     ) {
         switch action {
         case .primaryButtonPressed:
-            completionHandler(.close)
+            // `.defer` dismisses the shield and launches the containing app (handle `morningguard://goal` in the app).
+            completionHandler(.defer)
         case .secondaryButtonPressed:
             completionHandler(.close)
         @unknown default:
@@ -23,7 +24,8 @@ final class ShieldActionExtension: ShieldActionDelegate {
     ) {
         switch action {
         case .primaryButtonPressed:
-            completionHandler(.close)
+            // `.defer` dismisses the shield and launches the containing app (handle `morningguard://goal` in the app).
+            completionHandler(.defer)
         case .secondaryButtonPressed:
             completionHandler(.close)
         @unknown default:
@@ -38,7 +40,8 @@ final class ShieldActionExtension: ShieldActionDelegate {
     ) {
         switch action {
         case .primaryButtonPressed:
-            completionHandler(.close)
+            // `.defer` dismisses the shield and launches the containing app (handle `morningguard://goal` in the app).
+            completionHandler(.defer)
         case .secondaryButtonPressed:
             completionHandler(.close)
         @unknown default:

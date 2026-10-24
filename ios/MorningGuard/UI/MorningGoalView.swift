@@ -27,8 +27,9 @@ struct MorningGoalView: View {
             }
         }
         .background(MGTheme.background)
-        .navigationTitle("Morning goal")
+        .navigationTitle(L10n.tr("goal.nav_title"))
         .navigationBarTitleDisplayMode(.inline)
+        .accessibilityLabel(L10n.tr("goal.nav_title"))
         .toolbar {
             if config.type == .bibleChapter {
                 ToolbarItem(placement: .principal) {
@@ -39,6 +40,8 @@ struct MorningGoalView: View {
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                     }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(L10n.tr("a11y.goal.header"))
                 }
             }
         }
@@ -108,33 +111,46 @@ struct MorningGoalView: View {
     private var outsideWindowBanner: some View {
         MGCard {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Outside morning window")
+                Text(L10n.tr("goal.outside_window.title"))
                     .font(.headline)
-                Text("Reading still works here. The home screen only offers the morning goal while the gate is locked.")
+                Text(L10n.tr("goal.outside_window.body"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 if MGDebugFlags.showDebugPanels {
-                    Button("Activate test window") {
+                    Button(L10n.tr("goal.activate_test_window")) {
                         appState.debugActivateTestWindow()
                     }
                     .buttonStyle(.bordered)
                 }
             }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(L10n.tr("a11y.goal.outside_window"))
     }
 
     private var goalDebugFooter: some View {
         MGCard {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Debug")
+                Text(L10n.tr("goal.debug.section"))
                     .font(.caption.bold())
-                Text("Gate: \(appState.gateService.evaluation.state.rawValue) (\(appState.gateService.evaluation.reason))")
-                    .font(.caption2.monospaced())
-                Text("Can complete: \(appState.gateService.canComplete(currentSteps: todaySteps))")
-                    .font(.caption2.monospaced())
+                Text(
+                    L10n.tr(
+                        "goal.debug.gate_format",
+                        appState.gateService.evaluation.state.rawValue,
+                        appState.gateService.evaluation.reason
+                    )
+                )
+                .font(.caption2.monospaced())
+                Text(
+                    L10n.tr(
+                        "goal.debug.can_complete_format",
+                        String(appState.gateService.canComplete(currentSteps: todaySteps))
+                    )
+                )
+                .font(.caption2.monospaced())
                 HStack {
-                    Button("Test window") { appState.debugActivateTestWindow() }
-                    Button("Complete goal") { appState.debugForceCompleteGoal() }
+                    Button(L10n.tr("goal.debug.test_window")) { appState.debugActivateTestWindow() }
+                    Button(L10n.tr("goal.debug.complete_goal")) { appState.debugForceCompleteGoal() }
                 }
                 .buttonStyle(.bordered)
             }
@@ -150,13 +166,16 @@ struct MorningGoalView: View {
                     .foregroundStyle(.secondary)
             }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(L10n.tr("a11y.goal.header"))
     }
 
     private var timedFocusBody: some View {
         VStack(spacing: 12) {
             Text(timerLabel)
                 .font(.system(.title, design: .rounded).monospacedDigit())
-            Text("Keep this screen open until the timer finishes.")
+                .accessibilityLabel(L10n.tr("a11y.goal.timer"))
+            Text(L10n.tr("goal.timer.stay_open"))
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
@@ -166,13 +185,15 @@ struct MorningGoalView: View {
     private var stepBody: some View {
         VStack(alignment: .leading, spacing: 12) {
             if appState.healthKitStepReader.isAvailable {
-                Text("Steps today: \(todaySteps ?? 0) / \(config.stepTarget)")
+                Text(L10n.tr("goal.steps.today_format", todaySteps ?? 0, config.stepTarget))
                     .font(.title2.monospacedDigit())
-                Button("Refresh HealthKit steps") {
+                Button(L10n.tr("goal.steps.refresh")) {
                     Task { await refreshSteps() }
                 }
+                .accessibilityLabel(L10n.tr("a11y.goal.refresh_steps"))
+                .accessibilityHint(L10n.tr("a11y.goal.refresh_steps.hint"))
             } else {
-                Text("HealthKit is not available on this device.")
+                Text(L10n.tr("goal.steps.unavailable"))
                     .foregroundStyle(.secondary)
             }
         }
@@ -187,15 +208,18 @@ struct MorningGoalView: View {
                     Text(progressLabel(progress: progress))
                         .font(.callout)
                         .foregroundStyle(.secondary)
+                        .accessibilityLabel(L10n.tr("a11y.goal.progress"))
                     if appState.gateService.canComplete(currentSteps: todaySteps) {
                         Button {
                             completeGoalExplicitly()
                         } label: {
-                            Label("Complete morning goal", systemImage: "checkmark.circle.fill")
+                            Label(L10n.tr("goal.complete_button"), systemImage: "checkmark.circle.fill")
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(MGTheme.accent)
+                        .accessibilityLabel(L10n.tr("a11y.goal.complete"))
+                        .accessibilityHint(L10n.tr("a11y.goal.complete.hint"))
                     } else {
                         Text(completionHint)
                             .font(.caption)
@@ -208,20 +232,24 @@ struct MorningGoalView: View {
 
     private var goalCompleteCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Morning goal complete", systemImage: "sun.max.fill")
+            Label(L10n.tr("goal.complete.success_title"), systemImage: "sun.max.fill")
                 .font(.headline)
                 .foregroundStyle(MGTheme.accent)
-            Text(config.type == .bibleChapter
-                ? "Your apps are unlocked. Keep reading here or go home when you're ready."
-                : "Your apps are unlocked for today.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            Button("Back to home") {
+            Text(
+                config.type == .bibleChapter
+                    ? L10n.tr("goal.complete.success_bible")
+                    : L10n.tr("goal.complete.success_other")
+            )
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+            Button(L10n.tr("goal.back_home")) {
                 leaveGoalScreen()
             }
             .buttonStyle(.borderedProminent)
             .tint(MGTheme.accent)
             .frame(maxWidth: .infinity)
+            .accessibilityLabel(L10n.tr("a11y.goal.back_home"))
+            .accessibilityHint(L10n.tr("a11y.goal.back_home.hint"))
         }
         .padding(MGTheme.standardPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -232,11 +260,11 @@ struct MorningGoalView: View {
     private var completionHint: String {
         switch config.type {
         case .bibleChapter:
-            return "Stay on this screen until you've read for at least 60 seconds, then tap Complete morning goal."
+            return L10n.tr("goal.hint.bible")
         case .timedFocus:
-            return "Keep this screen open until the timer finishes."
+            return L10n.tr("goal.hint.timed")
         case .stepCount:
-            return "Walk until you reach your step target, then tap Complete morning goal."
+            return L10n.tr("goal.hint.steps")
         }
     }
 
@@ -255,24 +283,32 @@ struct MorningGoalView: View {
 
     private var headerTitle: String {
         switch config.type {
-        case .bibleChapter: "Read your chapter"
-        case .timedFocus: "Timed focus"
-        case .stepCount: "Step count"
+        case .bibleChapter: L10n.tr("goal.header.bible")
+        case .timedFocus: L10n.tr("goal.header.timed")
+        case .stepCount: L10n.tr("goal.header.steps")
         }
     }
 
     private var bibleToolbarSubtitle: String {
-        "Chapter \(config.bibleChapter) of \(BibleCanon.chapterCount(bookName: config.bibleBook)) · stay on this screen"
+        L10n.tr(
+            "goal.chapter.stay_format",
+            config.bibleChapter,
+            BibleCanon.chapterCount(bookName: config.bibleBook)
+        )
     }
 
     private var headerSubtitle: String {
         switch config.type {
         case .bibleChapter:
-            return "Stay on this screen while you read. Chapter \(config.bibleChapter) of \(BibleCanon.chapterCount(bookName: config.bibleBook))."
+            return L10n.tr(
+                "goal.detail.bible_format",
+                config.bibleChapter,
+                BibleCanon.chapterCount(bookName: config.bibleBook)
+            )
         case .timedFocus:
-            return "\(config.focusMinutes) minutes with Morning Guard open."
+            return L10n.tr("goal.detail.timed_format", config.focusMinutes)
         case .stepCount:
-            return "Walk \(config.stepTarget) steps while this screen is open."
+            return L10n.tr("goal.detail.steps_format", config.stepTarget)
         }
     }
 
@@ -288,11 +324,11 @@ struct MorningGoalView: View {
     private func progressLabel(progress: MorningGoalProgress) -> String {
         switch config.type {
         case .bibleChapter:
-            return "Reading time: \(progress.onScreenSeconds)s / 60s"
+            return L10n.tr("goal.progress.reading_format", progress.onScreenSeconds)
         case .timedFocus:
-            return "Focus time: \(progress.onScreenSeconds)s / \(config.focusMinutes * 60)s"
+            return L10n.tr("goal.progress.focus_format", progress.onScreenSeconds, config.focusMinutes * 60)
         case .stepCount:
-            return "Goal progress: \(progress.stepsAccumulated) / \(config.stepTarget) steps"
+            return L10n.tr("goal.progress.steps_format", progress.stepsAccumulated, config.stepTarget)
         }
     }
 

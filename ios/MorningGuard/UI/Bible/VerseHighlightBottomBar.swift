@@ -22,7 +22,7 @@ struct VerseHighlightBottomBar: View {
                     .padding(.bottom, noteExpanded ? 8 : 10)
 
                 if noteExpanded, !isRemoveMode {
-                    TextField("Note for this highlight", text: Binding(
+                    TextField(L10n.tr("bible.highlight.note_field"), text: Binding(
                         get: { state.note },
                         set: { state.note = $0 }
                     ), axis: .vertical)
@@ -54,7 +54,7 @@ struct VerseHighlightBottomBar: View {
                 Circle()
                     .fill(BibleHighlightColorsUi.color(for: saved.colorKey))
                     .frame(width: 28, height: 28)
-                Text(saved.label.isEmpty ? "\(state.selectedVerses.count) verses" : saved.label)
+                Text(saved.label.isEmpty ? L10n.tr("bible.highlight.verses_count_format", state.selectedVerses.count) : saved.label)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
@@ -78,7 +78,8 @@ struct VerseHighlightBottomBar: View {
                     .frame(width: 32, height: 32)
                     .background(Color(.tertiarySystemFill), in: Circle())
             }
-            .accessibilityLabel("Clear selection")
+            .accessibilityLabel(L10n.tr("bible.highlight.clear_selection"))
+            .accessibilityHint(L10n.tr("a11y.bible.highlight.dismiss"))
         }
     }
 
@@ -96,34 +97,60 @@ struct VerseHighlightBottomBar: View {
                 onColorSelected(key)
                 state.colorKey = key
             }
-            .accessibilityLabel("Highlight color \(key)")
+            .accessibilityLabel(L10n.tr("bible.highlight.color_format", key))
     }
 
     private var actionRow: some View {
         HStack(spacing: 8) {
-            HighlightBarAction(label: "Save", systemImage: "bookmark.fill", prominent: true, action: onSave)
             HighlightBarAction(
-                label: noteExpanded ? "Hide note" : "Note",
+                label: L10n.tr("bible.highlight.save"),
+                systemImage: "bookmark.fill",
+                prominent: true,
+                accessibilityLabel: L10n.tr("a11y.bible.highlight.save"),
+                action: onSave
+            )
+            HighlightBarAction(
+                label: noteExpanded ? L10n.tr("bible.highlight.hide_note") : L10n.tr("bible.highlight.note"),
                 systemImage: "square.and.pencil",
                 prominent: false,
+                accessibilityLabel: L10n.tr("a11y.bible.highlight.note"),
                 action: { noteExpanded.toggle() }
             )
-            HighlightBarAction(label: "Copy", systemImage: "doc.on.doc", prominent: false, action: onCopy)
+            HighlightBarAction(
+                label: L10n.tr("bible.highlight.copy"),
+                systemImage: "doc.on.doc",
+                prominent: false,
+                accessibilityLabel: L10n.tr("a11y.bible.highlight.copy"),
+                action: onCopy
+            )
         }
     }
 
     private var removeModeActions: some View {
         HStack(spacing: 8) {
-            HighlightBarAction(label: "Delete", systemImage: "trash", prominent: false, destructive: true, action: onDelete)
-            HighlightBarAction(label: "Copy", systemImage: "doc.on.doc", prominent: false, action: onCopy)
+            HighlightBarAction(
+                label: L10n.tr("bible.highlight.delete"),
+                systemImage: "trash",
+                prominent: false,
+                destructive: true,
+                accessibilityLabel: L10n.tr("a11y.bible.highlight.delete"),
+                action: onDelete
+            )
+            HighlightBarAction(
+                label: L10n.tr("bible.highlight.copy"),
+                systemImage: "doc.on.doc",
+                prominent: false,
+                accessibilityLabel: L10n.tr("a11y.bible.highlight.copy"),
+                action: onCopy
+            )
         }
     }
 
     private var selectionCountLabel: String {
         let count = state.selectedVerses.count
-        if count == 0 { return "Select verses" }
-        if count == 1 { return "1 verse selected" }
-        return "\(count) verses selected"
+        if count == 0 { return L10n.tr("bible.highlight.select_verses") }
+        if count == 1 { return L10n.tr("bible.highlight.one_verse_selected") }
+        return L10n.tr("bible.highlight.verses_selected_format", count)
     }
 }
 
@@ -132,6 +159,7 @@ private struct HighlightBarAction: View {
     let systemImage: String
     var prominent: Bool = false
     var destructive: Bool = false
+    var accessibilityLabel: String?
     let action: () -> Void
 
     var body: some View {
@@ -146,6 +174,7 @@ private struct HighlightBarAction: View {
         .buttonStyle(.plain)
         .foregroundStyle(foregroundColor)
         .background(backgroundColor, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .accessibilityLabel(accessibilityLabel ?? label)
     }
 
     private var foregroundColor: Color {

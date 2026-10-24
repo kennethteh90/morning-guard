@@ -177,13 +177,10 @@ enum BibleProxyError: LocalizedError {
         case .appAttestUnavailable:
             return "Licensed translations require a physical device with App Attest."
         case .http(let status, let body):
-            if let message = Self.parseErrorMessage(body) {
-                if status == 403, message.localizedCaseInsensitiveContains("Licensed") {
-                    return "\(message) Switch to WEB or KJV, or enable licensed translations on the worker."
-                }
-                return message
-            }
-            return "Bible server error (HTTP \(status))."
+            return BibleProxyUserMessages.friendlyMessage(
+                httpStatus: status,
+                serverError: Self.parseErrorMessage(body)
+            )
         }
     }
 

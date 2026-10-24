@@ -30,29 +30,47 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section("Morning window") {
-                DatePicker("Starts", selection: $windowStart, displayedComponents: .hourAndMinute)
+            Section(L10n.tr("settings.morning_window")) {
+                DatePicker(L10n.tr("settings.starts"), selection: $windowStart, displayedComponents: .hourAndMinute)
                     .onChange(of: windowStart) { _, _ in persistWindow() }
-                DatePicker("Ends", selection: $windowEnd, displayedComponents: .hourAndMinute)
+                DatePicker(L10n.tr("settings.ends"), selection: $windowEnd, displayedComponents: .hourAndMinute)
                     .onChange(of: windowEnd) { _, _ in persistWindow() }
             }
 
-            Section("Morning alarm") {
-                Toggle("Enabled", isOn: $alarmEnabled)
+            Section(L10n.tr("settings.morning_alarm")) {
+                Toggle(L10n.tr("settings.enabled"), isOn: $alarmEnabled)
                     .onChange(of: alarmEnabled) { _, _ in persistAlarm() }
-                DatePicker("Time", selection: $alarmTime, displayedComponents: .hourAndMinute)
+                DatePicker(L10n.tr("settings.time"), selection: $alarmTime, displayedComponents: .hourAndMinute)
                     .onChange(of: alarmTime) { _, _ in persistAlarm() }
             }
 
-            Section("Goal") {
-                Picker("Type", selection: goalTypeBinding) {
-                    Text("Bible chapter").tag(GoalType.bibleChapter)
-                    Text("Timed focus").tag(GoalType.timedFocus)
-                    Text("Steps").tag(GoalType.stepCount)
+            Section(L10n.tr("settings.goal")) {
+                Picker(L10n.tr("settings.goal.type"), selection: goalTypeBinding) {
+                    Text(L10n.tr("settings.goal.bible_chapter")).tag(GoalType.bibleChapter)
+                    Text(L10n.tr("settings.goal.timed_focus")).tag(GoalType.timedFocus)
+                    Text(L10n.tr("settings.goal.steps")).tag(GoalType.stepCount)
                 }
                 if appState.settingsStore.userSettings.morningGoal.type == .bibleChapter {
-                    Text("Reading: \(appState.settingsStore.userSettings.morningGoal.bibleBook) \(appState.settingsStore.userSettings.morningGoal.bibleChapter)")
+                    let goal = appState.settingsStore.userSettings.morningGoal
+                    Text(L10n.tr("settings.goal.reading_format", goal.bibleBook, goal.bibleChapter))
                 }
+            }
+
+            Section(L10n.tr("settings.bible.section")) {
+                NavigationLink {
+                    BibleTranslationPickerSheet(
+                        selectedTranslationId: appState.settingsStore.userSettings.morningGoal.bibleTranslation,
+                        onSelect: { appState.setBibleTranslation($0) }
+                    )
+                } label: {
+                    HStack {
+                        Text(L10n.tr("settings.bible.default_translation"))
+                        Spacer()
+                        Text(BibleTranslations.chipLabel(id: appState.settingsStore.userSettings.morningGoal.bibleTranslation))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .accessibilityLabel(L10n.tr("a11y.settings.translation"))
             }
 
             RecoveryPasswordBannerView()
@@ -60,17 +78,19 @@ struct SettingsView: View {
             backupSection
 
             Section {
-                NavigationLink("Account") {
+                NavigationLink(L10n.tr("settings.account.link")) {
                     AccountView()
                 }
-                Text("Magic-link sign-in, sign-out, and account deletion.")
+                .accessibilityLabel(L10n.tr("a11y.settings.account_link"))
+                Text(L10n.tr("settings.account.footer"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
-            Section("Emergency passphrase") {
-                SecureField("New passphrase (8+ characters)", text: $newPassphrase)
-                Button("Save passphrase") { savePassphrase() }
+            Section(L10n.tr("settings.emergency.section")) {
+                SecureField(L10n.tr("settings.emergency.new_field"), text: $newPassphrase)
+                Button(L10n.tr("settings.emergency.save")) { savePassphrase() }
+                    .accessibilityLabel(L10n.tr("a11y.settings.save_passphrase"))
                 if let passphraseMessage {
                     Text(passphraseMessage)
                         .font(.caption)
@@ -78,32 +98,49 @@ struct SettingsView: View {
                 }
             }
 
-            Section("Privacy") {
+            Section(L10n.tr("privacy.heading")) {
+                NavigationLink(L10n.tr("settings.privacy.in_app")) {
+                    PrivacyPolicyView()
+                }
+                .accessibilityLabel(L10n.tr("a11y.settings.privacy_in_app"))
                 if let url = SettingsView.privacyPolicyURL {
-                    Link("Privacy policy", destination: url)
+                    Link(L10n.tr("settings.privacy.web"), destination: url)
+                        .accessibilityLabel(L10n.tr("a11y.settings.privacy_web"))
                 }
             }
 
-            Section("On iPhone") {
-                Text("Peace break re-enables app shields instead of holding notifications. Use Focus in Settings for notification quiet.")
+            Section(L10n.tr("settings.setup.section")) {
+                Button(L10n.tr("settings.setup.replay")) {
+                    appState.replayOnboarding()
+                }
+                .accessibilityLabel(L10n.tr("a11y.settings.replay_onboarding"))
+                Text(L10n.tr("settings.setup.replay.footer"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
-            Section("Shields") {
-                Text("To fully remove shields, revoke Screen Time access for Morning Guard in Settings → Screen Time, or clear your app selection during onboarding.")
+            Section(L10n.tr("settings.on_iphone.section")) {
+                Text(L10n.tr("settings.on_iphone.peace"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section(L10n.tr("settings.shields.section")) {
+                Text(L10n.tr("settings.shields.help"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 if appState.gateService.evaluation.state != .locked {
-                    Button("Clear shields now") {
+                    Button(L10n.tr("settings.shields.clear")) {
                         appState.shieldController.revokeShieldsImmediately()
                     }
+                    .accessibilityLabel(L10n.tr("a11y.settings.clear_shields"))
+                    .accessibilityHint(L10n.tr("a11y.settings.clear_shields.hint"))
                 }
             }
 
             if MGDebugFlags.showDebugPanels {
                 Section {
-                    Text("Quick presets for gate, peace break, and shield testing. Debug builds only.")
+                    Text(L10n.tr("settings.debug.intro"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     ForEach(DebugWindowPreset.allCases) { preset in
@@ -112,18 +149,20 @@ struct SettingsView: View {
                             loadFromStore()
                         }
                     }
-                    Button("Reset today's goal") {
+                    Button(L10n.tr("settings.debug.reset_goal")) {
                         appState.debugResetTodayGoal()
                     }
-                    Button("Reset onboarding") {
+                    Button(L10n.tr("settings.debug.reset_onboarding")) {
                         appState.debugResetOnboarding()
                     }
                 } header: {
-                    Text("Debug")
+                    Text(L10n.tr("goal.debug.section"))
                 }
             }
         }
-        .navigationTitle("Settings")
+        .navigationTitle(L10n.tr("settings.title"))
+        .accessibilityLabel(L10n.tr("a11y.settings.title"))
+        .accessibilityHint(L10n.tr("a11y.settings.title.hint"))
         .onAppear { loadFromStore() }
         .sheet(item: $backupPasswordMode) { mode in
             LocalBackupPasswordSheet(mode: mode) { password in
@@ -152,16 +191,16 @@ struct SettingsView: View {
             exportDocument = nil
         }
         .confirmationDialog(
-            "Restore from backup?",
+            L10n.tr("settings.backup.restore_title"),
             isPresented: $showRestoreConfirm,
             titleVisibility: .visible
         ) {
-            Button("Restore", role: .destructive) {
+            Button(L10n.tr("settings.backup.restore_button"), role: .destructive) {
                 backupPasswordMode = .importFile
             }
-            Button("Cancel", role: .cancel) {}
+            Button(L10n.tr("common.cancel"), role: .cancel) {}
         } message: {
-            Text("Restore replaces settings, streaks, highlights, and goal progress on this device. This cannot be undone.")
+            Text(L10n.tr("settings.backup.restore_message"))
         }
     }
 
@@ -170,37 +209,42 @@ struct SettingsView: View {
     @ViewBuilder
     private var notesEncryptionSection: some View {
         Section {
-            Text("Reflection notes are always encrypted on this device (Keychain). Set a recovery password to open them after reinstall or on a new phone.")
+            Text(L10n.tr("settings.notes.intro"))
                 .font(.caption)
                 .foregroundStyle(.secondary)
             Text(
                 appState.noteEncryption.cryptoState.hasRecoveryPassword()
-                    ? "Recovery password: set"
-                    : "Recovery password: not set — notes cannot be recovered on a new device"
+                    ? L10n.tr("settings.notes.recovery_set")
+                    : L10n.tr("settings.notes.recovery_not_set")
             )
             .font(.subheadline)
             .foregroundStyle(
                 appState.noteEncryption.cryptoState.hasRecoveryPassword() ? MGTheme.accent : .orange
             )
             if !appState.noteEncryption.cryptoState.hasRecoveryPassword() {
-                Text("Use at least 8 characters with a letter and a number. Save it in a password manager.")
+                Text(L10n.tr("settings.notes.rules"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                SecureField("Recovery password", text: $notesPassword)
-                SecureField("Confirm recovery password", text: $notesConfirmPassword)
-                Button("Set recovery password") { setupNotesEncryption() }
+                SecureField(L10n.tr("settings.notes.recovery_field"), text: $notesPassword)
+                    .accessibilityLabel(L10n.tr("a11y.recovery.password"))
+                SecureField(L10n.tr("settings.notes.confirm_field"), text: $notesConfirmPassword)
+                Button(L10n.tr("settings.notes.set_button")) { setupNotesEncryption() }
                     .disabled(notesPassword.count < 8 || notesConfirmPassword.count < 8)
+                    .accessibilityLabel(L10n.tr("a11y.settings.set_notes_password"))
             } else if !appState.noteEncryption.isUnlocked {
-                SecureField("Recovery password", text: $notesPassword)
-                Button("Unlock notes") { unlockNotesEncryption() }
+                SecureField(L10n.tr("settings.notes.recovery_field"), text: $notesPassword)
+                    .accessibilityLabel(L10n.tr("a11y.recovery.password"))
+                Button(L10n.tr("settings.notes.unlock_button")) { unlockNotesEncryption() }
                     .disabled(notesPassword.count < 8)
+                    .accessibilityLabel(L10n.tr("a11y.settings.unlock_notes"))
             } else {
-                Text("Notes unlocked on this device.")
+                Text(L10n.tr("settings.notes.unlocked"))
                     .foregroundStyle(MGTheme.accent)
-                SecureField("Current recovery password", text: $notesPassword)
-                SecureField("New recovery password", text: $notesNewPassword)
-                SecureField("Confirm new recovery password", text: $notesConfirmNewPassword)
-                Button("Change recovery password") { changeNotesPassword() }
+                SecureField(L10n.tr("settings.notes.current_field"), text: $notesPassword)
+                SecureField(L10n.tr("settings.notes.new_field"), text: $notesNewPassword)
+                SecureField(L10n.tr("settings.notes.confirm_new_field"), text: $notesConfirmNewPassword)
+                Button(L10n.tr("settings.notes.change_button")) { changeNotesPassword() }
+                    .accessibilityLabel(L10n.tr("a11y.settings.change_notes_password"))
                     .disabled(
                         notesPassword.count < 8
                             || notesNewPassword.count < 8
@@ -213,29 +257,31 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
             }
         } header: {
-            Text("Highlight notes")
+            Text(L10n.tr("settings.notes.section"))
         }
     }
 
     @ViewBuilder
     private var backupSection: some View {
         Section {
-            Text("Encrypted backup includes highlights, streaks, and settings on this device (not a cloud export).")
+            Text(L10n.tr("settings.backup.intro"))
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            Button("Export encrypted backup") {
+            Button(L10n.tr("settings.backup.export")) {
                 backupPasswordMode = .export
             }
-            Button("Restore from backup") {
+            .accessibilityLabel(L10n.tr("a11y.settings.export_backup"))
+            Button(L10n.tr("settings.backup.restore")) {
                 showRestoreConfirm = true
             }
+            .accessibilityLabel(L10n.tr("a11y.settings.restore_backup"))
             if let backupMessage {
                 Text(backupMessage)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
         } header: {
-            Text("Local backup")
+            Text(L10n.tr("settings.backup.section"))
         }
     }
 
@@ -245,7 +291,7 @@ struct SettingsView: View {
             return
         }
         if notesPassword != notesConfirmPassword {
-            notesMessage = "Passwords do not match."
+            notesMessage = L10n.tr("settings.notes.passwords_mismatch")
             return
         }
         do {
@@ -253,7 +299,7 @@ struct SettingsView: View {
             appState.bibleHighlightStore.reencryptAllStoredNotes()
             notesPassword = ""
             notesConfirmPassword = ""
-            notesMessage = "Recovery password saved. Store it in a password manager."
+            notesMessage = L10n.tr("settings.notes.saved")
             Task { await appState.userDataSync.syncAllIfSignedIn() }
         } catch {
             notesMessage = error.localizedDescription
@@ -264,7 +310,7 @@ struct SettingsView: View {
         do {
             try appState.noteEncryption.unlockWithPassword(notesPassword)
             notesPassword = ""
-            notesMessage = "Notes unlocked."
+            notesMessage = L10n.tr("settings.notes.unlocked_msg")
         } catch {
             notesMessage = error.localizedDescription
         }
@@ -276,7 +322,7 @@ struct SettingsView: View {
             return
         }
         if notesNewPassword != notesConfirmNewPassword {
-            notesMessage = "Passwords do not match."
+            notesMessage = L10n.tr("settings.notes.passwords_mismatch")
             return
         }
         do {
@@ -284,7 +330,7 @@ struct SettingsView: View {
             notesPassword = ""
             notesNewPassword = ""
             notesConfirmNewPassword = ""
-            notesMessage = "Notes password updated."
+            notesMessage = L10n.tr("settings.notes.updated")
             Task { await appState.userDataSync.syncAllIfSignedIn() }
         } catch {
             notesMessage = error.localizedDescription
@@ -296,7 +342,7 @@ struct SettingsView: View {
             let data = try appState.localBackupRepository.exportEncrypted(password: password)
             exportDocument = BackupFileDocument(data: data)
             showExporter = true
-            backupMessage = "Choose where to save the backup file."
+            backupMessage = L10n.tr("settings.backup.choose_save")
         } catch {
             backupMessage = error.localizedDescription
         }
@@ -307,10 +353,10 @@ struct SettingsView: View {
         pendingImportPassword = nil
         switch result {
         case .failure:
-            backupMessage = "Could not open backup file."
+            backupMessage = L10n.tr("settings.backup.open_failed")
         case .success(let urls):
             guard let url = urls.first else {
-                backupMessage = "Could not open backup file."
+                backupMessage = L10n.tr("settings.backup.open_failed")
                 return
             }
             do {
@@ -321,9 +367,9 @@ struct SettingsView: View {
                 appState.noteEncryption.lock()
                 loadFromStore()
                 if appState.noteEncryption.cryptoState.enabled {
-                    backupMessage = "Backup restored. Unlock highlight notes in Settings with your notes password."
+                    backupMessage = L10n.tr("settings.backup.restored_unlock")
                 } else {
-                    backupMessage = "Backup restored."
+                    backupMessage = L10n.tr("settings.backup.restored")
                 }
                 Task { await appState.alarmScheduler.apply(alarm: appState.settingsStore.userSettings.alarm) }
             } catch {
@@ -379,7 +425,7 @@ struct SettingsView: View {
         do {
             try appState.setEmergencyPassphrase(newPassphrase)
             newPassphrase = ""
-            passphraseMessage = "Emergency passphrase saved."
+            passphraseMessage = L10n.tr("settings.emergency.saved")
         } catch {
             passphraseMessage = error.localizedDescription
         }

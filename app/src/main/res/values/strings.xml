@@ -17,7 +17,7 @@
     <string name="alarm_permission_grant">Open settings</string>
 
     <string name="privacy_policy_title">Privacy policy</string>
-    <string name="notification_access_disclosure">Morning Guard reads the app name, title, and text of notifications it holds, stores them on this phone, and shows them in the digest after your goal. It does not upload that text. Calls and text messages are not held.</string>
+    <string name="notification_access_disclosure">Morning Guard reads the app name, title, and text of notifications it holds, stores them on this phone, and shows them in the digest after your goal. It does not upload that text. Calls and text messages are not held. You can revoke access anytime in Android Settings → Apps → Special app access → Notification access.</string>
     <string name="notification_access_disclosure_checkbox">I understand how Morning Guard uses notification access</string>
     <string name="open_notification_access_settings">Open Morning Guard access settings</string>
     <string name="auth_signed_in_disclosure">Bible highlights sync across devices. Reflection notes are always encrypted; set a recovery password in Settings so you can open them on a new phone. Verse excerpts and highlight metadata are not encrypted. Notification text stays on this phone.</string>

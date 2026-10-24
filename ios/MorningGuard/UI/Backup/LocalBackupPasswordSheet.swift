@@ -7,15 +7,15 @@ struct LocalBackupPasswordSheet: View {
 
         var title: String {
             switch self {
-            case .export: "Encrypt backup"
-            case .importFile: "Decrypt backup"
+            case .export: L10n.tr("backup.sheet.encrypt_title")
+            case .importFile: L10n.tr("backup.sheet.decrypt_title")
             }
         }
 
         var confirmLabel: String {
             switch self {
-            case .export: "Export"
-            case .importFile: "Restore"
+            case .export: L10n.tr("backup.sheet.export_action")
+            case .importFile: L10n.tr("backup.sheet.restore_action")
             }
         }
     }
@@ -29,10 +29,11 @@ struct LocalBackupPasswordSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                Text("Use a strong password. Without it, the backup cannot be restored.")
+                Text(L10n.tr("backup.sheet.password_hint"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                SecureField("Backup password", text: $password)
+                SecureField(L10n.tr("backup.sheet.password"), text: $password)
+                    .accessibilityLabel(L10n.tr("a11y.backup.password"))
                 if let error {
                     Text(error)
                         .foregroundStyle(.red)
@@ -43,10 +44,12 @@ struct LocalBackupPasswordSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button(L10n.tr("common.cancel")) { dismiss() }
+                        .accessibilityLabel(L10n.tr("a11y.backup.cancel"))
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(mode.confirmLabel) { submit() }
+                        .accessibilityLabel(L10n.tr("a11y.backup.confirm"))
                 }
             }
         }
@@ -54,7 +57,7 @@ struct LocalBackupPasswordSheet: View {
 
     private func submit() {
         guard password.count >= 8 else {
-            error = "Use at least 8 characters."
+            error = L10n.tr("backup.sheet.min_length")
             return
         }
         onConfirm(password)

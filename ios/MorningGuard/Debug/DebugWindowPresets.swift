@@ -39,9 +39,9 @@ enum DebugWindowPreset: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .includingNow: return "Active now (30 min ago → 3 hr ahead)"
-        case .fullDay: return "Full day (0:00 – 23:59)"
-        case .defaultProduction: return "Reset to default (1:00 – 10:00)"
+        case .includingNow: return L10n.tr("settings.debug.preset.active_now")
+        case .fullDay: return L10n.tr("settings.debug.preset.full_day")
+        case .defaultProduction: return L10n.tr("settings.debug.preset.default_window")
         }
     }
 

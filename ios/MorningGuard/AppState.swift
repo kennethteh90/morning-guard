@@ -70,6 +70,18 @@ final class AppState {
             await supabaseAuth.restoreSession()
             await userDataSync.syncAllIfSignedIn()
         }
+        ScreenshotDemoSeeder.seedIfNeeded(
+            settingsStore: settings,
+            highlightStore: bibleHighlightStore
+        )
+    }
+
+    func replayOnboarding() {
+        settingsStore.updateUserSettings { settings in
+            var copy = settings
+            copy.onboardingCompleted = false
+            return copy
+        }
     }
 
     func onAppear() {

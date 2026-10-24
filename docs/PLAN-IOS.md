@@ -150,7 +150,9 @@ Goal completion and emergency bypass run in the app → persist state → call `
 - [x] `ShieldSessionPolicy`
 
 ### App
-- [x] SwiftUI shell: Home, Goal, Settings, Onboarding, Emergency
+- [x] SwiftUI shell: Home, Goal, Settings, Onboarding (Your data, emergency passphrase, honest iOS copy), Emergency
+- [x] In-app privacy policy, Settings translation picker, screenshot mode (`-MGScreenshotMode` or Info.plist), `Localizable.xcstrings` groundwork
+- [x] Shield primary button → app via `.defer` + `morningguard://goal`
 - [x] `ShieldController` + `DeviceActivitySchedule`
 - [x] `SettingsStore` (UserDefaults + app group)
 - [x] Bible fetch client (URLSession → bible-api.com / proxy from Info.plist)
@@ -170,7 +172,7 @@ Goal completion and emergency bypass run in the app → persist state → call `
 
 ## 8. Open questions (post-v1)
 
-- [ ] Supabase Swift SDK + magic link parity with Android
+- [x] Supabase Swift SDK + magic link parity with Android (see PR on `main`)
 - [ ] KMP extract `:core:domain` for single source of truth
 - [ ] Widget / Live Activity for gate status
 - [ ] `DeviceActivityReport` for weekly stats

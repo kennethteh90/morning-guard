@@ -2,6 +2,7 @@ package com.morningguard.data.bible
 
 import com.morningguard.domain.bible.BiblePassageBlock
 import com.morningguard.domain.bible.BiblePassageFormatter
+import com.morningguard.domain.bible.BibleProxyUserMessages
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -82,18 +83,11 @@ class BibleProxyClient @Inject constructor(
                 json.parseToJsonElement(text).jsonObject["error"]?.jsonPrimitive?.content
             }.getOrNull()?.takeIf { it.isNotBlank() }
         }
-        val base = serverMessage ?: "Bible server error (HTTP ${e.code()})"
-        if (e.code() == 403 && base.contains("Licensed", ignoreCase = true)) {
-            return IllegalStateException(
-                "$base Switch to WEB or KJV in the reader, or run " +
-                    "`wrangler secret put API_BIBLE_LICENSED_ENABLED` (value: true) on the bible-cache worker.",
-            )
-        }
         if (e.code() == 401) {
             return BibleProxyLicensedAuthException(
                 BibleProxyLicensedAuthException.USER_FACING_MESSAGE,
             )
         }
-        return IllegalStateException(base)
+        return IllegalStateException(BibleProxyUserMessages.friendlyMessage(e.code(), serverMessage))
     }
 }

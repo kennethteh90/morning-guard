@@ -15,7 +15,32 @@ struct OnboardingFlowView: View {
     @State private var windowEnd = Date()
     @State private var selectedGoal: GoalType = .bibleChapter
 
-    private let stepTitles = ["Access", "Apps", "Routine"]
+    @State private var choseLocalOnly = true
+    @State private var syncEmail = ""
+    @State private var magicLinkStatus: String?
+    @State private var magicLinkError: String?
+    @State private var isSendingMagicLink = false
+
+    @State private var emergencyPassphrase = ""
+    @State private var emergencyPassphraseError: String?
+
+    private var stepTitles: [String] {
+        [
+            L10n.tr("onboarding.step.welcome"),
+            L10n.tr("onboarding.step.your_data"),
+            L10n.tr("onboarding.step.access"),
+            L10n.tr("onboarding.step.apps"),
+            L10n.tr("onboarding.step.routine"),
+            L10n.tr("onboarding.step.emergency"),
+        ]
+    }
+
+    private var signedInUser: AuthUser? {
+        if case .signedIn(let user) = appState.supabaseAuth.state { return user }
+        return nil
+    }
+
+    private var isSignedInForOnboarding: Bool { signedInUser != nil }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -25,9 +50,12 @@ struct OnboardingFlowView: View {
 
             Group {
                 switch step {
-                case 0: screenTimeStep
-                case 1: appPickerStep
-                default: setupStep
+                case 0: welcomeStep
+                case 1: yourDataStep
+                case 2: screenTimeStep
+                case 3: appPickerStep
+                case 4: setupStep
+                default: emergencyStep
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -40,32 +68,148 @@ struct OnboardingFlowView: View {
         .onAppear {
             syncWindowPickers()
             selectedGoal = appState.settingsStore.userSettings.morningGoal.type
+            choseLocalOnly = appState.settingsStore.userSettings.dataStorageMode == .localOnly
         }
+    }
+
+    private var welcomeStep: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                OnboardingSectionTitle(
+                    title: L10n.tr("onboarding.welcome.title"),
+                    subtitle: L10n.tr("onboarding.welcome.subtitle")
+                )
+
+                featureRow(
+                    icon: "sun.horizon.fill",
+                    title: L10n.tr("onboarding.welcome.gate"),
+                    detail: L10n.tr("onboarding.welcome.gate.detail")
+                )
+                featureRow(
+                    icon: "bell.slash.fill",
+                    title: L10n.tr("onboarding.welcome.no_digest"),
+                    detail: L10n.tr("onboarding.welcome.no_digest.detail")
+                )
+                featureRow(
+                    icon: "shield.lefthalf.filled",
+                    title: L10n.tr("onboarding.welcome.control"),
+                    detail: L10n.tr("onboarding.welcome.control.detail")
+                )
+            }
+            .padding(MGTheme.standardPadding)
+        }
+    }
+
+    private var yourDataStep: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                OnboardingSectionTitle(
+                    title: L10n.tr("onboarding.data.title"),
+                    subtitle: isSignedInForOnboarding
+                        ? L10n.tr("onboarding.data.subtitle_signed_in")
+                        : L10n.tr("onboarding.data.subtitle")
+                )
+
+                if isSignedInForOnboarding {
+                    signedInDataCards
+                } else {
+                    unsignedInDataFlow
+                }
+            }
+            .padding(MGTheme.standardPadding)
+        }
+    }
+
+    @ViewBuilder
+    private var signedInDataCards: some View {
+        dataChoiceCard(
+            title: L10n.tr("onboarding.data.local.title"),
+            detail: L10n.tr("onboarding.data.local.detail_signed_in"),
+            icon: "icloud.slash",
+            selected: choseLocalOnly,
+            accessibilityLabel: L10n.tr("a11y.onboarding.data.local_signed_in"),
+            accessibilityHint: L10n.tr("a11y.onboarding.data.local_signed_in.hint"),
+            action: { Task { await continueWithLocalData() } }
+        )
+
+        dataChoiceCard(
+            title: L10n.tr("onboarding.data.cloud.title"),
+            detail: cloudDetailSignedIn,
+            icon: "envelope.badge",
+            selected: !choseLocalOnly,
+            accessibilityLabel: L10n.tr("a11y.onboarding.data.cloud_signed_in"),
+            accessibilityHint: L10n.tr("a11y.onboarding.data.cloud_signed_in.hint"),
+            action: { continueWithCloudSync() }
+        )
+    }
+
+    @ViewBuilder
+    private var unsignedInDataFlow: some View {
+        dataChoiceCard(
+            title: L10n.tr("onboarding.data.local.title"),
+            detail: L10n.tr("onboarding.data.local.detail"),
+            icon: "icloud.slash",
+            selected: choseLocalOnly,
+            accessibilityLabel: L10n.tr("a11y.onboarding.data.local"),
+            accessibilityHint: L10n.tr("a11y.onboarding.data.local.hint"),
+            action: { choseLocalOnly = true }
+        )
+
+        Text(L10n.tr("onboarding.data.or_sync"))
+            .font(.headline)
+            .accessibilityAddTraits(.isHeader)
+
+        TextField(L10n.tr("onboarding.data.email"), text: $syncEmail)
+            .textContentType(.emailAddress)
+            .keyboardType(.emailAddress)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
+            .accessibilityLabel(L10n.tr("a11y.onboarding.email"))
+
+        Text(L10n.tr("onboarding.data.email.hint"))
+            .font(.caption)
+            .foregroundStyle(.secondary)
+
+        if let magicLinkError {
+            Text(magicLinkError).foregroundStyle(.red).font(.callout)
+        }
+        if let magicLinkStatus {
+            Text(magicLinkStatus).foregroundStyle(MGTheme.accent).font(.callout)
+        }
+    }
+
+    private var cloudDetailSignedIn: String {
+        let emailSuffix: String
+        if let email = signedInUser?.email, !email.isEmpty {
+            emailSuffix = L10n.tr("onboarding.data.cloud.detail_email_format", email)
+        } else {
+            emailSuffix = ""
+        }
+        return L10n.tr("onboarding.data.cloud.detail_format", emailSuffix)
     }
 
     private var screenTimeStep: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 OnboardingSectionTitle(
-                    title: "Screen Time access",
-                    subtitle: "On a real iPhone, Morning Guard uses Apple’s Screen Time API to shield apps you pick until you finish your morning goal."
+                    title: L10n.tr("onboarding.screentime.title"),
+                    subtitle: L10n.tr("onboarding.screentime.subtitle")
                 )
 
                 if MGDebugFlags.relaxesShieldOnboarding {
-                    OnboardingSimulatorBanner(
-                        text: "Simulator: authorization isn’t required. Tap Continue below to set your morning routine and try goals. Shields only work on a physical device."
-                    )
+                    OnboardingSimulatorBanner(text: L10n.tr("onboarding.screentime.simulator"))
                 }
 
                 MGCard {
                     VStack(alignment: .leading, spacing: 12) {
-                        Label("Individual authorization", systemImage: "person.crop.circle")
+                        Label(L10n.tr("onboarding.screentime.individual"), systemImage: "person.crop.circle")
                             .font(.headline)
-                        Text("This is self-control on your device—not parental monitoring.")
+                        Text(L10n.tr("onboarding.screentime.self_control"))
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
                 }
+                .accessibilityElement(children: .combine)
 
                 if let authError {
                     Text(authError)
@@ -82,7 +226,9 @@ struct OnboardingFlowView: View {
                                 .frame(maxWidth: .infinity)
                         } else {
                             Label(
-                                appState.shieldController.isAuthorized ? "Authorized" : "Authorize Screen Time",
+                                appState.shieldController.isAuthorized
+                                    ? L10n.tr("onboarding.screentime.authorized")
+                                    : L10n.tr("onboarding.screentime.authorize"),
                                 systemImage: appState.shieldController.isAuthorized ? "checkmark.circle.fill" : "hourglass.circle"
                             )
                             .frame(maxWidth: .infinity)
@@ -91,6 +237,8 @@ struct OnboardingFlowView: View {
                     .buttonStyle(.borderedProminent)
                     .tint(MGTheme.accent)
                     .disabled(appState.shieldController.isAuthorized || isRequestingAuth)
+                    .accessibilityLabel(L10n.tr("a11y.onboarding.authorize_screentime"))
+                    .accessibilityHint(L10n.tr("a11y.onboarding.authorize_screentime.hint"))
                 }
             }
             .padding(MGTheme.standardPadding)
@@ -101,29 +249,28 @@ struct OnboardingFlowView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 OnboardingSectionTitle(
-                    title: "Apps to shield",
-                    subtitle: "Choose what to limit during your morning window. Leave out Phone and Messages if you need them."
+                    title: L10n.tr("onboarding.apps.title"),
+                    subtitle: L10n.tr("onboarding.apps.subtitle")
                 )
 
                 if MGDebugFlags.relaxesShieldOnboarding {
-                    OnboardingSimulatorBanner(
-                        text: "Simulator: the app picker may be empty or limited. You can continue without selecting apps."
-                    )
+                    OnboardingSimulatorBanner(text: L10n.tr("onboarding.apps.simulator"))
                 }
 
                 #if canImport(FamilyControls)
                 if appState.shieldController.isAuthorized || MGDebugFlags.relaxesShieldOnboarding {
                     FamilyActivityPicker(selection: shieldSelectionBinding)
                         .frame(maxHeight: 260)
+                        .accessibilityLabel(L10n.tr("a11y.onboarding.app_picker"))
                 } else {
                     MGCard {
-                        Text("Authorize Screen Time on the previous step to choose apps.")
+                        Text(L10n.tr("onboarding.apps.need_auth"))
                             .foregroundStyle(.secondary)
                     }
                 }
                 #else
                 MGCard {
-                    Text("Family Controls unavailable in this build.")
+                    Text(L10n.tr("onboarding.apps.unavailable"))
                         .foregroundStyle(.secondary)
                 }
                 #endif
@@ -137,37 +284,55 @@ struct OnboardingFlowView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 OnboardingSectionTitle(
-                    title: "Your morning routine",
-                    subtitle: "When this window is active and your goal isn’t done, selected apps stay shielded."
+                    title: L10n.tr("onboarding.routine.title"),
+                    subtitle: L10n.tr("onboarding.routine.subtitle")
                 )
 
                 MGCard {
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Morning window")
+                        Text(L10n.tr("onboarding.routine.window"))
                             .font(.headline)
-                        DatePicker("Starts", selection: $windowStart, displayedComponents: .hourAndMinute)
-                        DatePicker("Ends", selection: $windowEnd, displayedComponents: .hourAndMinute)
+                        DatePicker(L10n.tr("settings.starts"), selection: $windowStart, displayedComponents: .hourAndMinute)
+                        DatePicker(L10n.tr("settings.ends"), selection: $windowEnd, displayedComponents: .hourAndMinute)
                     }
                 }
+                .accessibilityElement(children: .contain)
 
                 MGCard {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Daily goal")
+                        Text(L10n.tr("onboarding.routine.daily_goal"))
                             .font(.headline)
-                        Picker("Type", selection: $selectedGoal) {
-                            Text("Bible chapter (60s)").tag(GoalType.bibleChapter)
-                            Text("Timed focus").tag(GoalType.timedFocus)
-                            Text("Steps").tag(GoalType.stepCount)
+                        Picker(L10n.tr("settings.goal.type"), selection: $selectedGoal) {
+                            Text(L10n.tr("onboarding.routine.goal.bible")).tag(GoalType.bibleChapter)
+                            Text(L10n.tr("onboarding.routine.goal.timed")).tag(GoalType.timedFocus)
+                            Text(L10n.tr("onboarding.routine.goal.steps")).tag(GoalType.stepCount)
                         }
                         .pickerStyle(.segmented)
-
                         Text(selectedGoalHint)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
                 }
+                .accessibilityElement(children: .contain)
 
                 tipForTestingWindow
+            }
+            .padding(MGTheme.standardPadding)
+        }
+    }
+
+    private var emergencyStep: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                OnboardingSectionTitle(
+                    title: L10n.tr("onboarding.emergency.title"),
+                    subtitle: L10n.tr("onboarding.emergency.subtitle")
+                )
+                SecureField(L10n.tr("onboarding.emergency.passphrase"), text: $emergencyPassphrase)
+                    .accessibilityLabel(L10n.tr("a11y.onboarding.emergency_passphrase"))
+                if let emergencyPassphraseError {
+                    Text(emergencyPassphraseError).foregroundStyle(.red).font(.callout)
+                }
             }
             .padding(MGTheme.standardPadding)
         }
@@ -176,40 +341,47 @@ struct OnboardingFlowView: View {
     @ViewBuilder
     private var tipForTestingWindow: some View {
         if MGDebugFlags.relaxesShieldOnboarding {
-            OnboardingSimulatorBanner(
-                text: "Tip: set the window so the current time is inside the range, then finish onboarding and tap Start morning goal on Home."
-            )
+            OnboardingSimulatorBanner(text: L10n.tr("onboarding.routine.simulator_tip"))
         }
     }
 
     private var selectedGoalHint: String {
         switch selectedGoal {
         case .bibleChapter:
-            return "John 1 by default. Stay on the goal screen for about 60 seconds."
+            return L10n.tr("onboarding.routine.hint.bible")
         case .timedFocus:
-            return "Stay on the goal screen until the timer finishes (default 2 minutes)."
+            return L10n.tr("onboarding.routine.hint.timed")
         case .stepCount:
-            return "Counts steps via HealthKit on device; Simulator may not update steps."
+            return L10n.tr("onboarding.routine.hint.steps")
         }
     }
 
     private var bottomBar: some View {
         HStack(spacing: 16) {
             if step > 0 {
-                Button("Back") { step -= 1 }
+                Button(L10n.tr("common.back")) { step -= 1 }
                     .buttonStyle(.bordered)
+                    .accessibilityLabel(L10n.tr("common.back"))
+                    .accessibilityHint(L10n.tr("a11y.onboarding.back"))
             }
             Spacer()
-            Button(step == stepTitles.count - 1 ? "Finish" : "Continue") {
-                if step == stepTitles.count - 1 {
-                    finishOnboarding()
-                } else {
-                    step += 1
+            if step != 1 || !isSignedInForOnboarding {
+                Button(step == stepTitles.count - 1 ? L10n.tr("common.finish") : L10n.tr("common.continue")) {
+                    if step == 1 {
+                        Task { await applyDataChoiceAndAdvance() }
+                    } else if step == stepTitles.count - 1 {
+                        finishOnboarding()
+                    } else {
+                        step += 1
+                    }
                 }
+                .buttonStyle(.borderedProminent)
+                .tint(MGTheme.accent)
+                .disabled(isContinueDisabled || (step == 1 && isSendingMagicLink))
+                .accessibilityLabel(
+                    step == stepTitles.count - 1 ? L10n.tr("a11y.onboarding.finish") : L10n.tr("a11y.onboarding.continue")
+                )
             }
-            .buttonStyle(.borderedProminent)
-            .tint(MGTheme.accent)
-            .disabled(isContinueDisabled)
         }
         .padding(MGTheme.standardPadding)
         .background(.bar)
@@ -218,7 +390,11 @@ struct OnboardingFlowView: View {
 
     private var isContinueDisabled: Bool {
         if MGDebugFlags.relaxesShieldOnboarding { return false }
-        return !canAdvance
+        switch step {
+        case 2: return !appState.shieldController.isAuthorized
+        case 3: return !appState.shieldController.hasSelection
+        default: return false
+        }
     }
 
     #if canImport(FamilyControls)
@@ -233,13 +409,102 @@ struct OnboardingFlowView: View {
     }
     #endif
 
-    private var canAdvance: Bool {
-        if MGDebugFlags.relaxesShieldOnboarding { return true }
-        switch step {
-        case 0: return appState.shieldController.isAuthorized
-        case 1: return appState.shieldController.hasSelection
-        default: return true
+    private func featureRow(icon: String, title: String, detail: String) -> some View {
+        MGCard {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: icon)
+                    .foregroundStyle(MGTheme.accent)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title).font(.headline)
+                    Text(detail).font(.subheadline).foregroundStyle(.secondary)
+                }
+            }
         }
+        .accessibilityElement(children: .combine)
+    }
+
+    private func dataChoiceCard(
+        title: String,
+        detail: String,
+        icon: String,
+        selected: Bool,
+        accessibilityLabel: String,
+        accessibilityHint: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            MGCard {
+                HStack(alignment: .top, spacing: 12) {
+                    Image(systemName: icon)
+                        .foregroundStyle(selected ? MGTheme.accent : .secondary)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(title).font(.headline)
+                        Text(detail).font(.subheadline).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    if selected {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(MGTheme.accent)
+                    }
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityHint(accessibilityHint)
+    }
+
+    private func continueWithLocalData() async {
+        if isSignedInForOnboarding {
+            await appState.signOut()
+        }
+        appState.settingsStore.updateUserSettings { settings in
+            var copy = settings
+            copy.dataStorageMode = .localOnly
+            return copy
+        }
+        choseLocalOnly = true
+        magicLinkError = nil
+        magicLinkStatus = nil
+        step += 1
+    }
+
+    private func continueWithCloudSync() {
+        appState.settingsStore.updateUserSettings { settings in
+            var copy = settings
+            copy.dataStorageMode = .cloudSync
+            return copy
+        }
+        choseLocalOnly = false
+        magicLinkError = nil
+        step += 1
+    }
+
+    private func applyDataChoiceAndAdvance() async {
+        magicLinkError = nil
+        magicLinkStatus = nil
+        let trimmedEmail = syncEmail.trimmingCharacters(in: .whitespacesAndNewlines)
+        if choseLocalOnly && trimmedEmail.isEmpty {
+            await continueWithLocalData()
+            return
+        }
+        if !trimmedEmail.isEmpty {
+            isSendingMagicLink = true
+            defer { isSendingMagicLink = false }
+            do {
+                try await appState.sendMagicLink(email: trimmedEmail)
+                choseLocalOnly = false
+                magicLinkStatus = L10n.tr("onboarding.magic_link.sent")
+            } catch {
+                magicLinkError = error.localizedDescription
+                return
+            }
+        } else if choseLocalOnly {
+            await continueWithLocalData()
+            return
+        }
+        step += 1
     }
 
     private func syncWindowPickers() {
@@ -256,6 +521,14 @@ struct OnboardingFlowView: View {
     }
 
     private func finishOnboarding() {
+        if !emergencyPassphrase.isEmpty {
+            do {
+                try appState.setEmergencyPassphrase(emergencyPassphrase)
+            } catch {
+                emergencyPassphraseError = error.localizedDescription
+                return
+            }
+        }
         let window: MorningWindow
         if MGDebugFlags.relaxesShieldOnboarding {
             window = DebugWindowPresets.includingNow()
@@ -273,6 +546,9 @@ struct OnboardingFlowView: View {
             var copy = settings
             copy.morningWindow = window
             copy.morningGoal = MorningGoalConfig(type: selectedGoal)
+            if choseLocalOnly && syncEmail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                copy.dataStorageMode = .localOnly
+            }
             return copy
         }
         appState.shieldController.persistSelection()

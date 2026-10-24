@@ -40,9 +40,10 @@ struct BibleReadingScreen: View {
                 }
                 if showsGoalProgress {
                     ProgressView(value: min(1, Double(elapsedSeconds) / Double(requiredSeconds)))
-                    Text("\(elapsedSeconds) / \(requiredSeconds) seconds on screen")
+                    Text(L10n.tr("bible.reading.progress_format", elapsedSeconds, requiredSeconds))
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                        .accessibilityLabel(L10n.tr("a11y.goal.progress"))
                 }
 
                 if !bibleReaderTipSeen {
@@ -50,7 +51,7 @@ struct BibleReadingScreen: View {
                 }
 
                 if loading {
-                    ProgressView("Loading chapter…")
+                    ProgressView(L10n.tr("bible.loading_chapter"))
                         .frame(maxWidth: .infinity)
                 } else if errorMessage != nil {
                     EmptyView()
@@ -63,7 +64,7 @@ struct BibleReadingScreen: View {
                         decryptNote: { appState.bibleHighlightStore.displayNote(for: $0) }
                     )
                 } else {
-                    Text("Chapter text is not loaded yet. Check your connection.")
+                    Text(L10n.tr("bible.chapter_not_loaded"))
                         .foregroundStyle(.secondary)
                 }
             }
@@ -85,6 +86,8 @@ struct BibleReadingScreen: View {
                         Text("\(config.bibleBook) \(config.bibleChapter)")
                             .font(.headline)
                     }
+                    .accessibilityLabel(L10n.tr("a11y.bible.chapter_nav"))
+                    .accessibilityHint(L10n.tr("a11y.bible.book_picker"))
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -93,6 +96,7 @@ struct BibleReadingScreen: View {
                         Text(BibleTranslations.chipLabel(id: config.bibleTranslation))
                             .font(.subheadline.weight(.semibold))
                     }
+                    .accessibilityLabel(L10n.tr("a11y.bible.translation_picker"))
                 }
             }
         }
@@ -144,16 +148,19 @@ struct BibleReadingScreen: View {
             Image(systemName: "hand.tap.fill")
                 .foregroundStyle(MGTheme.accent)
             VStack(alignment: .leading, spacing: 6) {
-                Text("Tap verses to highlight, then save from the bar below.")
+                Text(L10n.tr("bible.tip.body"))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                Button("Got it") { bibleReaderTipSeen = true }
+                Button(L10n.tr("bible.tip.dismiss")) { bibleReaderTipSeen = true }
                     .font(.subheadline.weight(.semibold))
+                    .accessibilityLabel(L10n.tr("a11y.bible.tip.dismiss"))
             }
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(MGTheme.accent.opacity(0.1), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(L10n.tr("a11y.bible.tip"))
     }
 
     private var chapterLoadKey: String {
@@ -163,19 +170,26 @@ struct BibleReadingScreen: View {
     private func bibleLoadErrorBanner(_ message: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(
-                "Couldn't load \(config.bibleBook) \(config.bibleChapter) (\(BibleTranslations.chipLabel(id: config.bibleTranslation)))"
+                L10n.tr(
+                    "bible.load_error.title_format",
+                    config.bibleBook,
+                    config.bibleChapter,
+                    BibleTranslations.chipLabel(id: config.bibleTranslation)
+                )
             )
             .font(.subheadline.bold())
             Text(message)
                 .font(.subheadline)
-            Button("Retry") { Task { await loadChapter() } }
+            Button(L10n.tr("bible.retry")) { Task { await loadChapter() } }
                 .buttonStyle(.bordered)
+                .accessibilityLabel(L10n.tr("a11y.bible.retry"))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
         .background(Color.red.opacity(0.12))
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .accessibilityElement(children: .combine)
+        .accessibilityLabel(L10n.tr("a11y.bible.load_error"))
     }
 
     private var chapterNavBar: some View {
@@ -183,7 +197,7 @@ struct BibleReadingScreen: View {
             HStack(spacing: 4) {
                 chapterNavCaretButton(
                     systemName: "chevron.left",
-                    accessibilityLabel: "Previous chapter",
+                    accessibilityLabel: L10n.tr("a11y.bible.previous_chapter"),
                     action: { appState.stepBibleChapter(delta: -1) }
                 )
                 Spacer(minLength: 8)
@@ -196,6 +210,8 @@ struct BibleReadingScreen: View {
                             .lineLimit(1)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel(L10n.tr("a11y.bible.chapter_nav"))
+                    .accessibilityHint(L10n.tr("a11y.bible.book_picker"))
                 } else {
                     Text(BibleTranslations.chipLabel(id: config.bibleTranslation))
                         .font(.caption)
@@ -204,7 +220,7 @@ struct BibleReadingScreen: View {
                 Spacer(minLength: 8)
                 chapterNavCaretButton(
                     systemName: "chevron.right",
-                    accessibilityLabel: "Next chapter",
+                    accessibilityLabel: L10n.tr("a11y.bible.next_chapter"),
                     action: { appState.stepBibleChapter(delta: 1) }
                 )
             }
@@ -249,7 +265,7 @@ struct BibleReadingScreen: View {
 
     private func friendlyBibleError(_ error: String) -> String {
         if error.contains("-1011") || error.localizedCaseInsensitiveContains("badServerResponse") {
-            return "Could not load chapter. Licensed translations use WEB on iOS until API.Bible is configured."
+            return L10n.tr("bible.error.web_fallback")
         }
         return error
     }
@@ -293,7 +309,7 @@ struct BibleReadingScreen: View {
         withAnimation(.spring(duration: 0.35)) {
             highlightBarState = nil
         }
-        MGBanner.present(.message("Saved to highlights"), binding: $banner)
+        MGBanner.present(.message(L10n.tr("bible.saved_highlight")), binding: $banner)
     }
 
     private func deleteHighlight() {
@@ -302,7 +318,7 @@ struct BibleReadingScreen: View {
         withAnimation(.spring(duration: 0.35)) {
             highlightBarState = nil
         }
-        MGBanner.present(.message("Highlight removed"), binding: $banner)
+        MGBanner.present(.message(L10n.tr("bible.highlight_removed")), binding: $banner)
         Task { await appState.userDataSync.deleteHighlight(existing) }
     }
 
@@ -319,7 +335,7 @@ struct BibleReadingScreen: View {
         UIPasteboard.general.string = text
         #endif
         MGHaptics.lightImpact()
-        MGBanner.present(.message("Copied to clipboard"), binding: $banner)
+        MGBanner.present(.message(L10n.tr("bible.copied")), binding: $banner)
     }
 }
 
