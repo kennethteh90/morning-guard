@@ -270,7 +270,7 @@ final class AppState {
     }
 
     func signOut() async {
-        highlightStore.clearAll()
+        bibleHighlightStore.clearAll()
         settingsStore.clearMorningHistory()
         noteEncryption.lock()
         settingsStore.updateUserSettings { settings in
