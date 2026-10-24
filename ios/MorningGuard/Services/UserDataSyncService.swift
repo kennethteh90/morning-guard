@@ -60,7 +60,7 @@ final class UserDataSyncService {
             } else if highlight.id > 0 {
                 try await client.from("bible_highlights")
                     .delete()
-                    .eq("client_id", value: highlight.id)
+                    .eq("client_id", value: Int(highlight.id))
                     .eq("user_id", value: userId)
                     .execute()
             } else if let verse = highlight.verse {
