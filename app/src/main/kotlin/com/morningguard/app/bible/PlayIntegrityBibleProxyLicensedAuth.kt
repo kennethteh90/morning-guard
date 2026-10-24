@@ -19,7 +19,6 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
@@ -43,56 +42,29 @@ class PlayIntegrityBibleProxyLicensedAuth @Inject constructor(
         isTransientFailure = ::isTransientIntegrityFailure,
     )
 
-    private val clientAuthCooldownUntilMs = AtomicLong(0L)
-    private val lastSentryReportMs = AtomicLong(0L)
+    private val failureGate = LicensedAuthFailureGate(errorReporter)
 
     override fun applyLicensedHeaders(builder: Request.Builder) {
         val cloudProject = BuildConfig.PLAY_CLOUD_PROJECT_NUMBER.trim().toLongOrNull() ?: 0L
         if (!config.isConfigured || cloudProject <= 0L) {
             return
         }
-        if (clientAuthInCooldown()) {
+        if (failureGate.inCooldown()) {
             throw BibleProxyLicensedAuthException()
         }
         try {
             val headers = runBlocking { licensedHeaders() }
             headers.forEach { (key, value) -> builder.header(key, value) }
         } catch (e: BibleProxyLicensedAuthException) {
-            markClientAuthFailure()
-            reportLicensedAuthFailure(e)
+            failureGate.markFailure()
+            failureGate.reportFailure(e)
             throw e
         } catch (e: Exception) {
             val wrapped = BibleProxyLicensedAuthException(cause = e)
-            markClientAuthFailure()
-            reportLicensedAuthFailure(wrapped)
+            failureGate.markFailure()
+            failureGate.reportFailure(wrapped)
             throw wrapped
         }
-    }
-
-    private fun clientAuthInCooldown(): Boolean =
-        System.currentTimeMillis() < clientAuthCooldownUntilMs.get()
-
-    private fun markClientAuthFailure() {
-        clientAuthCooldownUntilMs.set(
-            System.currentTimeMillis() + LicensedSessionCoordinator.COOLDOWN_AFTER_EXHAUSTED_MS,
-        )
-    }
-
-    private fun reportLicensedAuthFailure(error: Throwable) {
-        val now = System.currentTimeMillis()
-        if (now - lastSentryReportMs.get() < LicensedSessionCoordinator.COOLDOWN_AFTER_EXHAUSTED_MS) {
-            errorReporter.breadcrumb(
-                "bible_licensed_auth",
-                error.message ?: BibleProxyLicensedAuthException.USER_FACING_MESSAGE,
-            )
-            return
-        }
-        lastSentryReportMs.set(now)
-        errorReporter.reportNonFatal(
-            error,
-            tags = mapOf("area" to "bible_licensed_auth"),
-            extras = mapOf("cause" to (error.cause?.javaClass?.simpleName ?: "none")),
-        )
     }
 
     override fun invalidateSession() {
