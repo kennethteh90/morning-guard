@@ -67,10 +67,6 @@ def ci_manual_export_options(profile_map)
   }
 end
 
-def ci_build_app_export_options
-  { export_options: ci_manual_export_options(JSON.parse(ENV.fetch("CI_EXPORT_PROFILES"))) }
-end
-
 def fetch_ci_app_store_profiles!(api_key)
   profile_map = {}
   CI_APP_STORE_BUNDLE_IDS.each do |bundle_id|
@@ -154,23 +150,52 @@ def refresh_ci_keychain_for_build!
   unlock_ci_keychain!(ENV.fetch("CI_KEYCHAIN_PATH"), ENV.fetch("CI_KEYCHAIN_PASSWORD"))
 end
 
+def build_app_common_options
+  {
+    project: "MorningGuard.xcodeproj",
+    scheme: "MorningGuard",
+    configuration: "Release",
+    export_method: "app-store",
+    export_team_id: ENV.fetch("IOS_DEVELOPMENT_TEAM"),
+    output_directory: "./build",
+    output_name: "MorningGuard.ipa",
+  }
+end
+
+# Gym passes `xcargs` to both archive and export. On CI, export must use manual profiles only;
+# `-allowProvisioningUpdates` on export triggers cloud signing and hangs or fails without a GUI session.
+def build_release_ipa!
+  shared = build_app_common_options
+  if ENV["CI"] == "true"
+    build_app(
+      **shared,
+      skip_package_ipa: true,
+      xcargs: xcode_auth_xcargs,
+    )
+    archive_path = Actions.lane_context[SharedValues::XCODEBUILD_ARCHIVE]
+    UI.user_error!("Archive path missing after build") if archive_path.to_s.empty?
+
+    refresh_ci_keychain_for_build!
+    team = ENV.fetch("IOS_DEVELOPMENT_TEAM")
+    build_app(
+      **shared,
+      skip_build_archive: true,
+      archive_path: archive_path,
+      export_options: ci_manual_export_options(JSON.parse(ENV.fetch("CI_EXPORT_PROFILES"))),
+      export_xcargs: "DEVELOPMENT_TEAM=#{team}",
+    )
+  else
+    build_app(**shared, xcargs: xcode_auth_xcargs)
+  end
+end
+
 platform :ios do
   desc "Release archive only (no upload)"
   lane :build_release do
     api_key = asc_api_key
     prepare_ci_signing(api_key)
     refresh_ci_keychain_for_build!
-    build_app(
-      project: "MorningGuard.xcodeproj",
-      scheme: "MorningGuard",
-      configuration: "Release",
-      export_method: "app-store",
-      export_team_id: ENV.fetch("IOS_DEVELOPMENT_TEAM"),
-      xcargs: xcode_auth_xcargs,
-      output_directory: "./build",
-      output_name: "MorningGuard.ipa",
-      **(ENV["CI"] == "true" ? ci_build_app_export_options : {}),
-    )
+    build_release_ipa!
   end
 
   desc "Build and upload to TestFlight"
@@ -178,17 +203,7 @@ platform :ios do
     api_key = asc_api_key
     prepare_ci_signing(api_key)
     refresh_ci_keychain_for_build!
-    build_app(
-      project: "MorningGuard.xcodeproj",
-      scheme: "MorningGuard",
-      configuration: "Release",
-      export_method: "app-store",
-      export_team_id: ENV.fetch("IOS_DEVELOPMENT_TEAM"),
-      xcargs: xcode_auth_xcargs,
-      output_directory: "./build",
-      output_name: "MorningGuard.ipa",
-      **(ENV["CI"] == "true" ? ci_build_app_export_options : {}),
-    )
+    build_release_ipa!
     upload_to_testflight(
       api_key: api_key,
       skip_waiting_for_build_processing: true,
