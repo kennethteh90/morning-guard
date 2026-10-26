@@ -8,10 +8,12 @@ Signed **full** flavor release AABs (`com.morningguard.app`) are built in GitHub
 |----------|----------------|---------|
 | [CI](../.github/workflows/ci.yml) | PR + push to `main` | Android `test`, `detekt`, `lint` |
 | [iOS](../.github/workflows/ios.yml) | PR (iOS / `version.properties` paths) | Simulator build, `MorningGuardCore` tests |
-| [Release](../.github/workflows/release.yml) | Tag `v*` or manual | Signed Android AAB (+ optional Play internal draft) |
+| [Release](../.github/workflows/release.yml) | Push to `main` changing `version.properties`, or manual | Signed Android AAB (+ optional Play internal release) |
 | [iOS Release](../.github/workflows/ios-release.yml) | Tag `v*` or manual | Archive + TestFlight upload |
 
-**Ship a version:** merge to `main`, wait for **CI** (and **iOS** on the PR) to pass, bump `version.properties` if needed, push `main`, then tag and push **only the tag** (or push `main` and tag in one go knowing you will get up to four runs). Prefer `git push origin main`, confirm green, then `git tag vX.Y.Z && git push origin vX.Y.Z` so store workflows are not stacked on top of redundant `main` checks you already saw on the PR.
+**Ship Android:** merge to `main` with a bump in `version.properties` (match `vX.Y.Z` in git tags if you tag for iOS). **Release** builds the AAB and, when `PLAY_SERVICE_ACCOUNT_JSON` is set, publishes to the Play **internal** track with status **completed** (testers get the build without a Play Console draft step).
+
+**Ship iOS:** after `main` is green, tag and push `vX.Y.Z` (same version as `version.properties`) so **iOS Release** runs — see [docs/ios/testflight.md](ios/testflight.md). You can tag without re-bumping `version.properties` if Android already shipped from the merge commit.
 
 ## One-time: repository secrets
 
@@ -46,7 +48,7 @@ Local Mac builds are unchanged: keep using `local.properties` and a filesystem p
 
 ## Google Play service account (optional)
 
-Used only to upload the AAB to the **internal testing** track as a **draft** release (never production, never completed rollout).
+Used to upload the AAB to the **internal testing** track (never production). Merges that bump `version.properties` publish with status **completed**; manual workflow runs use **draft** so you can review in Play Console first.
 
 1. In [Google Cloud Console](https://console.cloud.google.com/), create a service account (or reuse one) for the Play Android Developer API.
 2. Enable **Google Play Android Developer API** for the project.
@@ -57,7 +59,7 @@ Used only to upload the AAB to the **internal testing** track as a **draft** rel
 
 ## Release notes (optional)
 
-To send “what’s new” text with the Play draft, add localized files under:
+To send “what’s new” text with the Play upload, add localized files under:
 
 ```text
 release-notes/
@@ -73,31 +75,31 @@ Workflow file: [`.github/workflows/release.yml`](../.github/workflows/release.ym
 
 | Trigger | Behavior |
 |---------|----------|
-| **Tag push** `v*` (e.g. `v1.0.7`) | Build AAB, upload artifacts; Play draft upload runs if `PLAY_SERVICE_ACCOUNT_JSON` is set |
-| **workflow_dispatch** | Same build; optional input **Upload to Play** (default on); skipped if the Play secret is missing |
+| **Push to `main`** changing `version.properties` | Build AAB, upload artifacts; Play **internal** upload with status **completed** when `PLAY_SERVICE_ACCOUNT_JSON` is set |
+| **workflow_dispatch** | Same build; optional **Upload to Play** (default on) as **draft**; skipped if the Play secret is missing |
 
-Artifacts (per run):
+Artifacts (per run, labeled from `version.properties` e.g. `v1.0.9`):
 
-- `morning-guard-full-release-<ref>` — `app-full-release.aab`
-- `morning-guard-r8-mapping-<ref>` — ProGuard/R8 `mapping.txt` (if produced)
-- `morning-guard-native-symbols-<ref>` — native debug symbols zip (if produced)
+- `morning-guard-full-release-vX.Y.Z` — `app-full-release.aab`
+- `morning-guard-r8-mapping-vX.Y.Z` — ProGuard/R8 `mapping.txt` (if produced)
+- `morning-guard-native-symbols-vX.Y.Z` — native debug symbols zip (if produced)
 
 When `PLAY_SERVICE_ACCOUNT_JSON` is set, the Play upload step also sends R8 `mapping.txt` and `native-debug-symbols.zip` (when Gradle produces it) so Play Console can deobfuscate Java/Kotlin and native crashes.
 
 Release builds set `ndk.debugSymbolLevel = FULL` and pin NDK **27.0.12077973** (installed in the Release workflow). Native symbols are only extractable if packaged `.so` files still contain debug metadata; many Maven AARs (including Sentry) ship stripped libraries, so the zip may be absent and Play may keep showing a native-symbols warning until a future upload includes symbols. That warning does not block internal testing; the next tagged release will pick up this pipeline automatically—no extra release is required for the Gradle/CI change alone.
 
-Example tag release:
+Example Android ship (version bump on `main`):
 
 ```bash
-git tag v1.0.7
-git push origin v1.0.7
+# edit version.properties, merge PR or push main
+git push origin main
 ```
 
-Manual run: GitHub → **Actions** → **Release** → **Run workflow**.
+Manual build (Play **draft**): GitHub → **Actions** → **Release** → **Run workflow**, or `gh workflow run release -R kennethteh90/morning-guard`.
 
 ## CI
 
-Pull-request and `main` verification is [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`test`, `detekt`, `lint` only). Release APK/AAB artifacts come from the **Release** workflow on tags, not from CI.
+Pull-request and `main` verification is [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`test`, `detekt`, `lint` only). Release AAB artifacts come from the **Release** workflow when `version.properties` changes on `main`, not from CI.
 
 ## iOS TestFlight
 

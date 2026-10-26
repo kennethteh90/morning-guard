@@ -85,7 +85,7 @@ Upload **AAB** from `app/build/outputs/bundle/fullRelease/` (see checklist). Sto
 ## CI / CD
 
 - **CI** (`.github/workflows/ci.yml`): `test`, `detekt`, `lint` on PRs and pushes to `main`.
-- **Release** (`.github/workflows/release.yml`): signed `bundleFullRelease` on version tags (`v*`) or manual dispatch — see [`docs/cloud-release.md`](docs/cloud-release.md).
+- **Release** (`.github/workflows/release.yml`): signed `bundleFullRelease` when `version.properties` changes on `main` (Play internal **completed**) or manual dispatch — see [`docs/cloud-release.md`](docs/cloud-release.md).
 
 ### GitHub Actions secrets
 

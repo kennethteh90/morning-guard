@@ -4,15 +4,21 @@ on:
   workflow_dispatch:
     inputs:
       upload_to_play:
-        description: Upload AAB to Play internal track as draft (requires PLAY_SERVICE_ACCOUNT_JSON)
+        description: Upload AAB to Play internal track (requires PLAY_SERVICE_ACCOUNT_JSON)
         type: boolean
         default: true
   push:
-    tags:
-      - "v*"
+    branches:
+      - main
+    paths:
+      - version.properties
 
 permissions:
   contents: read
+
+concurrency:
+  group: android-release-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   release:
@@ -24,6 +30,14 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v4
+
+      - name: Resolve release label
+        id: release_label
+        run: |
+          set -euo pipefail
+          # version.properties uses versionMajor= / versionMinor= / versionPatch=
+          eval "$(grep -E '^version(Major|Minor|Patch)=' version.properties)"
+          echo "label=v${versionMajor}.${versionMinor}.${versionPatch}" >> "$GITHUB_OUTPUT"
 
       - name: Install NDK (native debug symbol extraction)
         run: |
@@ -106,21 +120,21 @@ jobs:
       - name: Upload App Bundle
         uses: actions/upload-artifact@v4
         with:
-          name: morning-guard-full-release-${{ github.ref_name }}
+          name: morning-guard-full-release-${{ steps.release_label.outputs.label }}
           path: app/build/outputs/bundle/fullRelease/*.aab
           if-no-files-found: error
 
       - name: Upload R8 mapping
         uses: actions/upload-artifact@v4
         with:
-          name: morning-guard-r8-mapping-${{ github.ref_name }}
+          name: morning-guard-r8-mapping-${{ steps.release_label.outputs.label }}
           path: app/build/outputs/mapping/fullRelease/mapping.txt
           if-no-files-found: warn
 
       - name: Upload native debug symbols
         uses: actions/upload-artifact@v4
         with:
-          name: morning-guard-native-symbols-${{ github.ref_name }}
+          name: morning-guard-native-symbols-${{ steps.release_label.outputs.label }}
           path: app/build/outputs/native-debug-symbols/fullRelease/**
           if-no-files-found: warn
 
@@ -145,7 +159,7 @@ jobs:
       - name: Play upload gate
         id: play_gate
         if: >-
-          (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
+          github.event_name == 'push' ||
           (github.event_name == 'workflow_dispatch' && inputs.upload_to_play)
         env:
           PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
@@ -157,7 +171,17 @@ jobs:
             echo "enabled=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Publish Play internal draft (with release notes)
+      - name: Play release status
+        id: play_release_status
+        if: steps.play_gate.outputs.enabled == 'true'
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "status=draft" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=completed" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish Play internal (with release notes)
         if: >-
           steps.play_gate.outputs.enabled == 'true' &&
           hashFiles('release-notes/**') != ''
@@ -167,12 +191,12 @@ jobs:
           packageName: com.morningguard.app
           releaseFiles: app/build/outputs/bundle/fullRelease/*.aab
           track: internal
-          status: draft
+          status: ${{ steps.play_release_status.outputs.status }}
           whatsNewDirectory: release-notes
           mappingFile: ${{ steps.play_deobfuscation.outputs.mapping_file }}
           debugSymbols: ${{ steps.play_deobfuscation.outputs.native_symbols }}
 
-      - name: Publish Play internal draft
+      - name: Publish Play internal
         if: >-
           steps.play_gate.outputs.enabled == 'true' &&
           hashFiles('release-notes/**') == ''
@@ -182,6 +206,6 @@ jobs:
           packageName: com.morningguard.app
           releaseFiles: app/build/outputs/bundle/fullRelease/*.aab
           track: internal
-          status: draft
+          status: ${{ steps.play_release_status.outputs.status }}
           mappingFile: ${{ steps.play_deobfuscation.outputs.mapping_file }}
           debugSymbols: ${{ steps.play_deobfuscation.outputs.native_symbols }}
