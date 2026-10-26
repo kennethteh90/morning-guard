@@ -12,11 +12,8 @@ def asc_api_key
 end
 
 platform :ios do
-  before_all do
-    repo = File.expand_path("../..", __dir__)
-    sh("./scripts/generate-xcodeproj.sh", chdir: repo)
-    sh("./scripts/sync-ios-version.sh", chdir: repo)
-  end
+  # CI runs generate-xcodeproj, sync-ios-version, and CI.xcconfig before fastlane.
+  # For local `fastlane beta`, run those from the repo root first (see docs/ios/testflight.md).
 
   desc "Release archive only (no upload)"
   lane :build_release do
