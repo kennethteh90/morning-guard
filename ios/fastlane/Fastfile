@@ -40,10 +40,6 @@ def xcode_auth_xcargs
     "DEVELOPMENT_TEAM=#{team}",
     "-allowProvisioningUpdates",
   ]
-  if ENV["CI"] == "true"
-    # No spaces — gym passes xcargs to xcodebuild; quoted paths break the command line.
-    parts << "CODE_SIGN_KEYCHAIN=#{ci_keychain_path}"
-  end
   # GitHub Actions has no logged-in Apple ID; local Mac should use Xcode login (unsigned archives if API-only).
   use_api = ENV["USE_ASC_API_XCODE_AUTH"] == "1" || ENV["CI"] == "true"
   key_path = ENV["APP_STORE_CONNECT_API_KEY_PATH"]
@@ -71,8 +67,6 @@ def ci_build_app_options
   profile_map = JSON.parse(profiles)
   {
     export_options: ci_export_options(profile_map),
-    # SPM / xcframework targets stay automatic; only the app + extensions are manual.
-    skip_package_dependencies_codesigning: true,
   }
 end
 
@@ -116,6 +110,7 @@ def prepare_ci_signing(_api_key)
 
   keychain_password = ENV["MATCH_KEYCHAIN_PASSWORD"]
   UI.user_error!("MATCH_KEYCHAIN_PASSWORD must be set on CI") if keychain_password.to_s.empty?
+  ENV["CI_KEYCHAIN_PASSWORD"] = keychain_password
 
   setup_ci
 
@@ -172,7 +167,7 @@ end
 def refresh_ci_keychain_for_build!
   return unless ENV["CI"] == "true"
 
-  unlock_ci_keychain!(ENV.fetch("CI_KEYCHAIN_PATH"), ENV.fetch("MATCH_KEYCHAIN_PASSWORD"))
+  unlock_ci_keychain!(ENV.fetch("CI_KEYCHAIN_PATH"), ENV.fetch("CI_KEYCHAIN_PASSWORD"))
 end
 
 platform :ios do
