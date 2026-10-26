@@ -1,5 +1,7 @@
 # TestFlight upload for Morning Guard (app + Screen Time extensions).
 # Requires App Store Connect API key in CI; local runs can use the same env vars.
+require "base64"
+
 default_platform(:ios)
 
 def asc_api_key
@@ -55,25 +57,22 @@ def prepare_ci_signing(api_key)
 
   setup_ci
 
-  if ENV["IOS_DISTRIBUTION_CERTIFICATE_P12"]
-    p12_path = File.join(Dir.tmpdir, "morning-guard-distribution.p12")
-    File.binwrite(p12_path, Base64.decode64(ENV["IOS_DISTRIBUTION_CERTIFICATE_P12"]))
-    import_certificate(
-      certificate_path: p12_path,
-      certificate_password: ENV.fetch("IOS_DISTRIBUTION_CERTIFICATE_PASSWORD"),
-      keychain_path: ENV["KEYCHAIN_PATH"],
-      keychain_password: keychain_password,
-    )
-  else
-    cert(
-      api_key: api_key,
-      development: false,
-      force: false,
-      keychain_path: ENV["KEYCHAIN_PATH"],
-      keychain_password: keychain_password,
-      skip_set_partition_list: true,
-    )
-  end
+  p12_b64 = ENV["IOS_DISTRIBUTION_CERTIFICATE_P12"]&.gsub(/\s+/, "")
+  UI.user_error!(
+    "Set GitHub secrets IOS_DISTRIBUTION_CERTIFICATE_P12 and IOS_DISTRIBUTION_CERTIFICATE_PASSWORD " \
+    "(run ./scripts/push-ios-distribution-cert-secret.sh on your Mac). " \
+    "Do not use cert() on CI — it creates orphan Distribution certs."
+  ) if p12_b64.to_s.empty?
+
+  p12_path = File.join(Dir.tmpdir, "morning-guard-distribution.p12")
+  File.binwrite(p12_path, Base64.decode64(p12_b64))
+  import_certificate(
+    certificate_path: p12_path,
+    certificate_password: ENV.fetch("IOS_DISTRIBUTION_CERTIFICATE_PASSWORD"),
+    keychain_path: ENV["KEYCHAIN_PATH"],
+    keychain_password: keychain_password,
+  )
+  sh("security find-identity -v -p codesigning #{ENV['KEYCHAIN_PATH']}") if ENV["KEYCHAIN_PATH"]
   APP_STORE_BUNDLE_IDS.each do |app_id|
     get_provisioning_profile(
       api_key: api_key,
