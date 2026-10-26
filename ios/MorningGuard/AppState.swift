@@ -199,6 +199,12 @@ final class AppState {
         gateService.finalizeBibleReadingAfterGoalSessionIfNeeded()
     }
 
+    func incrementBibleReadingSecond() {
+        let dateKey = MorningGateEvaluator.dateKey(for: Date(), calendar: .current)
+        let current = settingsStore.goalProgressStore.bibleReadingSecondsByDate[dateKey] ?? 0
+        settingsStore.recordBibleReadingSeconds(dateKey: dateKey, seconds: current + 1)
+    }
+
     func stepBibleChapter(delta: Int) {
         let goal = settingsStore.userSettings.morningGoal
         let next: (String, Int)

@@ -23,6 +23,7 @@ data class StatsUiState(
     val completedDays: Int = 0,
     val bypassDays: Int = 0,
     val totalGoalTimeSeconds: Int = 0,
+    val totalBibleReadingSeconds: Int = 0,
     val todaySteps: Int = 0,
     val totalGoalSteps: Int = 0,
     val recent: List<MorningDayRecord> = emptyList(),
@@ -82,6 +83,9 @@ class StatsViewModel @Inject constructor(
             } else {
                 0
             },
+            totalBibleReadingSeconds = MorningStreakCalculator.totalBibleReadingSeconds(
+                store.bibleReadingSecondsByDate,
+            ),
             recent = history.sortedByDescending { it.dateKey },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), StatsUiState())

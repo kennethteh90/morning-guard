@@ -56,6 +56,11 @@ fun StatsScreen(
                             value = MorningGoalTimeFormat.format(state.totalGoalTimeSeconds),
                         )
                     }
+                    StatCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        label = "Total Bible reading",
+                        value = MorningGoalTimeFormat.format(state.totalBibleReadingSeconds),
+                    )
                     if (state.showStepsStat) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),

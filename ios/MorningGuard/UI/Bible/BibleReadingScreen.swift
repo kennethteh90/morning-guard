@@ -4,6 +4,7 @@ import MorningGuardCore
 /// Shared Bible reader used on the morning goal and Read Bible flows (Android `browseOnly` parity).
 struct BibleReadingScreen: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.scenePhase) private var scenePhase
 
     var browseOnly: Bool
     var showsGoalProgress: Bool
@@ -19,6 +20,7 @@ struct BibleReadingScreen: View {
     @State private var bookChapterSheet = false
     @State private var banner: MGBannerPayload?
     @AppStorage("mg_bibleReaderTipSeen") private var bibleReaderTipSeen = false
+    @State private var bibleReadingTickerTask: Task<Void, Never>?
     @State private var loadedChapterKey: String?
     @State private var prefetchTask: Task<Void, Never>?
 
@@ -103,6 +105,15 @@ struct BibleReadingScreen: View {
             }
         }
         .task(id: chapterLoadKey) { await loadChapter(forceRefresh: false) }
+        .onAppear { startBibleReadingTickerIfNeeded() }
+        .onDisappear { stopBibleReadingTicker() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                startBibleReadingTickerIfNeeded()
+            } else {
+                stopBibleReadingTicker()
+            }
+        }
         .sheet(isPresented: $translationSheet) {
             BibleTranslationPickerSheet(
                 selectedTranslationId: config.bibleTranslation,
@@ -243,6 +254,23 @@ struct BibleReadingScreen: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(accessibilityLabel)
+    }
+
+    private func startBibleReadingTickerIfNeeded() {
+        guard bibleReadingTickerTask == nil else { return }
+        bibleReadingTickerTask = Task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1))
+                await MainActor.run {
+                    appState.incrementBibleReadingSecond()
+                }
+            }
+        }
+    }
+
+    private func stopBibleReadingTicker() {
+        bibleReadingTickerTask?.cancel()
+        bibleReadingTickerTask = nil
     }
 
     private func loadChapter(forceRefresh: Bool) async {

@@ -6,6 +6,7 @@ import com.morningguard.app.platform.AppDebugFlags
 import com.morningguard.app.sensors.HealthConnectStepReader
 import com.morningguard.app.sensors.StepCounterProvider
 import java.time.Instant
+import java.time.LocalDate
 import com.morningguard.data.analytics.AnalyticsTracker
 import com.morningguard.app.sync.UserDataSyncService
 import com.morningguard.data.bible.BibleHighlightColorStore
@@ -406,9 +407,19 @@ class MorningGoalViewModel @Inject constructor(
         while (goalScreenForeground.value) {
             kotlinx.coroutines.delay(1_000)
             if (goalScreenForeground.value) {
+                tickBibleReadingSecondIfNeeded()
                 tickOnScreenSecond()
             }
         }
+    }
+
+    private suspend fun tickBibleReadingSecondIfNeeded() {
+        val settings = settingsRepository.currentSettings()
+        if (!browseOnly.value && settings.morningGoal.type != GoalType.BIBLE_CHAPTER) return
+        val store = settingsRepository.currentGoalStore()
+        val dateKey = store.progress?.dateKey ?: LocalDate.now().toString()
+        val current = store.bibleReadingSecondsByDate[dateKey] ?: 0
+        settingsRepository.recordBibleReadingSeconds(dateKey, current + 1)
     }
 
     private suspend fun tickOnScreenSecond() {

@@ -10,6 +10,7 @@ struct GoalProgressStore: Codable, Equatable, Sendable {
     var lockedUntilEpochMs: Int64?
     var morningHistory: [MorningDayRecord]
     var goalTimeSecondsByDate: [String: Int]
+    var bibleReadingSecondsByDate: [String: Int]
     var goalStepsByDate: [String: Int]
 
     init(
@@ -20,6 +21,7 @@ struct GoalProgressStore: Codable, Equatable, Sendable {
         lockedUntilEpochMs: Int64? = nil,
         morningHistory: [MorningDayRecord] = [],
         goalTimeSecondsByDate: [String: Int] = [:],
+        bibleReadingSecondsByDate: [String: Int] = [:],
         goalStepsByDate: [String: Int] = [:]
     ) {
         self.progress = progress
@@ -29,6 +31,7 @@ struct GoalProgressStore: Codable, Equatable, Sendable {
         self.lockedUntilEpochMs = lockedUntilEpochMs
         self.morningHistory = morningHistory
         self.goalTimeSecondsByDate = goalTimeSecondsByDate
+        self.bibleReadingSecondsByDate = bibleReadingSecondsByDate
         self.goalStepsByDate = goalStepsByDate
     }
 
@@ -36,7 +39,7 @@ struct GoalProgressStore: Codable, Equatable, Sendable {
         case progress, emergencyBypassUntilEpochMs, peaceSessionUntilEpochMs
         case emergencyPassphraseHash
         case failedAttempts, lockedUntilEpochMs
-        case morningHistory, goalTimeSecondsByDate, goalStepsByDate
+        case morningHistory, goalTimeSecondsByDate, bibleReadingSecondsByDate, goalStepsByDate
     }
 
     init(from decoder: Decoder) throws {
@@ -49,6 +52,7 @@ struct GoalProgressStore: Codable, Equatable, Sendable {
         lockedUntilEpochMs = try container.decodeIfPresent(Int64.self, forKey: .lockedUntilEpochMs)
         morningHistory = try container.decodeIfPresent([MorningDayRecord].self, forKey: .morningHistory) ?? []
         goalTimeSecondsByDate = try container.decodeIfPresent([String: Int].self, forKey: .goalTimeSecondsByDate) ?? [:]
+        bibleReadingSecondsByDate = try container.decodeIfPresent([String: Int].self, forKey: .bibleReadingSecondsByDate) ?? [:]
         goalStepsByDate = try container.decodeIfPresent([String: Int].self, forKey: .goalStepsByDate) ?? [:]
     }
 
@@ -61,6 +65,7 @@ struct GoalProgressStore: Codable, Equatable, Sendable {
         try container.encodeIfPresent(lockedUntilEpochMs, forKey: .lockedUntilEpochMs)
         try container.encode(morningHistory, forKey: .morningHistory)
         try container.encode(goalTimeSecondsByDate, forKey: .goalTimeSecondsByDate)
+        try container.encode(bibleReadingSecondsByDate, forKey: .bibleReadingSecondsByDate)
         try container.encode(goalStepsByDate, forKey: .goalStepsByDate)
     }
 }
@@ -116,6 +121,7 @@ final class SettingsStore {
             var copy = store
             copy.morningHistory = []
             copy.goalTimeSecondsByDate = [:]
+            copy.bibleReadingSecondsByDate = [:]
             copy.goalStepsByDate = [:]
             return copy
         }

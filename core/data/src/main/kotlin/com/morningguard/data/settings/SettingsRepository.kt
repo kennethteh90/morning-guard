@@ -47,6 +47,8 @@ data class GoalProgressStore(
     val morningHistory: List<MorningDayRecord> = emptyList(),
     /** Latest foreground goal-screen seconds per calendar date (local + merged from sync). */
     val goalTimeSecondsByDate: Map<String, Int> = emptyMap(),
+    /** Foreground seconds in the Bible reader per calendar date (morning goal or Read Bible). */
+    val bibleReadingSecondsByDate: Map<String, Int> = emptyMap(),
     val goalStepsByDate: Map<String, Int> = emptyMap(),
     /** When set and in the future, notifications are held outside the morning window. */
     val peaceSessionUntilEpochMs: Long? = null,
@@ -178,6 +180,14 @@ class SettingsRepository @Inject constructor(
         }
     }
 
+    suspend fun recordBibleReadingSeconds(dateKey: String, seconds: Int) {
+        if (seconds <= 0) return
+        updateGoalProgress { store ->
+            val merged = mergeGoalTime(store.bibleReadingSecondsByDate, dateKey, seconds)
+            if (merged == store.bibleReadingSecondsByDate) store else store.copy(bibleReadingSecondsByDate = merged)
+        }
+    }
+
     suspend fun mergeMorningHistoryFromRemote(remoteRecords: List<MorningDayRecord>) {
         if (remoteRecords.isEmpty()) return
         updateGoalProgress { store ->
@@ -208,6 +218,7 @@ class SettingsRepository @Inject constructor(
             store.copy(
                 morningHistory = emptyList(),
                 goalTimeSecondsByDate = emptyMap(),
+                bibleReadingSecondsByDate = emptyMap(),
                 goalStepsByDate = emptyMap(),
                 emergencyPassphraseHash = null,
                 emergencyPassphraseSalt = null,

@@ -21,4 +21,12 @@ class MorningStreakCalculatorTimeTest {
         )
         assertEquals(120 + 60 + 30, total)
     }
+
+    @Test
+    fun totalBibleReadingSeconds_sumsDailyMap() {
+        val total = MorningStreakCalculator.totalBibleReadingSeconds(
+            mapOf("2026-10-15" to 90, "2026-10-16" to 120),
+        )
+        assertEquals(210, total)
+    }
 }

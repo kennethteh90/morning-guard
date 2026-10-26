@@ -100,6 +100,11 @@ public enum MorningStreakCalculator {
         return merged.values.reduce(0, +)
     }
 
+    /// Sum of per-day seconds with the Bible reader open (morning goal or Read Bible).
+    public static func totalBibleReadingSeconds(dailySeconds: [String: Int]) -> Int {
+        dailySeconds.values.reduce(0, +)
+    }
+
     public static func totalGoalSteps(
         dailySteps: [String: Int],
         history: [MorningDayRecord],

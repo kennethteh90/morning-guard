@@ -4555,6 +4555,17 @@
         }
       }
     },
+    "stats.bible_reading_total": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total Bible reading"
+          }
+        }
+      }
+    },
     "stats.current_streak": {
       "extractionState": "manual",
       "localizations": {

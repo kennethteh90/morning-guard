@@ -23,6 +23,11 @@ struct StatsView: View {
                     statCard(label: L10n.tr("stats.time_on_goal"), value: MorningGoalTimeFormat.format(seconds: state.totalGoalTimeSeconds))
                 }
 
+                statCard(
+                    label: L10n.tr("stats.bible_reading_total"),
+                    value: MorningGoalTimeFormat.format(seconds: state.totalBibleReadingSeconds)
+                )
+
                 if state.showStepsStat {
                     HStack(spacing: 12) {
                         statCard(label: L10n.tr("stats.steps_today"), value: "\(state.todaySteps)")
@@ -120,6 +125,7 @@ private struct StatsUiState {
     var completedDays: Int
     var bypassDays: Int
     var totalGoalTimeSeconds: Int
+    var totalBibleReadingSeconds: Int
     var todaySteps: Int
     var totalGoalSteps: Int
     var recent: [MorningDayRecord]
@@ -154,6 +160,9 @@ private struct StatsUiState {
                 history: history,
                 activeProgressSeconds: activeSeconds,
                 activeDateKey: activeSeconds != nil ? todayKey : nil
+            ),
+            totalBibleReadingSeconds: MorningStreakCalculator.totalBibleReadingSeconds(
+                dailySeconds: goalStore.bibleReadingSecondsByDate
             ),
             todaySteps: goalType == .stepCount
                 ? (activeSteps ?? goalStore.goalStepsByDate[todayKey]

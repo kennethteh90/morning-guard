@@ -72,6 +72,10 @@ object MorningStreakCalculator {
         return merged.values.sum()
     }
 
+    /** Sum of per-day seconds with the Bible reader open (morning goal or Read Bible). */
+    fun totalBibleReadingSeconds(dailySeconds: Map<String, Int>): Int =
+        dailySeconds.values.sum()
+
     fun totalGoalSteps(
         dailySteps: Map<String, Int>,
         history: List<MorningDayRecord>,

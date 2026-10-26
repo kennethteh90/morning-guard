@@ -74,6 +74,7 @@
   "stats.lead.time": "Days you finish the morning goal count toward your streak. Time adds up while the goal screen is open (Bible and focus goals).",
   "stats.lead.steps": "Days you finish the morning goal count toward your streak. Step counts update while the goal screen is open.",
   "stats.time_on_goal": "Time on morning goal",
+  "stats.bible_reading_total": "Total Bible reading",
   "stats.steps_today": "Steps today",
   "stats.steps_total": "Total steps logged",
   "stats.current_streak": "Current streak",

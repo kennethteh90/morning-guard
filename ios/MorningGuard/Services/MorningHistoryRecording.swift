@@ -52,6 +52,21 @@ extension SettingsStore {
         }
     }
 
+    func recordBibleReadingSeconds(dateKey: String, seconds: Int) {
+        guard seconds > 0 else { return }
+        updateGoalProgress { store in
+            let merged = MorningHistoryMerge.mergeGoalTime(
+                map: store.bibleReadingSecondsByDate,
+                dateKey: dateKey,
+                seconds: seconds
+            )
+            guard merged != store.bibleReadingSecondsByDate else { return store }
+            var copy = store
+            copy.bibleReadingSecondsByDate = merged
+            return copy
+        }
+    }
+
     func goalTimeForDate(dateKey: String) -> Int {
         let fromMap = goalProgressStore.goalTimeSecondsByDate[dateKey] ?? 0
         let fromProgress = goalProgressStore.progress
