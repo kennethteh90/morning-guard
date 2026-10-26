@@ -13,20 +13,65 @@ class BibleRepository @Inject constructor(
     private val openBibleApi: BibleApi,
     private val bibleProxyClient: BibleProxyClient,
     private val bibleProxyConfig: BibleProxyConfig,
+    private val chapterMemoryCache: BibleChapterMemoryCache,
+    private val chapterDiskCache: BibleChapterDiskCache,
 ) {
-    suspend fun loadChapter(translation: String, book: String, chapter: Int): Result<BibleChapterContent> {
+    suspend fun loadChapter(
+        translation: String,
+        book: String,
+        chapter: Int,
+        forceRefresh: Boolean = false,
+    ): Result<BibleChapterContent> {
+        val key = BibleChapterKey(
+            translation = BibleTranslations.normalizeId(translation),
+            book = book,
+            chapter = chapter,
+        )
+        if (!forceRefresh) {
+            chapterMemoryCache.get(key)?.let { return Result.success(it) }
+            chapterDiskCache.get(key)?.let { cached ->
+                chapterMemoryCache.put(key, cached)
+                return Result.success(cached)
+            }
+        }
+        return fetchChapterFromNetwork(key).onSuccess { content ->
+            chapterMemoryCache.put(key, content)
+            chapterDiskCache.put(key, content)
+        }
+    }
+
+    /** Warm disk/memory cache for adjacent navigation without blocking the reader. */
+    suspend fun prefetchChapter(translation: String, book: String, chapter: Int) {
+        val key = BibleChapterKey(
+            translation = BibleTranslations.normalizeId(translation),
+            book = book,
+            chapter = chapter,
+        )
+        if (chapterMemoryCache.contains(key) || chapterDiskCache.containsFresh(key)) {
+            return
+        }
+        fetchChapterFromNetwork(key).onSuccess { content ->
+            chapterMemoryCache.put(key, content)
+            chapterDiskCache.put(key, content)
+        }
+    }
+
+    private suspend fun fetchChapterFromNetwork(key: BibleChapterKey): Result<BibleChapterContent> {
+        val translation = key.translation
+        val book = key.book
+        val chapter = key.chapter
         val option = BibleTranslations.find(translation)
             ?: return loadOpenBibleChapter(BibleTranslations.defaultId, book, chapter)
 
         return when (option.source) {
             BibleTranslationSource.API_BIBLE -> loadLicensedViaProxy(
-                translation = BibleTranslations.normalizeId(translation),
+                translation = translation,
                 book = book,
                 chapter = chapter,
                 label = option.chipLabel,
             )
             BibleTranslationSource.OPEN_BIBLE -> loadOpenBibleWithOptionalProxy(
-                translation = BibleTranslations.normalizeId(translation),
+                translation = translation,
                 book = book,
                 chapter = chapter,
             )

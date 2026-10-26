@@ -19,6 +19,8 @@ struct BibleReadingScreen: View {
     @State private var bookChapterSheet = false
     @State private var banner: MGBannerPayload?
     @AppStorage("mg_bibleReaderTipSeen") private var bibleReaderTipSeen = false
+    @State private var loadedChapterKey: String?
+    @State private var prefetchTask: Task<Void, Never>?
 
     private var config: MorningGoalConfig {
         appState.settingsStore.userSettings.morningGoal
@@ -100,7 +102,7 @@ struct BibleReadingScreen: View {
                 }
             }
         }
-        .task(id: chapterLoadKey) { await loadChapter() }
+        .task(id: chapterLoadKey) { await loadChapter(forceRefresh: false) }
         .sheet(isPresented: $translationSheet) {
             BibleTranslationPickerSheet(
                 selectedTranslationId: config.bibleTranslation,
@@ -180,7 +182,7 @@ struct BibleReadingScreen: View {
             .font(.subheadline.bold())
             Text(message)
                 .font(.subheadline)
-            Button(L10n.tr("bible.retry")) { Task { await loadChapter() } }
+            Button(L10n.tr("bible.retry")) { Task { await loadChapter(forceRefresh: true) } }
                 .buttonStyle(.bordered)
                 .accessibilityLabel(L10n.tr("a11y.bible.retry"))
         }
@@ -243,23 +245,55 @@ struct BibleReadingScreen: View {
         .accessibilityLabel(accessibilityLabel)
     }
 
-    private func loadChapter() async {
+    private func loadChapter(forceRefresh: Bool) async {
+        let key = chapterLoadKey
+        if !forceRefresh, key == loadedChapterKey, let passage, !passage.blocks.isEmpty {
+            return
+        }
+        let chapterChanged = key != loadedChapterKey
         loading = true
         errorMessage = nil
-        passage = nil
-        withAnimation(.spring(duration: 0.35)) {
-            highlightBarState = nil
+        if chapterChanged {
+            passage = nil
+            withAnimation(.spring(duration: 0.35)) {
+                highlightBarState = nil
+            }
         }
         defer { loading = false }
         do {
-            passage = try await appState.bibleClient.loadChapter(
+            let loaded = try await appState.bibleClient.loadChapter(
                 translation: config.bibleTranslation,
                 book: config.bibleBook,
-                chapter: config.bibleChapter
+                chapter: config.bibleChapter,
+                forceRefresh: forceRefresh
             )
+            loadedChapterKey = key
+            passage = loaded
+            prefetchAdjacentChapters()
         } catch {
-            passage = nil
+            if chapterChanged {
+                passage = nil
+            }
             errorMessage = friendlyBibleError(error.localizedDescription)
+        }
+    }
+
+    private func prefetchAdjacentChapters() {
+        prefetchTask?.cancel()
+        let translation = config.bibleTranslation
+        prefetchTask = Task {
+            let (nextBook, nextChapter) = BibleCanon.advance(bookName: config.bibleBook, chapter: config.bibleChapter)
+            await appState.bibleClient.prefetchChapter(
+                translation: translation,
+                book: nextBook,
+                chapter: nextChapter
+            )
+            let (prevBook, prevChapter) = BibleCanon.previous(bookName: config.bibleBook, chapter: config.bibleChapter)
+            await appState.bibleClient.prefetchChapter(
+                translation: translation,
+                book: prevBook,
+                chapter: prevChapter
+            )
         }
     }
 

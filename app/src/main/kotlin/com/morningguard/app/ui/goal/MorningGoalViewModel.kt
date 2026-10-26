@@ -89,6 +89,8 @@ class MorningGoalViewModel @Inject constructor(
     private val browseOnly = MutableStateFlow(false)
     private val stepDebug = MutableStateFlow(StepGoalDebugInfo())
     private val healthConnectNeedsPermission = MutableStateFlow(false)
+    private var loadedBibleChapterKey: String? = null
+    private var biblePrefetchJob: Job? = null
 
     val uiState: StateFlow<MorningGoalUiState> = combine(
         combine(
@@ -501,29 +503,58 @@ class MorningGoalViewModel @Inject constructor(
     }
 
     fun retryBibleChapterLoad() {
-        loadBibleIfNeeded()
+        loadBibleIfNeeded(forceRefresh = true)
     }
 
-    fun loadBibleIfNeeded() {
+    fun loadBibleIfNeeded(forceRefresh: Boolean = false) {
         viewModelScope.launch {
             val settings = settingsRepository.currentSettings()
             if (!browseOnly.value && settings.morningGoal.type != GoalType.BIBLE_CHAPTER) return@launch
+            val goal = settings.morningGoal
+            val chapterKey = bibleChapterKey(goal.bibleTranslation, goal.bibleBook, goal.bibleChapter)
+            if (!forceRefresh &&
+                chapterKey == loadedBibleChapterKey &&
+                biblePassage.value.isNotEmpty()
+            ) {
+                return@launch
+            }
+            val chapterChanged = chapterKey != loadedBibleChapterKey
             loadingBible.value = true
             bibleLoadError.value = null
-            biblePassage.value = emptyList()
+            if (chapterChanged) {
+                biblePassage.value = emptyList()
+            }
             val result = bibleRepository.loadChapter(
-                settings.morningGoal.bibleTranslation,
-                settings.morningGoal.bibleBook,
-                settings.morningGoal.bibleChapter,
+                goal.bibleTranslation,
+                goal.bibleBook,
+                goal.bibleChapter,
+                forceRefresh = forceRefresh,
             )
             loadingBible.value = false
             result.onSuccess {
+                loadedBibleChapterKey = chapterKey
                 biblePassage.value = it.blocks
                 bibleLoadError.value = null
+                prefetchAdjacentChapters(goal)
             }.onFailure {
-                biblePassage.value = emptyList()
+                if (chapterChanged) {
+                    biblePassage.value = emptyList()
+                }
                 bibleLoadError.value = it.message ?: "Could not load this chapter."
             }
+        }
+    }
+
+    private fun bibleChapterKey(translation: String, book: String, chapter: Int): String =
+        "${BibleTranslations.normalizeId(translation)}|$book|$chapter"
+
+    private fun prefetchAdjacentChapters(goal: MorningGoalConfig) {
+        biblePrefetchJob?.cancel()
+        biblePrefetchJob = viewModelScope.launch {
+            val (nextBook, nextChapter) = BibleCanon.advance(goal.bibleBook, goal.bibleChapter)
+            bibleRepository.prefetchChapter(goal.bibleTranslation, nextBook, nextChapter)
+            val (prevBook, prevChapter) = BibleCanon.previous(goal.bibleBook, goal.bibleChapter)
+            bibleRepository.prefetchChapter(goal.bibleTranslation, prevBook, prevChapter)
         }
     }
 

@@ -4,13 +4,64 @@ import MorningGuardCore
 struct BibleClient: Sendable {
     private let openBible: OpenBibleClient
     private let proxy: BibleProxyClient
+    private let memoryCache: BibleChapterMemoryCache
+    private let diskCache: BibleChapterDiskCache
 
     init(session: URLSession = .shared, baseURL: URL? = nil) {
         openBible = OpenBibleClient(session: session, baseURL: baseURL)
         proxy = BibleProxyClient(session: session)
+        memoryCache = .shared
+        diskCache = BibleChapterDiskCache()
     }
 
-    func loadChapter(translation: String, book: String, chapter: Int) async throws -> BibleChapterPassage {
+    func loadChapter(
+        translation: String,
+        book: String,
+        chapter: Int,
+        forceRefresh: Bool = false
+    ) async throws -> BibleChapterPassage {
+        let normalized = BibleTranslations.normalizeId(translation)
+        if !forceRefresh {
+            if let cached = memoryCache.get(translation: normalized, book: book, chapter: chapter) {
+                return cached
+            }
+            if let cached = diskCache.get(translation: normalized, book: book, chapter: chapter) {
+                memoryCache.put(cached, translation: normalized, book: book, chapter: chapter)
+                return cached
+            }
+        }
+        let passage = try await fetchChapterFromNetwork(
+            translation: normalized,
+            book: book,
+            chapter: chapter
+        )
+        memoryCache.put(passage, translation: normalized, book: book, chapter: chapter)
+        diskCache.put(passage, translation: normalized, book: book, chapter: chapter)
+        return passage
+    }
+
+    func prefetchChapter(translation: String, book: String, chapter: Int) async {
+        let normalized = BibleTranslations.normalizeId(translation)
+        if memoryCache.contains(translation: normalized, book: book, chapter: chapter) {
+            return
+        }
+        if diskCache.containsFresh(translation: normalized, book: book, chapter: chapter) {
+            return
+        }
+        guard let passage = try? await fetchChapterFromNetwork(
+            translation: normalized,
+            book: book,
+            chapter: chapter
+        ) else { return }
+        memoryCache.put(passage, translation: normalized, book: book, chapter: chapter)
+        diskCache.put(passage, translation: normalized, book: book, chapter: chapter)
+    }
+
+    private func fetchChapterFromNetwork(
+        translation: String,
+        book: String,
+        chapter: Int
+    ) async throws -> BibleChapterPassage {
         let fallbackReference = "\(book) \(chapter)"
         guard let option = BibleTranslations.find(id: translation) else {
             return try await openBible.loadChapter(
@@ -23,7 +74,7 @@ struct BibleClient: Sendable {
         switch option.source {
         case .apiBible:
             return try await loadLicensedViaProxy(
-                translation: BibleTranslations.normalizeId(translation),
+                translation: translation,
                 book: book,
                 chapter: chapter,
                 label: option.chipLabel
@@ -32,7 +83,7 @@ struct BibleClient: Sendable {
             if BibleProxyConfig.isConfigured {
                 do {
                     let viaProxy = try await proxy.loadChapter(
-                        translation: BibleTranslations.normalizeId(translation),
+                        translation: translation,
                         book: book,
                         chapter: chapter
                     )
@@ -44,7 +95,7 @@ struct BibleClient: Sendable {
                 }
             }
             return try await openBible.loadChapter(
-                translation: BibleTranslations.normalizeId(translation),
+                translation: translation,
                 book: book,
                 chapter: chapter
             )

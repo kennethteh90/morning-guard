@@ -100,7 +100,7 @@ class MorningGoalViewModelBibleLoadTest {
     @Test
     fun `failed chapter load clears passage and sets bible load error`() = runTest {
         coEvery {
-            bibleRepository.loadChapter(any(), any(), any())
+            bibleRepository.loadChapter(any(), any(), any(), any())
         } returns Result.failure(IllegalStateException("Licensed proxy unavailable"))
 
         val viewModel = viewModel()
@@ -119,7 +119,7 @@ class MorningGoalViewModelBibleLoadTest {
     fun `retry after failure loads chapter and clears bible load error`() = runTest {
         val blocks = listOf(BiblePassageBlock.Paragraph("1. In the beginning"))
         coEvery {
-            bibleRepository.loadChapter(any(), any(), any())
+            bibleRepository.loadChapter(any(), any(), any(), any())
         } returns Result.failure(IllegalStateException("temporary"))
 
         val viewModel = viewModel()
@@ -128,7 +128,7 @@ class MorningGoalViewModelBibleLoadTest {
         assertEquals("temporary", viewModel.uiState.value.bibleLoadError)
 
         coEvery {
-            bibleRepository.loadChapter(any(), any(), any())
+            bibleRepository.loadChapter(any(), any(), any(), any())
         } returns Result.success(BibleChapterContent("John 3", blocks))
 
         viewModel.retryBibleChapterLoad()
