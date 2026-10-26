@@ -100,6 +100,7 @@ jobs:
           working-directory: ios
 
       - name: Build and upload TestFlight
+        timeout-minutes: 45
         env:
           CI: true
           USE_ASC_API_XCODE_AUTH: "1"

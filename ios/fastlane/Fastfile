@@ -49,6 +49,18 @@ CI_RELEASE_TARGETS = {
   "MorningGuardShieldAction" => "com.morningguard.app.shieldaction",
 }.freeze
 
+def unlock_ci_keychain!(keychain_path, keychain_password)
+  escaped_pw = keychain_password.gsub("'", "'\\''")
+  escaped_path = keychain_path.gsub("'", "'\\''")
+  sh("security unlock-keychain -p '#{escaped_pw}' '#{escaped_path}'")
+  # Keep the temp keychain unlocked for long archive/sign steps (default timeout is short).
+  sh("security set-keychain-settings -lut 21600 '#{escaped_path}'")
+  sh("security default-keychain -s '#{escaped_path}'")
+  sh("security list-keychains -d user -s '#{escaped_path}'")
+  # Required on headless CI — without this, codesign can hang waiting for keychain UI.
+  sh("security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k '#{escaped_pw}' '#{escaped_path}'")
+end
+
 def prepare_ci_signing(_api_key)
   return unless ENV["CI"] == "true"
 
@@ -74,11 +86,8 @@ def prepare_ci_signing(_api_key)
     keychain_password: keychain_password,
   )
   keychain_path = ENV["KEYCHAIN_PATH"] || File.expand_path("~/Library/Keychains/#{keychain_name}-db")
-  # Best-effort; headless CI may not need this for codesign to work.
-  sh(
-    "security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k '#{keychain_password}' '#{keychain_path}' || true"
-  )
-  identities = sh("security find-identity -v -p codesigning", log: false)
+  unlock_ci_keychain!(keychain_path, keychain_password)
+  identities = sh("security find-identity -v -p codesigning '#{keychain_path}'", log: false)
   unless identities.include?("Apple Distribution")
     UI.user_error!(
       "CI keychain has no Apple Distribution identity. The GitHub secret likely contains a Development .p12. " \
