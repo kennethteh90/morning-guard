@@ -67,6 +67,10 @@ export APP_STORE_CONNECT_API_KEY_ID
 export APP_STORE_CONNECT_API_ISSUER_ID
 export APP_STORE_CONNECT_API_KEY="$(base64 <"$APP_STORE_CONNECT_API_KEY_PATH" | tr -d '\n')"
 
+# Local archives must use the Xcode login session, not CI/API-key xcodebuild auth.
+unset CI
+unset USE_ASC_API_XCODE_AUTH
+
 echo "Team: $IOS_DEVELOPMENT_TEAM  Key ID: $APP_STORE_CONNECT_API_KEY_ID"
 echo "Using key: $APP_STORE_CONNECT_API_KEY_PATH"
 echo "Archive signing: Xcode login session (set USE_ASC_API_XCODE_AUTH=1 to force API-key xcodebuild auth)."
