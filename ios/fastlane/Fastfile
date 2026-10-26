@@ -57,8 +57,18 @@ def unlock_ci_keychain!(keychain_path, keychain_password)
   sh("security set-keychain-settings -lut 21600 '#{escaped_path}'")
   sh("security default-keychain -s '#{escaped_path}'")
   sh("security list-keychains -d user -s '#{escaped_path}'")
-  # Required on headless CI — without this, codesign can hang waiting for keychain UI.
-  sh("security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k '#{escaped_pw}' '#{escaped_path}'")
+end
+
+def import_distribution_p12!(p12_path, cert_password, keychain_path, keychain_password)
+  unlock_ci_keychain!(keychain_path, keychain_password)
+  escaped_cert_pw = cert_password.gsub("'", "'\\''")
+  escaped_path = keychain_path.gsub("'", "'\\''")
+  escaped_p12 = p12_path.gsub("'", "'\\''")
+  # -A / -T codesign: headless CI cannot click keychain prompts; partition-list on the keychain often fails on GHA macOS.
+  sh(
+    "security import '#{escaped_p12}' -k '#{escaped_path}' -P '#{escaped_cert_pw}' -f pkcs12 " \
+    "-T /usr/bin/codesign -T /usr/bin/security -A"
+  )
 end
 
 def prepare_ci_signing(_api_key)
@@ -79,15 +89,16 @@ def prepare_ci_signing(_api_key)
   p12_path = File.join(Dir.tmpdir, "morning-guard-distribution.p12")
   File.binwrite(p12_path, Base64.decode64(p12_b64))
   keychain_name = ENV.fetch("MATCH_KEYCHAIN_NAME")
-  import_certificate(
-    certificate_path: p12_path,
-    certificate_password: ENV.fetch("IOS_DISTRIBUTION_CERTIFICATE_PASSWORD"),
-    keychain_name: keychain_name,
-    keychain_password: keychain_password,
+  keychain_path = File.expand_path(
+    ENV["KEYCHAIN_PATH"] || "~/Library/Keychains/#{keychain_name}-db",
   )
-  keychain_path = ENV["KEYCHAIN_PATH"] || File.expand_path("~/Library/Keychains/#{keychain_name}-db")
-  unlock_ci_keychain!(keychain_path, keychain_password)
-  identities = sh("security find-identity -v -p codesigning '#{keychain_path}'", log: false)
+  import_distribution_p12!(
+    p12_path,
+    ENV.fetch("IOS_DISTRIBUTION_CERTIFICATE_PASSWORD"),
+    keychain_path,
+    keychain_password,
+  )
+  identities = sh("security find-identity -v -p codesigning '#{keychain_path.gsub("'", "'\\''")}'", log: false)
   unless identities.include?("Apple Distribution")
     UI.user_error!(
       "CI keychain has no Apple Distribution identity. The GitHub secret likely contains a Development .p12. " \
