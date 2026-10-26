@@ -73,7 +73,7 @@ def prepare_ci_signing(api_key)
     keychain_name: keychain_name,
     keychain_password: keychain_password,
   )
-  keychain_path = ENV.fetch("KEYCHAIN_PATH")
+  keychain_path = ENV["KEYCHAIN_PATH"] || File.expand_path("~/Library/Keychains/#{keychain_name}-db")
   sh(
     "security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k '#{keychain_password}' '#{keychain_path}'"
   )
