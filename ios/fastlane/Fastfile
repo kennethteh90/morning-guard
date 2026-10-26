@@ -42,12 +42,12 @@ def xcode_auth_xcargs
   parts.join(" ")
 end
 
-APP_STORE_BUNDLE_IDS = [
-  "com.morningguard.app",
-  "com.morningguard.app.monitor",
-  "com.morningguard.app.shieldconfig",
-  "com.morningguard.app.shieldaction",
-].freeze
+CI_RELEASE_TARGETS = {
+  "MorningGuard" => "com.morningguard.app",
+  "MorningGuardMonitor" => "com.morningguard.app.monitor",
+  "MorningGuardShieldConfig" => "com.morningguard.app.shieldconfig",
+  "MorningGuardShieldAction" => "com.morningguard.app.shieldaction",
+}.freeze
 
 def prepare_ci_signing(_api_key)
   return unless ENV["CI"] == "true"
@@ -86,14 +86,23 @@ def prepare_ci_signing(_api_key)
     )
   end
 
-  # Headless CI has no Xcode Apple ID; fetch App Store profiles before archive (xcodebuild API auth alone
-  # still resolves targets as "development" without installed distribution profiles).
-  APP_STORE_BUNDLE_IDS.each do |bundle_id|
+  # Headless CI has no Xcode Apple ID. Automatic signing stays on "development"; use manual
+  # App Store profiles from sigh + update_code_signing_settings for Release only.
+  CI_RELEASE_TARGETS.each do |target_name, bundle_id|
     sigh(
       api_key: _api_key,
       app_identifier: bundle_id,
       skip_install: false,
       readonly: false,
+    )
+    profile_name = Actions.lane_context[SharedValues::SIGH_NAME]
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: "MorningGuard.xcodeproj",
+      targets: [target_name],
+      profile_name: profile_name,
+      code_sign_identity: "Apple Distribution",
+      build_configurations: ["Release"],
     )
   end
 end

@@ -781,15 +781,17 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 12AEE98B7502F8B576D7F6B1 /* Release.xcconfig */;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "Apple Distribution";
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = MorningGuardMonitor/MorningGuardMonitor.entitlements;
 				INFOPLIST_FILE = MorningGuardMonitor/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.morningguard.MorningGuardMonitor;
+				PRODUCT_BUNDLE_IDENTIFIER = com.morningguard.app.monitor;
 				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -854,14 +856,17 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 20270B3D7E5FF2F9935AD9E7 /* Debug.xcconfig */;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = MorningGuardShieldConfig/MorningGuardShieldConfig.entitlements;
 				INFOPLIST_FILE = MorningGuardShieldConfig/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.morningguard.MorningGuardShieldConfig;
+				PRODUCT_BUNDLE_IDENTIFIER = com.morningguard.app.shieldconfig;
 				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -870,14 +875,17 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 20270B3D7E5FF2F9935AD9E7 /* Debug.xcconfig */;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = MorningGuardMonitor/MorningGuardMonitor.entitlements;
 				INFOPLIST_FILE = MorningGuardMonitor/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.morningguard.MorningGuardMonitor;
+				PRODUCT_BUNDLE_IDENTIFIER = com.morningguard.app.monitor;
 				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -886,15 +894,17 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 12AEE98B7502F8B576D7F6B1 /* Release.xcconfig */;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "Apple Distribution";
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = MorningGuardShieldAction/MorningGuardShieldAction.entitlements;
 				INFOPLIST_FILE = MorningGuardShieldAction/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.morningguard.MorningGuardShieldAction;
+				PRODUCT_BUNDLE_IDENTIFIER = com.morningguard.app.shieldaction;
 				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -921,14 +931,17 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 20270B3D7E5FF2F9935AD9E7 /* Debug.xcconfig */;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = MorningGuardShieldAction/MorningGuardShieldAction.entitlements;
 				INFOPLIST_FILE = MorningGuardShieldAction/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.morningguard.MorningGuardShieldAction;
+				PRODUCT_BUNDLE_IDENTIFIER = com.morningguard.app.shieldaction;
 				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -939,7 +952,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = MorningGuard/MorningGuard.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Distribution";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = MorningGuard/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1014,15 +1027,17 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 12AEE98B7502F8B576D7F6B1 /* Release.xcconfig */;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "Apple Distribution";
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = MorningGuardShieldConfig/MorningGuardShieldConfig.entitlements;
 				INFOPLIST_FILE = MorningGuardShieldConfig/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.morningguard.MorningGuardShieldConfig;
+				PRODUCT_BUNDLE_IDENTIFIER = com.morningguard.app.shieldconfig;
 				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;

@@ -44,8 +44,6 @@ targets:
       configs:
         Debug:
           CODE_SIGN_IDENTITY: iPhone Developer
-        Release:
-          CODE_SIGN_IDENTITY: Apple Distribution
     dependencies:
       - package: MorningGuardCore
         product: MorningGuardCore
@@ -78,9 +76,6 @@ targets:
       INFOPLIST_FILE: MorningGuardMonitor/Info.plist
       SKIP_INSTALL: YES
       APPLICATION_EXTENSION_API_ONLY: YES
-      configs:
-        Release:
-          CODE_SIGN_IDENTITY: Apple Distribution
     dependencies:
       - package: MorningGuardCore
         product: MorningGuardCore
@@ -104,9 +99,6 @@ targets:
       INFOPLIST_FILE: MorningGuardShieldConfig/Info.plist
       SKIP_INSTALL: YES
       APPLICATION_EXTENSION_API_ONLY: YES
-      configs:
-        Release:
-          CODE_SIGN_IDENTITY: Apple Distribution
     dependencies:
       - sdk: ManagedSettings.framework
       - sdk: ManagedSettingsUI.framework
@@ -127,9 +119,6 @@ targets:
       INFOPLIST_FILE: MorningGuardShieldAction/Info.plist
       SKIP_INSTALL: YES
       APPLICATION_EXTENSION_API_ONLY: YES
-      configs:
-        Release:
-          CODE_SIGN_IDENTITY: Apple Distribution
     dependencies:
       - sdk: ManagedSettings.framework
 
