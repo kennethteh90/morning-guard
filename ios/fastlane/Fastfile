@@ -11,6 +11,18 @@ def asc_api_key
   )
 end
 
+def xcode_auth_xcargs
+  key_path = ENV.fetch("APP_STORE_CONNECT_API_KEY_PATH")
+  key_id = ENV.fetch("APP_STORE_CONNECT_API_KEY_ID")
+  issuer_id = ENV.fetch("APP_STORE_CONNECT_API_ISSUER_ID")
+  [
+    "-allowProvisioningUpdates",
+    "-authenticationKeyPath '#{key_path}'",
+    "-authenticationKeyID #{key_id}",
+    "-authenticationKeyIssuerID #{issuer_id}",
+  ].join(" ")
+end
+
 platform :ios do
   # CI runs generate-xcodeproj, sync-ios-version, and CI.xcconfig before fastlane.
   # For local `fastlane beta`, run those from the repo root first (see docs/ios/testflight.md).
@@ -23,7 +35,8 @@ platform :ios do
       scheme: "MorningGuard",
       configuration: "Release",
       export_method: "app-store",
-      xcargs: "-allowProvisioningUpdates",
+      export_team_id: ENV.fetch("IOS_DEVELOPMENT_TEAM"),
+      xcargs: xcode_auth_xcargs,
       output_directory: "./build",
       output_name: "MorningGuard.ipa",
     )
@@ -37,7 +50,8 @@ platform :ios do
       scheme: "MorningGuard",
       configuration: "Release",
       export_method: "app-store",
-      xcargs: "-allowProvisioningUpdates",
+      export_team_id: ENV.fetch("IOS_DEVELOPMENT_TEAM"),
+      xcargs: xcode_auth_xcargs,
       output_directory: "./build",
       output_name: "MorningGuard.ipa",
     )
