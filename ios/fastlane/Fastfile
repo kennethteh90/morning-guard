@@ -1,6 +1,14 @@
 # TestFlight upload for Morning Guard (app + Screen Time extensions).
 # Requires App Store Connect API key in CI; local runs can use the same env vars.
 require "base64"
+require "json"
+
+CI_APP_STORE_BUNDLE_IDS = [
+  "com.morningguard.app",
+  "com.morningguard.app.monitor",
+  "com.morningguard.app.shieldconfig",
+  "com.morningguard.app.shieldaction",
+].freeze
 
 default_platform(:ios)
 
@@ -50,6 +58,34 @@ def xcode_auth_xcargs
   parts.join(" ")
 end
 
+def ci_manual_export_options(profile_map)
+  {
+    method: "app-store",
+    signingStyle: "manual",
+    teamID: ENV.fetch("IOS_DEVELOPMENT_TEAM"),
+    provisioningProfiles: profile_map,
+  }
+end
+
+def ci_build_app_export_options
+  { export_options: ci_manual_export_options(JSON.parse(ENV.fetch("CI_EXPORT_PROFILES"))) }
+end
+
+def fetch_ci_app_store_profiles!(api_key)
+  profile_map = {}
+  CI_APP_STORE_BUNDLE_IDS.each do |bundle_id|
+    sigh(
+      api_key: api_key,
+      app_identifier: bundle_id,
+      skip_install: false,
+      readonly: true,
+    )
+    profile_map[bundle_id] = Actions.lane_context[SharedValues::SIGH_NAME]
+  end
+  ENV["CI_EXPORT_PROFILES"] = JSON.generate(profile_map)
+  UI.success("Export profiles: #{profile_map.values.join(', ')}")
+end
+
 def unlock_ci_keychain!(keychain_path, keychain_password)
   escaped_pw = keychain_password.gsub("'", "'\\''")
   escaped_path = keychain_path.gsub("'", "'\\''")
@@ -76,7 +112,7 @@ def import_distribution_p12!(p12_path, cert_password, keychain_path, keychain_pa
   )
 end
 
-def prepare_ci_signing(_api_key)
+def prepare_ci_signing(api_key)
   return unless ENV["CI"] == "true"
 
   keychain_password = ENV.fetch("MATCH_KEYCHAIN_PASSWORD")
@@ -107,7 +143,9 @@ def prepare_ci_signing(_api_key)
       "CI keychain has no Apple Distribution identity. Re-run ./scripts/push-ios-distribution-cert-secret.sh."
     )
   end
-  UI.success("CI signing: Apple Distribution cert in #{keychain_path}; archive uses automatic + ASC API provisioning.")
+
+  # Archive can use automatic + API; export must be manual with App Store profiles (no Xcode cloud signing on CI).
+  fetch_ci_app_store_profiles!(api_key)
 end
 
 def refresh_ci_keychain_for_build!
@@ -131,6 +169,7 @@ platform :ios do
       xcargs: xcode_auth_xcargs,
       output_directory: "./build",
       output_name: "MorningGuard.ipa",
+      **(ENV["CI"] == "true" ? ci_build_app_export_options : {}),
     )
   end
 
@@ -148,6 +187,7 @@ platform :ios do
       xcargs: xcode_auth_xcargs,
       output_directory: "./build",
       output_name: "MorningGuard.ipa",
+      **(ENV["CI"] == "true" ? ci_build_app_export_options : {}),
     )
     upload_to_testflight(
       api_key: api_key,
