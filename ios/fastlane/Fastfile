@@ -66,13 +66,14 @@ def prepare_ci_signing(api_key)
 
   p12_path = File.join(Dir.tmpdir, "morning-guard-distribution.p12")
   File.binwrite(p12_path, Base64.decode64(p12_b64))
+  keychain_name = ENV.fetch("MATCH_KEYCHAIN_NAME")
   import_certificate(
     certificate_path: p12_path,
     certificate_password: ENV.fetch("IOS_DISTRIBUTION_CERTIFICATE_PASSWORD"),
-    keychain_path: ENV["KEYCHAIN_PATH"],
+    keychain_name: keychain_name,
     keychain_password: keychain_password,
   )
-  sh("security find-identity -v -p codesigning #{ENV['KEYCHAIN_PATH']}") if ENV["KEYCHAIN_PATH"]
+  sh("security find-identity -v -p codesigning -k #{keychain_name.shellescape}")
   APP_STORE_BUNDLE_IDS.each do |app_id|
     get_provisioning_profile(
       api_key: api_key,
