@@ -71,7 +71,8 @@ def ci_build_app_options
   profile_map = JSON.parse(profiles)
   {
     export_options: ci_export_options(profile_map),
-    codesigning_identity: "Apple Distribution",
+    # SPM / xcframework targets stay automatic; only the app + extensions are manual.
+    skip_package_dependencies_codesigning: true,
   }
 end
 
