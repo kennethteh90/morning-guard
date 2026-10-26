@@ -1,6 +1,7 @@
 # TestFlight upload for Morning Guard (app + Screen Time extensions).
 # Requires App Store Connect API key in CI; local runs can use the same env vars.
 require "base64"
+require "json"
 
 default_platform(:ios)
 
@@ -23,12 +24,27 @@ def asc_api_key
   end
 end
 
+def ci_keychain_path
+  name = ENV.fetch("MATCH_KEYCHAIN_NAME")
+  raw = ENV["KEYCHAIN_PATH"].to_s
+  raw = File.expand_path("~/Library/Keychains/#{name}-db") if raw.empty?
+  path = File.expand_path(raw)
+  # setup_ci sets KEYCHAIN_PATH without the "-db" suffix; the on-disk keychain is always *-db.
+  path = "#{path}-db" unless path.end_with?("-db")
+  path
+end
+
 def xcode_auth_xcargs
   team = ENV.fetch("IOS_DEVELOPMENT_TEAM")
   parts = [
     "DEVELOPMENT_TEAM=#{team}",
     "-allowProvisioningUpdates",
   ]
+  if ENV["CI"] == "true"
+    kc = ci_keychain_path.gsub("'", "'\\''")
+    parts << "CODE_SIGN_KEYCHAIN='#{kc}'"
+    parts << "OTHER_CODE_SIGN_FLAGS=--keychain '#{kc}'"
+  end
   # GitHub Actions has no logged-in Apple ID; local Mac should use Xcode login (unsigned archives if API-only).
   use_api = ENV["USE_ASC_API_XCODE_AUTH"] == "1" || ENV["CI"] == "true"
   key_path = ENV["APP_STORE_CONNECT_API_KEY_PATH"]
@@ -40,6 +56,24 @@ def xcode_auth_xcargs
     ]
   end
   parts.join(" ")
+end
+
+def ci_export_options(profile_map)
+  {
+    method: "app-store",
+    signingStyle: "manual",
+    teamID: ENV.fetch("IOS_DEVELOPMENT_TEAM"),
+    provisioningProfiles: profile_map,
+  }
+end
+
+def ci_build_app_options
+  profiles = ENV.fetch("CI_PROVISIONING_PROFILES")
+  profile_map = JSON.parse(profiles)
+  {
+    export_options: ci_export_options(profile_map),
+    codesigning_identity: "Apple Distribution",
+  }
 end
 
 CI_RELEASE_TARGETS = {
@@ -56,7 +90,13 @@ def unlock_ci_keychain!(keychain_path, keychain_password)
   # Keep the temp keychain unlocked for long archive/sign steps (default timeout is short).
   sh("security set-keychain-settings -lut 21600 '#{escaped_path}'")
   sh("security default-keychain -s '#{escaped_path}'")
-  sh("security list-keychains -d user -s '#{escaped_path}'")
+  original = Actions.lane_context[SharedValues::ORIGINAL_DEFAULT_KEYCHAIN]
+  if original.to_s.empty?
+    sh("security list-keychains -d user -s '#{escaped_path}'")
+  else
+    escaped_original = original.gsub("'", "'\\''")
+    sh("security list-keychains -d user -s '#{escaped_path}' '#{escaped_original}'")
+  end
 end
 
 def import_distribution_p12!(p12_path, cert_password, keychain_path, keychain_password)
@@ -88,10 +128,8 @@ def prepare_ci_signing(_api_key)
 
   p12_path = File.join(Dir.tmpdir, "morning-guard-distribution.p12")
   File.binwrite(p12_path, Base64.decode64(p12_b64))
-  keychain_name = ENV.fetch("MATCH_KEYCHAIN_NAME")
-  keychain_path = File.expand_path(
-    ENV["KEYCHAIN_PATH"] || "~/Library/Keychains/#{keychain_name}-db",
-  )
+  keychain_path = ci_keychain_path
+  profile_map = {}
   import_distribution_p12!(
     p12_path,
     ENV.fetch("IOS_DISTRIBUTION_CERTIFICATE_PASSWORD"),
@@ -113,9 +151,10 @@ def prepare_ci_signing(_api_key)
       api_key: _api_key,
       app_identifier: bundle_id,
       skip_install: false,
-      readonly: false,
+      readonly: true,
     )
     profile_uuid = Actions.lane_context[SharedValues::SIGH_UUID]
+    profile_map[bundle_id] = profile_uuid
     update_code_signing_settings(
       use_automatic_signing: false,
       path: "MorningGuard.xcodeproj",
@@ -126,6 +165,14 @@ def prepare_ci_signing(_api_key)
       build_configurations: ["Release"],
     )
   end
+  ENV["CI_PROVISIONING_PROFILES"] = JSON.generate(profile_map)
+  ENV["CI_KEYCHAIN_PATH"] = keychain_path
+end
+
+def refresh_ci_keychain_for_build!
+  return unless ENV["CI"] == "true"
+
+  unlock_ci_keychain!(ENV.fetch("CI_KEYCHAIN_PATH"), ENV.fetch("MATCH_KEYCHAIN_PASSWORD"))
 end
 
 platform :ios do
@@ -136,6 +183,7 @@ platform :ios do
   lane :build_release do
     api_key = asc_api_key
     prepare_ci_signing(api_key)
+    refresh_ci_keychain_for_build!
     build_app(
       project: "MorningGuard.xcodeproj",
       scheme: "MorningGuard",
@@ -145,6 +193,7 @@ platform :ios do
       xcargs: xcode_auth_xcargs,
       output_directory: "./build",
       output_name: "MorningGuard.ipa",
+      **(ENV["CI"] == "true" ? ci_build_app_options : {}),
     )
   end
 
@@ -152,6 +201,7 @@ platform :ios do
   lane :beta do
     api_key = asc_api_key
     prepare_ci_signing(api_key)
+    refresh_ci_keychain_for_build!
     build_app(
       project: "MorningGuard.xcodeproj",
       scheme: "MorningGuard",
@@ -161,6 +211,7 @@ platform :ios do
       xcargs: xcode_auth_xcargs,
       output_directory: "./build",
       output_name: "MorningGuard.ipa",
+      **(ENV["CI"] == "true" ? ci_build_app_options : {}),
     )
     upload_to_testflight(
       api_key: api_key,
