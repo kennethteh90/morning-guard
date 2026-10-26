@@ -50,11 +50,17 @@ APP_STORE_BUNDLE_IDS = [
 def prepare_ci_signing(api_key)
   return unless ENV["CI"] == "true"
 
+  keychain_password = ENV["MATCH_KEYCHAIN_PASSWORD"]
+  UI.user_error!("MATCH_KEYCHAIN_PASSWORD must be set on CI") if keychain_password.to_s.empty?
+
   setup_ci
   get_certificates(
     api_key: api_key,
     development: false,
     force: false,
+    keychain_path: ENV["KEYCHAIN_PATH"],
+    keychain_password: keychain_password,
+    skip_set_partition_list: true,
   )
   APP_STORE_BUNDLE_IDS.each do |app_id|
     get_provisioning_profile(
