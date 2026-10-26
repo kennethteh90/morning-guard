@@ -41,6 +41,11 @@ targets:
         CODE_SIGN_ENTITLEMENTS: MorningGuard/MorningGuard.entitlements
         TARGETED_DEVICE_FAMILY: "1,2"
         INFOPLIST_FILE: MorningGuard/Info.plist
+      configs:
+        Debug:
+          CODE_SIGN_IDENTITY: iPhone Developer
+        Release:
+          CODE_SIGN_IDENTITY: Apple Distribution
     dependencies:
       - package: MorningGuardCore
         product: MorningGuardCore
