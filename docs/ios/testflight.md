@@ -34,19 +34,20 @@ Validate:
 
 After upload, open App Store Connect → your app → **TestFlight** → add **Internal Testing** testers.
 
-## Local Fastlane (optional)
+## Local TestFlight (recommended while CI signing is tuned)
 
-Same env vars as CI, plus `ios/Config/Local.xcconfig` for signing:
+From repo root (uses `Local.xcconfig` + `~/Keys/morning-guard/AuthKey_*.p8` if present):
 
 ```bash
-cd ios
-export IOS_DEVELOPMENT_TEAM=XXXXXXXXXX
-export APP_STORE_CONNECT_API_KEY_ID=...
-export APP_STORE_CONNECT_API_ISSUER_ID=...
-export APP_STORE_CONNECT_API_KEY="$(base64 < /path/AuthKey.p8 | tr -d '\n')"
-bundle install
-bundle exec fastlane beta
+export APP_STORE_CONNECT_API_ISSUER_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+./scripts/ios-testflight-local.sh
 ```
+
+Archive only (no upload): `SKIP_UPLOAD=1 ./scripts/ios-testflight-local.sh`
+
+Issuer ID: App Store Connect → **Users and Access** → **Integrations** (top of the API keys page). Key ID is in the `AuthKey_<ID>.p8` filename.
+
+Sign in to Xcode with the same Apple ID as your developer team before the first run.
 
 ## Blockers CI cannot fix
 

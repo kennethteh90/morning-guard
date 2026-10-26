@@ -6,16 +6,12 @@
 	<string>https://bible-api.com/</string>
 	<key>BIBLE_PROXY_BASE_URL</key>
 	<string>$(BIBLE_PROXY_BASE_URL)</string>
-	<key>SUPABASE_URL</key>
-	<string>$(SUPABASE_URL)</string>
-	<key>SUPABASE_ANON_KEY</key>
-	<string>$(SUPABASE_ANON_KEY)</string>
-	<key>SENTRY_DSN</key>
-	<string>$(SENTRY_DSN)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Morning Guard</string>
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -49,13 +45,27 @@
 	<string>Morning Guard uses Screen Time to shield apps you choose during your morning window.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Morning Guard reads your step count to verify step-based morning goals.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Morning Guard does not write to Health. This description is required because the app uses HealthKit to read step counts for morning goals.</string>
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>Morning Guard can remind you when your morning window begins.</string>
 	<key>PRIVACY_POLICY_URL</key>
 	<string>https://morning-guard.codingagents.cc/privacy/</string>
+	<key>SENTRY_DSN</key>
+	<string>$(SENTRY_DSN)</string>
+	<key>SUPABASE_ANON_KEY</key>
+	<string>$(SUPABASE_ANON_KEY)</string>
+	<key>SUPABASE_URL</key>
+	<string>$(SUPABASE_URL)</string>
 	<key>UILaunchScreen</key>
 	<dict/>
+	<key>UIRequiresFullScreen</key>
+	<true/>
 	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>

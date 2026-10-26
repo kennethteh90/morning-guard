@@ -58,7 +58,8 @@ get_xcconfig_team() {
   if [[ ! -f "$LOCAL_XC" ]]; then
     return 0
   fi
-  grep -E '^DEVELOPMENT_TEAM\s*=' "$LOCAL_XC" 2>/dev/null | head -1 | sed -E 's/^DEVELOPMENT_TEAM\s*=\s*//' | tr -d ' ' || true
+  grep -E '^DEVELOPMENT_TEAM[[:space:]]*=' "$LOCAL_XC" 2>/dev/null | head -1 \
+    | sed -E 's/^DEVELOPMENT_TEAM[[:space:]]*=[[:space:]]*//' | tr -d '[:space:]' || true
 }
 
 IOS_DEVELOPMENT_TEAM="${IOS_DEVELOPMENT_TEAM:-$(get_xcconfig_team)}"

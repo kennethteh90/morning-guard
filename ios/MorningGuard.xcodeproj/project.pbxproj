@@ -48,6 +48,7 @@
 		7CB1791FF6DB8C6D796DB933 /* LocalBackupCipher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03D152911B7FD945A2233F09 /* LocalBackupCipher.swift */; };
 		83E741FA658ED17B2E29B2C2 /* BibleReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D194A1FA3E9D61F393EA7E /* BibleReaderView.swift */; };
 		86CAC395C18F66E34B91AC0D /* PrivacyPolicyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C26C737036BC341DF97A4A6 /* PrivacyPolicyView.swift */; };
+		871006D6B5FC19798D40E7D3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CC04609DE5D3A40C0470AA12 /* Assets.xcassets */; };
 		8765FC40D63829C6BDC37079 /* RecoveryPasswordCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DBCE1CDF5685CA54BBA681D /* RecoveryPasswordCoordinator.swift */; };
 		87C3E665E0919E85E69615F2 /* MorningGuardShieldAction.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5C1541EC4FCF1EBB7468EFFE /* MorningGuardShieldAction.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		8BF92AD9C2DFB8AECD0986EE /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6967BC8AA43D1B5C4A20E03C /* SettingsView.swift */; };
@@ -196,6 +197,7 @@
 		C8BEACADB730FBB9D415ECAD /* AppGroupKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroupKeys.swift; sourceTree = "<group>"; };
 		CA40742C4506B895EC0E8223 /* MGBottomAccessory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MGBottomAccessory.swift; sourceTree = "<group>"; };
 		CACA489CB0F83CBDDE5EC8AE /* MorningGoalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningGoalView.swift; sourceTree = "<group>"; };
+		CC04609DE5D3A40C0470AA12 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D099254BB94BFF52BD4A9281 /* OnboardingFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlowView.swift; sourceTree = "<group>"; };
 		D765CFC306C93F455D0349DF /* MorningGuardMonitor.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = MorningGuardMonitor.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D94EE5F98A74218FB9454676 /* MorningHistoryRecording.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningHistoryRecording.swift; sourceTree = "<group>"; };
@@ -303,6 +305,7 @@
 				D8458D3BEEA43695C1B347B5 /* UI */,
 				C8BEACADB730FBB9D415ECAD /* AppGroupKeys.swift */,
 				42993978A265440269330EE9 /* AppState.swift */,
+				CC04609DE5D3A40C0470AA12 /* Assets.xcassets */,
 				E15D48CEF9D7BDEE5D3B94F4 /* Info.plist */,
 				8243429593727ED2FACFBFEB /* Localizable.xcstrings */,
 				B0330BD22B2E0AE54225793F /* MorningGuardApp.swift */,
@@ -634,6 +637,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				871006D6B5FC19798D40E7D3 /* Assets.xcassets in Resources */,
 				4E1D054FF90DB7B377380E2D /* Localizable.xcstrings in Resources */,
 				49EA12DD1BA0510ED324B6BC /* PrivacyInfo.xcprivacy in Resources */,
 				A333F18ECD35DE2F55F096DF /* strings-catalog.json in Resources */,

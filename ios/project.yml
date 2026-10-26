@@ -36,10 +36,11 @@ targets:
       Debug: Config/Debug.xcconfig
       Release: Config/Release.xcconfig
     settings:
-      PRODUCT_BUNDLE_IDENTIFIER: com.morningguard.app
-      CODE_SIGN_ENTITLEMENTS: MorningGuard/MorningGuard.entitlements
-      TARGETED_DEVICE_FAMILY: "1,2"
-      INFOPLIST_FILE: MorningGuard/Info.plist
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.morningguard.app
+        CODE_SIGN_ENTITLEMENTS: MorningGuard/MorningGuard.entitlements
+        TARGETED_DEVICE_FAMILY: "1,2"
+        INFOPLIST_FILE: MorningGuard/Info.plist
     dependencies:
       - package: MorningGuardCore
         product: MorningGuardCore

@@ -3,6 +3,12 @@
 //
 // DEVELOPMENT_TEAM = ABCDE12345
 //
+// App Store Connect API (for ./scripts/ios-testflight-local.sh — gitignored; not as sensitive as the .p8 file)
+// Issuer ID: App Store Connect → Users and Access → Integrations (top of page)
+// Key ID: matches AuthKey_<KEY_ID>.p8 filename (optional if key lives under ~/Keys/morning-guard/)
+// APP_STORE_CONNECT_API_ISSUER_ID = xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+// APP_STORE_CONNECT_API_KEY_ID = XXXXXXXXXX
+//
 // Bible proxy (same as Android local.properties — see workers/bible-cache/README.md)
 // xcconfig treats "//" in URLs as a comment — use https:/$()/ instead of https://
 // BIBLE_PROXY_BASE_URL = https:/$()/morning-guard-bible-cache.your-subdomain.workers.dev
