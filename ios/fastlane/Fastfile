@@ -74,8 +74,9 @@ def prepare_ci_signing(api_key)
     keychain_password: keychain_password,
   )
   keychain_path = ENV["KEYCHAIN_PATH"] || File.expand_path("~/Library/Keychains/#{keychain_name}-db")
+  # Best-effort; headless CI may not need this for codesign to work.
   sh(
-    "security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k '#{keychain_password}' '#{keychain_path}'"
+    "security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k '#{keychain_password}' '#{keychain_path}' || true"
   )
   APP_STORE_BUNDLE_IDS.each do |app_id|
     get_provisioning_profile(
