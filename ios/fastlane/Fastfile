@@ -78,6 +78,13 @@ def prepare_ci_signing(_api_key)
   sh(
     "security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k '#{keychain_password}' '#{keychain_path}' || true"
   )
+  identities = sh("security find-identity -v -p codesigning", log: false)
+  unless identities.include?("Apple Distribution")
+    UI.user_error!(
+      "CI keychain has no Apple Distribution identity. The GitHub secret likely contains a Development .p12. " \
+      "Re-run ./scripts/push-ios-distribution-cert-secret.sh (exports only Apple Distribution)."
+    )
+  end
   # App Store profiles are created/updated during archive via -allowProvisioningUpdates + ASC API on xcodebuild.
 end
 

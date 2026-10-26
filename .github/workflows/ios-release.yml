@@ -82,8 +82,8 @@ jobs:
           set -euo pipefail
           identity="$(xcodebuild -project MorningGuard.xcodeproj -target MorningGuard -configuration Release -showBuildSettings 2>/dev/null | awk -F' = ' '/CODE_SIGN_IDENTITY =/{print $2; exit}')"
           echo "MorningGuard CODE_SIGN_IDENTITY=${identity}"
-          if [[ "$identity" != "Apple Distribution" ]]; then
-            echo "Release archives expect Apple Distribution (got: $identity)" >&2
+          if [[ "$identity" == "iPhone Developer" ]]; then
+            echo "Release must not use iPhone Developer (got: $identity)" >&2
             exit 1
           fi
 

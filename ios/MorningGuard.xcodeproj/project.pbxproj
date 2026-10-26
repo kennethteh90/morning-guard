@@ -15,6 +15,7 @@
 		0FDD4B9F6D247D1CE0E74B7D /* OnboardingComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14F28F0D74625C1EB06C5D5 /* OnboardingComponents.swift */; };
 		16618503AB0C5AA51FEDC877 /* FamilyControls.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AF6E1B1BFE23A7F394439DF /* FamilyControls.framework */; };
 		19B8F5862FF1840CF64C3114 /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E50DC86C7F1E9546E9949CBD /* ManagedSettings.framework */; };
+		1E0D4054AB11699D106B67D8 /* AuthCallbackURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 524B571C131B9ED4A5F38ABD /* AuthCallbackURL.swift */; };
 		1E0F1270747C78ED0AF49303 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0251160E737CA417B642CB04 /* HomeView.swift */; };
 		21A929648BFF43C53BEA173C /* MGHaptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6177EA375C190E65BFC9E184 /* MGHaptics.swift */; };
 		23B516347DE0C936FBE2A4A9 /* MorningGoalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CACA489CB0F83CBDDE5EC8AE /* MorningGoalView.swift */; };
@@ -33,6 +34,7 @@
 		50165CAA5DDB5B6C7159CAFC /* BiblePassageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29A7CEEEF8F8D24C4A71AE25 /* BiblePassageView.swift */; };
 		538835603677C3DBBBAC429B /* PeaceSessionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA704C42B2AE3CAFAD8A7190 /* PeaceSessionService.swift */; };
 		548916CD397AC0BDD172F9C5 /* DeviceActivityMonitorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84DBE4B80FAF7EA8364C14C1 /* DeviceActivityMonitorExtension.swift */; };
+		552E4E2F1F023FB84AA70BBE /* SyncErrorReporting.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6EAB54E0E35F21038C811B0 /* SyncErrorReporting.swift */; };
 		594A97B5D6F21FEE47323703 /* MGBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FF4E1C5661F2515393720B /* MGBanner.swift */; };
 		5DFFC47675206278C63F95AB /* LicensedSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 398B4A29A98C3C7B2D5190A1 /* LicensedSessionCoordinator.swift */; };
 		5E9BDE3B1D2378470ADADBBA /* MorningAlarmScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBAF823193E616E15A616E3 /* MorningAlarmScheduler.swift */; };
@@ -58,6 +60,7 @@
 		9068EC237522BBD60D70F6EC /* PassphraseStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38FFCDA7D42BBD179CBFEFBE /* PassphraseStore.swift */; };
 		92A50C89B06DC6BE19BC558D /* GateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3AF3B0E51E8029DB6C341EB /* GateService.swift */; };
 		92E141766FC45D480022F576 /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E50DC86C7F1E9546E9949CBD /* ManagedSettings.framework */; };
+		9829F55AA60286C88FDB99E0 /* SentryPrivacyScrubber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F4A4508E00B0AD8DE86EAD5 /* SentryPrivacyScrubber.swift */; };
 		9D7BEE524552F0F3F38436D8 /* BibleChapterDiskCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76D3FAC950CD2FD5F02F8BC7 /* BibleChapterDiskCache.swift */; };
 		A1FEC9BB18B0AA4C3782FC90 /* SentryErrorReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 178431605567AC60B0149348 /* SentryErrorReporter.swift */; };
 		A333F18ECD35DE2F55F096DF /* strings-catalog.json in Resources */ = {isa = PBXBuildFile; fileRef = 482A2D47A2878542800D4F69 /* strings-catalog.json */; };
@@ -87,6 +90,7 @@
 		E6568041212C4AAE50FF02F0 /* BibleChapterMemoryCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = A410306757517A4CDA976C58 /* BibleChapterMemoryCache.swift */; };
 		E8D3A246548C943CA36BCFB5 /* OnboardingFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D099254BB94BFF52BD4A9281 /* OnboardingFlowView.swift */; };
 		ECCCA70B63AC74FDC5C91C74 /* BibleReadingScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F80AF99F70C4EF5A0BCDC685 /* BibleReadingScreen.swift */; };
+		ED8F4174748E57E7C7BA71D0 /* EmergencyLockoutStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A017C1EF19E70A2DEBCBDE1 /* EmergencyLockoutStore.swift */; };
 		F81E2EFD8BD30A3FB59EF6E4 /* VerseHighlightBottomBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88239595064EEC5D2B56114D /* VerseHighlightBottomBar.swift */; };
 		FBE9FD43606D5A9E635E8C7C /* SupabaseAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F48EC1F35BB651FBC71EBB6 /* SupabaseAuthService.swift */; };
 /* End PBXBuildFile section */
@@ -160,6 +164,7 @@
 		4AF12FA7596EFAD759B7CC84 /* SentryConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SentryConfig.swift; sourceTree = "<group>"; };
 		502213472F6BCB56CD7EC780 /* LocalBackupModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalBackupModels.swift; sourceTree = "<group>"; };
 		5025D8E16E133D5CA3244C86 /* ShieldController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldController.swift; sourceTree = "<group>"; };
+		524B571C131B9ED4A5F38ABD /* AuthCallbackURL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthCallbackURL.swift; sourceTree = "<group>"; };
 		58F8D3285385626C6BAF84B7 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		5C1541EC4FCF1EBB7468EFFE /* MorningGuardShieldAction.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = MorningGuardShieldAction.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		5EB14626797E34D4CD697E25 /* MorningGuardShieldConfig.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = MorningGuardShieldConfig.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -178,9 +183,11 @@
 		84DBE4B80FAF7EA8364C14C1 /* DeviceActivityMonitorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceActivityMonitorExtension.swift; sourceTree = "<group>"; };
 		876C7622D3B87E3B93583CF0 /* NoteEncryptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteEncryptionService.swift; sourceTree = "<group>"; };
 		88239595064EEC5D2B56114D /* VerseHighlightBottomBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerseHighlightBottomBar.swift; sourceTree = "<group>"; };
+		8A017C1EF19E70A2DEBCBDE1 /* EmergencyLockoutStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmergencyLockoutStore.swift; sourceTree = "<group>"; };
 		8AF6E1B1BFE23A7F394439DF /* FamilyControls.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = FamilyControls.framework; path = System/Library/Frameworks/FamilyControls.framework; sourceTree = SDKROOT; };
 		8BC57F363E109AF698EBD6E7 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
 		8DD5E7589527244CDDCA106D /* ShieldConfigurationExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldConfigurationExtension.swift; sourceTree = "<group>"; };
+		8F4A4508E00B0AD8DE86EAD5 /* SentryPrivacyScrubber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SentryPrivacyScrubber.swift; sourceTree = "<group>"; };
 		90D9266C4AF969C46EE56AC0 /* MorningGuard.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MorningGuard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		94E21AC5482DB20B3A769B3D /* SharedShieldSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedShieldSupport.swift; sourceTree = "<group>"; };
 		A1CC0EE43A6FEBE2A16D6AD2 /* BackupFileDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupFileDocument.swift; sourceTree = "<group>"; };
@@ -207,6 +214,7 @@
 		E28EEC5ED6D4B4CEE9980433 /* BibleProxyClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BibleProxyClient.swift; sourceTree = "<group>"; };
 		E3AF3B0E51E8029DB6C341EB /* GateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GateService.swift; sourceTree = "<group>"; };
 		E50DC86C7F1E9546E9949CBD /* ManagedSettings.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ManagedSettings.framework; path = System/Library/Frameworks/ManagedSettings.framework; sourceTree = SDKROOT; };
+		E6EAB54E0E35F21038C811B0 /* SyncErrorReporting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncErrorReporting.swift; sourceTree = "<group>"; };
 		E8DA8423EDF0DBC2CDFBDB71 /* BibleClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BibleClient.swift; sourceTree = "<group>"; };
 		EA3D1D53827C693E22BF06B3 /* UserDataSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDataSyncService.swift; sourceTree = "<group>"; };
 		F15C67224B3C4A39A1F32D19 /* MagicLinkRateLimitStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MagicLinkRateLimitStore.swift; sourceTree = "<group>"; };
@@ -373,6 +381,7 @@
 				E28EEC5ED6D4B4CEE9980433 /* BibleProxyClient.swift */,
 				499E1D244A1C8245C9D8FA41 /* BibleProxyConfig.swift */,
 				40C5B7077965A3EEACF68ACA /* DeviceActivityScheduler.swift */,
+				8A017C1EF19E70A2DEBCBDE1 /* EmergencyLockoutStore.swift */,
 				E3AF3B0E51E8029DB6C341EB /* GateService.swift */,
 				82C564AB2B6BA80594178830 /* HealthKitStepReader.swift */,
 				398B4A29A98C3C7B2D5190A1 /* LicensedSessionCoordinator.swift */,
@@ -387,6 +396,7 @@
 				5025D8E16E133D5CA3244C86 /* ShieldController.swift */,
 				5F48EC1F35BB651FBC71EBB6 /* SupabaseAuthService.swift */,
 				C0B8AA1262E1E8C6E594E9B1 /* SupabaseConfig.swift */,
+				E6EAB54E0E35F21038C811B0 /* SyncErrorReporting.swift */,
 				EA3D1D53827C693E22BF06B3 /* UserDataSyncService.swift */,
 			);
 			path = Services;
@@ -428,6 +438,7 @@
 				46BD0B8BDF94A296EEBCEC67 /* ErrorReporter.swift */,
 				4AF12FA7596EFAD759B7CC84 /* SentryConfig.swift */,
 				178431605567AC60B0149348 /* SentryErrorReporter.swift */,
+				8F4A4508E00B0AD8DE86EAD5 /* SentryPrivacyScrubber.swift */,
 			);
 			path = Monitoring;
 			sourceTree = "<group>";
@@ -476,6 +487,7 @@
 		DF66E2B74EEA6A496837BA67 /* Auth */ = {
 			isa = PBXGroup;
 			children = (
+				524B571C131B9ED4A5F38ABD /* AuthCallbackURL.swift */,
 				F15C67224B3C4A39A1F32D19 /* MagicLinkRateLimitStore.swift */,
 			);
 			path = Auth;
@@ -655,6 +667,7 @@
 				30A20E6D36BA21797D628286 /* AnalyticsTracker.swift in Sources */,
 				CB5B6F2DF873C5A6F96095CE /* AppGroupKeys.swift in Sources */,
 				41278D220998DF81CE3632AD /* AppState.swift in Sources */,
+				1E0D4054AB11699D106B67D8 /* AuthCallbackURL.swift in Sources */,
 				082F820C60ABA53C441F2F55 /* BackupFileDocument.swift in Sources */,
 				9D7BEE524552F0F3F38436D8 /* BibleChapterDiskCache.swift in Sources */,
 				E6568041212C4AAE50FF02F0 /* BibleChapterMemoryCache.swift in Sources */,
@@ -670,6 +683,7 @@
 				02DD83ECD65F8012ABAE2ACA /* DebugWindowPresets.swift in Sources */,
 				BFAD4DA7B384C90B712C8306 /* DeviceActivityScheduler.swift in Sources */,
 				CA847750F63FD0EBEC5D0612 /* EmergencyBypassView.swift in Sources */,
+				ED8F4174748E57E7C7BA71D0 /* EmergencyLockoutStore.swift in Sources */,
 				77FC47CF3A46C4FB3E3DA417 /* ErrorReporter.swift in Sources */,
 				92A50C89B06DC6BE19BC558D /* GateService.swift in Sources */,
 				29D5D7BC4117C55FF0AD2004 /* HealthKitStepReader.swift in Sources */,
@@ -704,12 +718,14 @@
 				B2C361CEFF623480B45CB8AF /* ScreenshotDemoSeeder.swift in Sources */,
 				AD070CF2759D4499AE24035F /* SentryConfig.swift in Sources */,
 				A1FEC9BB18B0AA4C3782FC90 /* SentryErrorReporter.swift in Sources */,
+				9829F55AA60286C88FDB99E0 /* SentryPrivacyScrubber.swift in Sources */,
 				415043BA13D1B74C7CA486DE /* SettingsStore.swift in Sources */,
 				8BF92AD9C2DFB8AECD0986EE /* SettingsView.swift in Sources */,
 				0F1574FFEF474497BAEB1E59 /* ShieldController.swift in Sources */,
 				3565C54DDCD6F1138B7D7CCD /* StatsView.swift in Sources */,
 				FBE9FD43606D5A9E635E8C7C /* SupabaseAuthService.swift in Sources */,
 				A7B662924D6F2FAC559E43FE /* SupabaseConfig.swift in Sources */,
+				552E4E2F1F023FB84AA70BBE /* SyncErrorReporting.swift in Sources */,
 				6EAF95B0AAEE4416A39CF98B /* UserDataSyncService.swift in Sources */,
 				F81E2EFD8BD30A3FB59EF6E4 /* VerseHighlightBottomBar.swift in Sources */,
 			);
@@ -814,7 +830,6 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "Apple Distribution";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -937,6 +952,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = MorningGuard/MorningGuard.entitlements;
+				CODE_SIGN_IDENTITY = "";
 				INFOPLIST_FILE = MorningGuard/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

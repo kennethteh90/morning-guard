@@ -24,9 +24,6 @@ settings:
   base:
     SWIFT_VERSION: "5.9"
     IPHONEOS_DEPLOYMENT_TARGET: "17.0"
-  configs:
-    Release:
-      CODE_SIGN_IDENTITY: Apple Distribution
 targets:
   MorningGuard:
     type: application
@@ -44,6 +41,9 @@ targets:
         CODE_SIGN_ENTITLEMENTS: MorningGuard/MorningGuard.entitlements
         TARGETED_DEVICE_FAMILY: "1,2"
         INFOPLIST_FILE: MorningGuard/Info.plist
+      configs:
+        Release:
+          CODE_SIGN_IDENTITY: ""
     dependencies:
       - package: MorningGuardCore
         product: MorningGuardCore

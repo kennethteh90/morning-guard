@@ -55,10 +55,12 @@ Sign in to Xcode with the same Apple ID as your developer team before the first 
 - **Bundle ID** `com.morningguard.app` and extensions must exist in the developer portal with App Group `group.com.morningguard.shared`.
 - **Licensed Bible on device:** Cloudflare worker needs `APPLE_TEAM_ID` (see `workers/bible-cache/README.md`).
 - **Cloud-managed distribution certificates:** If export fails with `FORBIDDEN_ERROR` / “cloud-managed distribution certificates”, the API key’s user needs that access in App Store Connect (Account Holder or Admin), or upload from a Mac with `./scripts/ios-testflight-local.sh`.
-- **CI distribution cert:** GitHub Actions cannot use your Mac login keychain. Export your **Apple Distribution** identity once (Keychain Access may prompt):
+- **CI distribution cert:** GitHub Actions cannot use your Mac login keychain. Export **only** **Apple Distribution** (not Apple Development) from Keychain Access → My Certificates → expand **Apple Distribution** → select certificate + private key → File → Export Items → `.p12`. Then:
 
   ```bash
-  IOS_DISTRIBUTION_CERTIFICATE_PASSWORD='choose-a-strong-password' ./scripts/push-ios-distribution-cert-secret.sh
+  IOS_DISTRIBUTION_CERTIFICATE_P12_PATH=~/Downloads/YourExport.p12 \
+  IOS_DISTRIBUTION_CERTIFICATE_PASSWORD='p12-export-password' \
+  ./scripts/push-ios-distribution-cert-secret.sh
   ```
 
   If CI fails with “maximum number of Distribution certificates”, revoke unused **Apple Distribution** certs at [developer.apple.com](https://developer.apple.com/account/resources/certificates/list) (orphans from failed CI runs), then re-run **iOS Release**.
