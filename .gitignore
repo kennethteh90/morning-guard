@@ -1,8 +1,11 @@
 *.iml
 .gradle/
 /local.properties
-.cursor/mcp.json
+.cursor/
+.wrangler/
 /.idea/
+**/*.xcuserstate
+**/xcuserdata/
 .DS_Store
 /build/
 **/build/

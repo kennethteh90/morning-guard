@@ -1,0 +1,3 @@
+Bible chapters load faster with on-device caching and smoother chapter navigation.
+Stats shows total time spent in the Bible reader.
+Stability and backup improvements from recent releases.
