@@ -75,6 +75,8 @@ echo "Team: $IOS_DEVELOPMENT_TEAM  Key ID: $APP_STORE_CONNECT_API_KEY_ID"
 echo "Using key: $APP_STORE_CONNECT_API_KEY_PATH"
 echo "Archive signing: Xcode login session (set USE_ASC_API_XCODE_AUTH=1 to force API-key xcodebuild auth)."
 
+"$ROOT/scripts/validate-ios-xcconfig-urls.sh" "$LOCAL_XC"
+
 "$ROOT/scripts/sync-ios-version.sh"
 (cd "$ROOT/ios" && ./scripts/generate-xcodeproj.sh)
 cd "$ROOT/ios"

@@ -13,7 +13,14 @@ enum SupabaseConfig {
     }
 
     static var isConfigured: Bool {
-        !url.isEmpty && !anonKey.isEmpty
+        guard !url.isEmpty, !anonKey.isEmpty else { return false }
+        guard let parsed = URL(string: url),
+              parsed.scheme == "https",
+              let host = parsed.host,
+              !host.isEmpty else {
+            return false
+        }
+        return true
     }
 
     static var missingPieceMessage: String? {

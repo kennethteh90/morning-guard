@@ -74,6 +74,9 @@ jobs:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: ./scripts/write-ios-ci-xcconfig.sh
 
+      - name: Validate iOS xcconfig URLs
+        run: ./scripts/validate-ios-xcconfig-urls.sh ios/Config/CI.xcconfig
+
       - name: Generate Xcode project
         run: ./scripts/generate-xcodeproj.sh
 
