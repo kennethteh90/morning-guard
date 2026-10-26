@@ -14,5 +14,9 @@
 ios/MorningGuardCore/.build/
 core/domain/bin/
 ios/Config/Local.xcconfig
+ios/Config/CI.xcconfig
+ios/build/
+ios/fastlane/report.xml
+ios/fastlane/test_output/
 *.keystore
 !debug.keystore

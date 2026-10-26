@@ -87,3 +87,7 @@ Manual run: GitHub → **Actions** → **Release** → **Run workflow**.
 ## CI
 
 Pull-request and `main` verification stays in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`test`, `detekt`, `lint`; optional `assembleFullRelease` on `main`). It does not replace the Release workflow for store bundles.
+
+## iOS TestFlight
+
+See [docs/ios/testflight.md](ios/testflight.md). Tag `v*` also runs [`.github/workflows/ios-release.yml`](../.github/workflows/ios-release.yml) after App Store Connect API secrets are set via `./scripts/push-ios-github-secrets.sh`.

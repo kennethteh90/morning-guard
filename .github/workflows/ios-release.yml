@@ -1,0 +1,108 @@
+name: iOS Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      upload_testflight:
+        description: Upload IPA to TestFlight after archive
+        type: boolean
+        default: true
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  testflight:
+    runs-on: macos-14
+    defaults:
+      run:
+        working-directory: ios
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Validate iOS release secrets
+        env:
+          IOS_DEVELOPMENT_TEAM: ${{ secrets.IOS_DEVELOPMENT_TEAM }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          BIBLE_PROXY_BASE_URL: ${{ secrets.BIBLE_PROXY_BASE_URL }}
+        run: |
+          set -euo pipefail
+          missing=()
+          for name in IOS_DEVELOPMENT_TEAM APP_STORE_CONNECT_API_KEY_ID APP_STORE_CONNECT_API_ISSUER_ID \
+            APP_STORE_CONNECT_API_KEY SUPABASE_URL SUPABASE_ANON_KEY BIBLE_PROXY_BASE_URL; do
+            eval "val=\${$name:-}"
+            if [ -z "$val" ]; then
+              missing+=("$name")
+            fi
+          done
+          if [ "${#missing[@]}" -gt 0 ]; then
+            echo "Missing GitHub secrets (see docs/ios/testflight.md):"
+            printf '  - %s\n' "${missing[@]}"
+            exit 1
+          fi
+
+      - name: Sync iOS version from version.properties
+        working-directory: .
+        run: ./scripts/sync-ios-version.sh
+
+      - name: Write CI xcconfig
+        working-directory: .
+        env:
+          IOS_DEVELOPMENT_TEAM: ${{ secrets.IOS_DEVELOPMENT_TEAM }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          BIBLE_PROXY_BASE_URL: ${{ secrets.BIBLE_PROXY_BASE_URL }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+        run: ./scripts/write-ios-ci-xcconfig.sh
+
+      - name: Generate Xcode project
+        run: ./scripts/generate-xcodeproj.sh
+
+      - name: Test MorningGuardCore
+        working-directory: ios/MorningGuardCore
+        run: swift test
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+          working-directory: ios
+
+      - name: Build and upload TestFlight
+        env:
+          IOS_DEVELOPMENT_TEAM: ${{ secrets.IOS_DEVELOPMENT_TEAM }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.upload_testflight }}" != "true" ]; then
+            bundle exec fastlane build_release
+          else
+            bundle exec fastlane beta
+          fi
+          # Tag pushes always upload; workflow_dispatch can set upload_testflight=false for archive-only.
+
+      - name: Upload IPA artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: morning-guard-ios-${{ github.ref_name }}
+          path: ios/build/MorningGuard.ipa
+          if-no-files-found: ignore

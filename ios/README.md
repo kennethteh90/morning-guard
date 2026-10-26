@@ -21,7 +21,7 @@ See [site/ios-demo/README.md](../site/ios-demo/README.md).
 
 ## Generate and open
 
-**Device testing:** see [DEVICE-TESTING.md](DEVICE-TESTING.md).
+**Device testing:** see [DEVICE-TESTING.md](DEVICE-TESTING.md). **TestFlight / CI:** see [docs/ios/testflight.md](../docs/ios/testflight.md).
 
 ```bash
 ./ios/scripts/run-simulator.sh          # build + install + launch (no Xcode UI needed)

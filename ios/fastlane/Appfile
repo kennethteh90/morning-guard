@@ -1,0 +1,3 @@
+app_identifier("com.morningguard.app")
+
+team_id(ENV["IOS_DEVELOPMENT_TEAM"] || ENV["DEVELOPMENT_TEAM"])
