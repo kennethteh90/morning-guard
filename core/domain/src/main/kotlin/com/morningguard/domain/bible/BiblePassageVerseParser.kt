@@ -29,7 +29,20 @@ object BiblePassageVerseParser {
         val trimmed = paragraph.trim()
         if (trimmed.isEmpty()) return emptyList()
 
-        val matches = verseMarker.findAll(trimmed).toList()
+        val allMatches = verseMarker.findAll(trimmed).toList()
+        if (allMatches.isEmpty()) {
+            return listOf(Segment.Verse(number = 1, text = trimmed))
+        }
+
+        val matches = mutableListOf<MatchResult>()
+        var lastVerse = 0
+        for (match in allMatches) {
+            val number = verseNumberFromMarker(match.value)
+            if (!isIncreasingVerseBoundary(number, lastVerse)) continue
+            matches.add(match)
+            lastVerse = number
+        }
+
         if (matches.isEmpty()) {
             return listOf(Segment.Verse(number = 1, text = trimmed))
         }
@@ -40,12 +53,33 @@ object BiblePassageVerseParser {
             val end = matches.getOrNull(i + 1)?.range?.first ?: trimmed.length
             val chunk = trimmed.substring(start, end).trim()
             val number = verseNumberFromMarker(matches[i].value)
-            val body = chunk.removePrefix(matches[i].value).trim()
+            val body = stripEmbeddedPoeticLineNumbers(
+                number,
+                chunk.removePrefix(matches[i].value).trim(),
+            )
             if (number > 0 && body.isNotEmpty()) {
                 verses.add(Segment.Verse(number, body))
             }
         }
         return verses
+    }
+
+    /**
+     * Poetic / quoted lines inside a verse often repeat `1.` or `[1]`; only treat markers
+     * that advance the chapter verse sequence as boundaries.
+     */
+    private fun isIncreasingVerseBoundary(number: Int, lastVerse: Int): Boolean {
+        if (number <= 0) return false
+        if (lastVerse == 0) return true
+        return number > lastVerse
+    }
+
+    /** Remove stanza-style `1.` / `[1]` prefixes on continuation lines within a verse. */
+    private fun stripEmbeddedPoeticLineNumbers(verseNumber: Int, text: String): String {
+        if (verseNumber <= 1) return text
+        return text
+            .replace(Regex("""(\r?\n)1\.(\s)"""), "$1$2")
+            .replace(Regex("""(\r?\n)\[1\](\s)"""), "$1$2")
     }
 
     private fun verseNumberFromMarker(marker: String): Int {
