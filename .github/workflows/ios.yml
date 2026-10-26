@@ -1,14 +1,16 @@
 name: iOS
 
+# Simulator build + MorningGuardCore tests on PRs only. Tagged releases use ios-release.yml.
 on:
-  push:
-    paths:
-      - "ios/**"
-      - ".github/workflows/ios.yml"
   pull_request:
     paths:
       - "ios/**"
       - ".github/workflows/ios.yml"
+      - "version.properties"
+
+concurrency:
+  group: ios-${{ github.sha }}
+  cancel-in-progress: true
 
 jobs:
   build:

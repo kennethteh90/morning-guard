@@ -27,9 +27,8 @@ def xcode_auth_xcargs
     "DEVELOPMENT_TEAM=#{team}",
     "-allowProvisioningUpdates",
   ]
-  # API-key xcodebuild auth skips login-session signing and can produce unsigned archives
-  # (no Team in .xcarchive). Prefer Xcode login for local archives; CI can set USE_ASC_API_XCODE_AUTH=1.
-  use_api = ENV["USE_ASC_API_XCODE_AUTH"] == "1"
+  # GitHub Actions has no logged-in Apple ID; local Mac should use Xcode login (unsigned archives if API-only).
+  use_api = ENV["USE_ASC_API_XCODE_AUTH"] == "1" || ENV["CI"] == "true"
   key_path = ENV["APP_STORE_CONNECT_API_KEY_PATH"]
   if use_api && key_path && File.exist?(key_path)
     parts += [

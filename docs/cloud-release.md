@@ -2,6 +2,17 @@
 
 Signed **full** flavor release AABs (`com.morningguard.app`) are built in GitHub Actions so you do not need Kenneth's Mac for `bundleRelease`. Versioning stays in `version.properties` (`versionCode = major×10000 + minor×100 + patch`); the workflow never bumps or commits it.
 
+## Workflow map
+
+| Workflow | When it runs | Purpose |
+|----------|----------------|---------|
+| [CI](../.github/workflows/ci.yml) | PR + push to `main` | Android `test`, `detekt`, `lint` |
+| [iOS](../.github/workflows/ios.yml) | PR (iOS / `version.properties` paths) | Simulator build, `MorningGuardCore` tests |
+| [Release](../.github/workflows/release.yml) | Tag `v*` or manual | Signed Android AAB (+ optional Play internal draft) |
+| [iOS Release](../.github/workflows/ios-release.yml) | Tag `v*` or manual | Archive + TestFlight upload |
+
+**Ship a version:** merge to `main`, wait for **CI** (and **iOS** on the PR) to pass, bump `version.properties` if needed, push `main`, then tag and push **only the tag** (or push `main` and tag in one go knowing you will get up to four runs). Prefer `git push origin main`, confirm green, then `git tag vX.Y.Z && git push origin vX.Y.Z` so store workflows are not stacked on top of redundant `main` checks you already saw on the PR.
+
 ## One-time: repository secrets
 
 From a machine that already has a working `local.properties` and upload keystore:
@@ -86,7 +97,7 @@ Manual run: GitHub → **Actions** → **Release** → **Run workflow**.
 
 ## CI
 
-Pull-request and `main` verification stays in [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`test`, `detekt`, `lint`; optional `assembleFullRelease` on `main`). It does not replace the Release workflow for store bundles.
+Pull-request and `main` verification is [`.github/workflows/ci.yml`](../.github/workflows/ci.yml) (`test`, `detekt`, `lint` only). Release APK/AAB artifacts come from the **Release** workflow on tags, not from CI.
 
 ## iOS TestFlight
 

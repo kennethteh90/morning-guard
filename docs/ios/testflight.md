@@ -47,13 +47,14 @@ Archive only (no upload): `SKIP_UPLOAD=1 ./scripts/ios-testflight-local.sh`
 
 Issuer ID: App Store Connect → **Users and Access** → **Integrations** (top of the API keys page). Key ID is in the `AuthKey_<ID>.p8` filename.
 
-Sign in to Xcode with the same Apple ID as your developer team before the first run.
+Sign in to Xcode with the same Apple ID as your developer team before the first run. Local scripts use your **Xcode login** for signing; GitHub Actions passes the App Store Connect API key into `xcodebuild` (`CI=true`) because runners have no Apple ID.
 
 ## Blockers CI cannot fix
 
 - **Family Controls distribution** entitlement must be approved before a store/TestFlight build can use shields. Request as Account Holder: [Family Controls entitlement](https://developer.apple.com/documentation/FamilyControls/requesting-the-family-controls-entitlement).
 - **Bundle ID** `com.morningguard.app` and extensions must exist in the developer portal with App Group `group.com.morningguard.shared`.
 - **Licensed Bible on device:** Cloudflare worker needs `APPLE_TEAM_ID` (see `workers/bible-cache/README.md`).
+- **Cloud-managed distribution certificates:** If export fails with `FORBIDDEN_ERROR` / “cloud-managed distribution certificates”, the API key’s user needs that access in App Store Connect (Account Holder or Admin), or upload from a Mac with `./scripts/ios-testflight-local.sh`.
 
 ## Device testing without CI
 

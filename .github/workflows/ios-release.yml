@@ -14,6 +14,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ios-${{ github.sha }}
+  cancel-in-progress: true
+
 jobs:
   testflight:
     runs-on: macos-14
@@ -97,6 +101,8 @@ jobs:
 
       - name: Build and upload TestFlight
         env:
+          CI: true
+          USE_ASC_API_XCODE_AUTH: "1"
           IOS_DEVELOPMENT_TEAM: ${{ secrets.IOS_DEVELOPMENT_TEAM }}
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
