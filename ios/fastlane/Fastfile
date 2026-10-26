@@ -41,9 +41,8 @@ def xcode_auth_xcargs
     "-allowProvisioningUpdates",
   ]
   if ENV["CI"] == "true"
-    kc = ci_keychain_path.gsub("'", "'\\''")
-    parts << "CODE_SIGN_KEYCHAIN='#{kc}'"
-    parts << "OTHER_CODE_SIGN_FLAGS=--keychain '#{kc}'"
+    # No spaces — gym passes xcargs to xcodebuild; quoted paths break the command line.
+    parts << "CODE_SIGN_KEYCHAIN=#{ci_keychain_path}"
   end
   # GitHub Actions has no logged-in Apple ID; local Mac should use Xcode login (unsigned archives if API-only).
   use_api = ENV["USE_ASC_API_XCODE_AUTH"] == "1" || ENV["CI"] == "true"
