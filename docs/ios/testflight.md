@@ -47,7 +47,7 @@ Archive only (no upload): `SKIP_UPLOAD=1 ./scripts/ios-testflight-local.sh`
 
 Issuer ID: App Store Connect → **Users and Access** → **Integrations** (top of the API keys page). Key ID is in the `AuthKey_<ID>.p8` filename.
 
-Sign in to Xcode with the same Apple ID as your developer team before the first run. Local scripts use your **Xcode login** for signing; GitHub Actions passes the App Store Connect API key into `xcodebuild` (`CI=true`) because runners have no Apple ID.
+Sign in to Xcode with the same Apple ID as your developer team before the first run. Local scripts use your **Xcode login** and `-allowProvisioningUpdates`. Runners have no Apple ID session: that flag cloud-signs and returns `FORBIDDEN`, and `xcodebuild -exportArchive` without it waits forever for a login dialog. CI imports the Apple Distribution `.p12` into its own keychain and exports with manual App Store profiles.
 
 ## Blockers CI cannot fix
 
