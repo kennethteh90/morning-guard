@@ -44,6 +44,9 @@ targets:
       configs:
         Debug:
           CODE_SIGN_IDENTITY: iPhone Developer
+        Release:
+          # Empty = automatic App Store signing on CI (do not use iPhone Developer on Release).
+          CODE_SIGN_IDENTITY:
     dependencies:
       - package: MorningGuardCore
         product: MorningGuardCore
