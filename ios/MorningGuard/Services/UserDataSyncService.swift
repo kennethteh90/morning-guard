@@ -267,7 +267,7 @@ final class UserDataSyncService {
         errorReporter.reportNonFatal(
             throwable: error,
             tags: ["feature": "supabase_sync", "sync.phase": phase],
-            extras: ["detail": error.localizedDescription]
+            extras: SyncErrorReporting.sentryExtras(for: error)
         )
     }
 

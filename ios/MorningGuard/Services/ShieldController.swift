@@ -39,6 +39,7 @@ final class ShieldController {
         #if canImport(FamilyControls)
         authorizationStatus = authorizationCenter.authorizationStatus
         loadSelectionFromAppGroup()
+        settingsStore.mirrorFamilyControlsAuthorized(isAuthorized)
         #endif
     }
 
@@ -114,6 +115,7 @@ final class ShieldController {
         shieldsApplied = false
         #endif
         settingsStore.mirrorShieldsActive(shouldApply)
+        settingsStore.mirrorFamilyControlsAuthorized(isAuthorized)
     }
 
     func revokeShieldsImmediately() {

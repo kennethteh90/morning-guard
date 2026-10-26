@@ -42,6 +42,13 @@ enum SentryBootstrap {
             options.beforeSend = { event in
                 event.request?.headers?.removeValue(forKey: "Authorization")
                 event.request?.headers?.removeValue(forKey: "apikey")
+                if let extra = event.extra {
+                    for (key, value) in extra {
+                        if let string = value as? String {
+                            event.extra?[key] = SentryPrivacyScrubber.redact(string)
+                        }
+                    }
+                }
                 return event
             }
         }

@@ -542,7 +542,7 @@ class UserDataSyncService @Inject constructor(
                 "feature" to "supabase_sync",
                 "sync.phase" to phase,
             ),
-            extras = mapOf("detail" to SyncLog.messageFor(error)),
+            extras = SyncLog.sentryExtrasFor(error),
         )
     }
 

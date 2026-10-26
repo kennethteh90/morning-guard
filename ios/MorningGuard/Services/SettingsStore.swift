@@ -6,8 +6,6 @@ struct GoalProgressStore: Codable, Equatable, Sendable {
     var progress: MorningGoalProgress?
     var emergencyBypassUntilEpochMs: Int64?
     var peaceSessionUntilEpochMs: Int64?
-    var failedAttempts: Int
-    var lockedUntilEpochMs: Int64?
     var morningHistory: [MorningDayRecord]
     var goalTimeSecondsByDate: [String: Int]
     var bibleReadingSecondsByDate: [String: Int]
@@ -17,8 +15,6 @@ struct GoalProgressStore: Codable, Equatable, Sendable {
         progress: MorningGoalProgress? = nil,
         emergencyBypassUntilEpochMs: Int64? = nil,
         peaceSessionUntilEpochMs: Int64? = nil,
-        failedAttempts: Int = 0,
-        lockedUntilEpochMs: Int64? = nil,
         morningHistory: [MorningDayRecord] = [],
         goalTimeSecondsByDate: [String: Int] = [:],
         bibleReadingSecondsByDate: [String: Int] = [:],
@@ -27,8 +23,6 @@ struct GoalProgressStore: Codable, Equatable, Sendable {
         self.progress = progress
         self.emergencyBypassUntilEpochMs = emergencyBypassUntilEpochMs
         self.peaceSessionUntilEpochMs = peaceSessionUntilEpochMs
-        self.failedAttempts = failedAttempts
-        self.lockedUntilEpochMs = lockedUntilEpochMs
         self.morningHistory = morningHistory
         self.goalTimeSecondsByDate = goalTimeSecondsByDate
         self.bibleReadingSecondsByDate = bibleReadingSecondsByDate
@@ -48,8 +42,8 @@ struct GoalProgressStore: Codable, Equatable, Sendable {
         emergencyBypassUntilEpochMs = try container.decodeIfPresent(Int64.self, forKey: .emergencyBypassUntilEpochMs)
         peaceSessionUntilEpochMs = try container.decodeIfPresent(Int64.self, forKey: .peaceSessionUntilEpochMs)
         _ = try container.decodeIfPresent(String.self, forKey: .emergencyPassphraseHash)
-        failedAttempts = try container.decodeIfPresent(Int.self, forKey: .failedAttempts) ?? 0
-        lockedUntilEpochMs = try container.decodeIfPresent(Int64.self, forKey: .lockedUntilEpochMs)
+        _ = try container.decodeIfPresent(Int.self, forKey: .failedAttempts)
+        _ = try container.decodeIfPresent(Int64.self, forKey: .lockedUntilEpochMs)
         morningHistory = try container.decodeIfPresent([MorningDayRecord].self, forKey: .morningHistory) ?? []
         goalTimeSecondsByDate = try container.decodeIfPresent([String: Int].self, forKey: .goalTimeSecondsByDate) ?? [:]
         bibleReadingSecondsByDate = try container.decodeIfPresent([String: Int].self, forKey: .bibleReadingSecondsByDate) ?? [:]
@@ -61,8 +55,6 @@ struct GoalProgressStore: Codable, Equatable, Sendable {
         try container.encodeIfPresent(progress, forKey: .progress)
         try container.encodeIfPresent(emergencyBypassUntilEpochMs, forKey: .emergencyBypassUntilEpochMs)
         try container.encodeIfPresent(peaceSessionUntilEpochMs, forKey: .peaceSessionUntilEpochMs)
-        try container.encode(failedAttempts, forKey: .failedAttempts)
-        try container.encodeIfPresent(lockedUntilEpochMs, forKey: .lockedUntilEpochMs)
         try container.encode(morningHistory, forKey: .morningHistory)
         try container.encode(goalTimeSecondsByDate, forKey: .goalTimeSecondsByDate)
         try container.encode(bibleReadingSecondsByDate, forKey: .bibleReadingSecondsByDate)
@@ -75,6 +67,7 @@ struct GoalProgressStore: Codable, Equatable, Sendable {
 final class SettingsStore {
     private let defaults: UserDefaults
     private let sharedDefaults: UserDefaults?
+    private let lockoutStore = EmergencyLockoutStore()
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
 
@@ -95,9 +88,22 @@ final class SettingsStore {
         defaults = .standard
         sharedDefaults = UserDefaults(suiteName: appGroupIdentifier)
         userSettings = Self.loadUserSettings(from: defaults, shared: sharedDefaults)
+        Self.migrateLegacyLockoutFromGoalProgressJSON(
+            lockoutStore: lockoutStore,
+            defaults: defaults,
+            shared: sharedDefaults
+        )
         goalProgressStore = Self.loadGoalProgress(from: defaults, shared: sharedDefaults)
         clearLegacyPassphraseHashFromSharedStorage()
         mirrorToAppGroup()
+    }
+
+    func emergencyLockoutState() -> EmergencyLockoutState {
+        lockoutStore.load()
+    }
+
+    func setEmergencyLockoutState(_ state: EmergencyLockoutState) {
+        try? lockoutStore.save(state)
     }
 
     func updateUserSettings(_ transform: (UserSettings) -> UserSettings) {
@@ -162,6 +168,7 @@ final class SettingsStore {
     }
 
     func clearSensitiveGoalData() {
+        try? lockoutStore.clear()
         updateGoalProgress { _ in GoalProgressStore() }
     }
 
@@ -229,6 +236,10 @@ final class SettingsStore {
         sharedDefaults?.set(active, forKey: AppGroupKeys.shieldsActive)
     }
 
+    func mirrorFamilyControlsAuthorized(_ authorized: Bool) {
+        sharedDefaults?.set(authorized, forKey: AppGroupKeys.familyControlsAuthorized)
+    }
+
     private func mirrorMorningWindow() {
         guard let data = try? encoder.encode(userSettings.morningWindow) else { return }
         sharedDefaults?.set(data, forKey: AppGroupKeys.morningWindowJSON)
@@ -249,6 +260,43 @@ final class SettingsStore {
             return decoded
         }
         return UserSettings()
+    }
+
+    private static func migrateLegacyLockoutFromGoalProgressJSON(
+        lockoutStore: EmergencyLockoutStore,
+        defaults: UserDefaults,
+        shared: UserDefaults?
+    ) {
+        guard lockoutStore.load() == .empty else { return }
+        migrateLegacyLockout(lockoutStore: lockoutStore, in: defaults, key: LocalKey.goalProgress)
+        if let shared {
+            migrateLegacyLockout(lockoutStore: lockoutStore, in: shared, key: AppGroupKeys.goalProgressJSON)
+        }
+    }
+
+    private static func migrateLegacyLockout(
+        lockoutStore: EmergencyLockoutStore,
+        in storage: UserDefaults,
+        key: String
+    ) {
+        guard let data = storage.data(forKey: key),
+              var json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return }
+        let attempts = json["failedAttempts"] as? Int ?? 0
+        let locked: Int64? = {
+            if let value = json["lockedUntilEpochMs"] as? Int64 { return value }
+            if let value = json["lockedUntilEpochMs"] as? Int { return Int64(value) }
+            if let value = json["lockedUntilEpochMs"] as? Double { return Int64(value) }
+            return nil
+        }()
+        guard attempts > 0 || locked != nil else { return }
+        try? lockoutStore.save(
+            EmergencyLockoutState(failedAttempts: attempts, lockedUntilEpochMs: locked)
+        )
+        json.removeValue(forKey: "failedAttempts")
+        json.removeValue(forKey: "lockedUntilEpochMs")
+        if let rewritten = try? JSONSerialization.data(withJSONObject: json) {
+            storage.set(rewritten, forKey: key)
+        }
     }
 
     private static func loadGoalProgress(from defaults: UserDefaults, shared: UserDefaults?) -> GoalProgressStore {

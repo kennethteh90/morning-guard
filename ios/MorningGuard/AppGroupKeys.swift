@@ -10,4 +10,5 @@ enum AppGroupKeys {
     static let userSettingsJSON = "userSettingsJSON"
     static let goalProgressJSON = "goalProgressJSON"
     static let emergencyPassphraseHash = "emergencyPassphraseHash"
+    static let familyControlsAuthorized = "familyControlsAuthorized"
 }

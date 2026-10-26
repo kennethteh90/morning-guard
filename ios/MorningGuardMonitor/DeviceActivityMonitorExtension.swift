@@ -1,5 +1,6 @@
 import DeviceActivity
 import FamilyControls
+import Foundation
 import ManagedSettings
 import MorningGuardCore
 
@@ -38,7 +39,7 @@ final class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         }
         if ShieldSessionPolicy.shouldApplyShields(
             gateState: state.gateState,
-            isAuthorized: true,
+            isAuthorized: state.isFamilyControlsAuthorized,
             hasSelection: state.hasSelection
         ), let selection = state.selection {
             applier.apply(selection: selection)

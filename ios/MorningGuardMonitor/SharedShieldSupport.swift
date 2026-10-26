@@ -9,10 +9,12 @@ enum MonitorAppGroupKeys {
     static let shieldsActive = "shieldsActive"
     static let userSettingsJSON = "userSettingsJSON"
     static let goalProgressJSON = "goalProgressJSON"
+    static let familyControlsAuthorized = "familyControlsAuthorized"
 }
 
 struct SharedShieldState {
     let gateState: GateState
+    let isFamilyControlsAuthorized: Bool
     let hasSelection: Bool
     let selection: FamilyActivitySelection?
 }
@@ -21,15 +23,26 @@ enum SharedShieldStateReader {
     static func load() -> SharedShieldState {
         let defaults = UserDefaults(suiteName: MonitorAppGroupKeys.suiteName)
         let gateState = evaluateGateState(defaults: defaults)
+        let isAuthorized = defaults?.bool(forKey: MonitorAppGroupKeys.familyControlsAuthorized) ?? false
         guard let data = defaults?.data(forKey: MonitorAppGroupKeys.shieldSelectionData),
               let selection = try? PropertyListDecoder().decode(FamilyActivitySelection.self, from: data)
         else {
-            return SharedShieldState(gateState: gateState, hasSelection: false, selection: nil)
+            return SharedShieldState(
+                gateState: gateState,
+                isFamilyControlsAuthorized: isAuthorized,
+                hasSelection: false,
+                selection: nil
+            )
         }
         let hasSelection = !selection.applicationTokens.isEmpty
             || !selection.categoryTokens.isEmpty
             || !selection.webDomainTokens.isEmpty
-        return SharedShieldState(gateState: gateState, hasSelection: hasSelection, selection: selection)
+        return SharedShieldState(
+            gateState: gateState,
+            isFamilyControlsAuthorized: isAuthorized,
+            hasSelection: hasSelection,
+            selection: selection
+        )
     }
 
     private static func evaluateGateState(defaults: UserDefaults?) -> GateState {

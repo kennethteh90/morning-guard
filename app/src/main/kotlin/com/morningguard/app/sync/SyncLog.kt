@@ -46,4 +46,13 @@ internal object SyncLog {
         }
         return error.message ?: error.javaClass.simpleName
     }
+
+    /** Safe metadata for Sentry — no response bodies or free-form error text. */
+    fun sentryExtrasFor(error: Throwable): Map<String, String> {
+        val extras = mutableMapOf("error_type" to error.javaClass.simpleName)
+        if (error is RestException) {
+            extras["http_status"] = error.statusCode.toString()
+        }
+        return extras
+    }
 }

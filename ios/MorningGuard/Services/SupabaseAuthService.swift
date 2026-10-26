@@ -22,7 +22,18 @@ final class SupabaseAuthService {
 
     init() {
         if SupabaseConfig.isConfigured, let baseURL = URL(string: SupabaseConfig.url) {
-            client = SupabaseClient(supabaseURL: baseURL, supabaseKey: SupabaseConfig.anonKey)
+            let redirect = URL(string: SupabaseConfig.magicLinkRedirect)
+            let options = SupabaseClientOptions(
+                auth: .init(
+                    redirectToURL: redirect,
+                    flowType: .pkce
+                )
+            )
+            client = SupabaseClient(
+                supabaseURL: baseURL,
+                supabaseKey: SupabaseConfig.anonKey,
+                options: options
+            )
             Task { await restoreSession() }
         } else {
             state = .unconfigured
@@ -54,6 +65,9 @@ final class SupabaseAuthService {
 
     func handleAuthCallback(url: URL) async throws {
         guard let client else { throw AuthServiceError.notConfigured }
+        guard AuthCallbackURL.isSignInCallback(url) else {
+            throw AuthServiceError.signInIncomplete
+        }
         do {
             try await client.auth.session(from: url)
             await refreshUser()

@@ -2,6 +2,7 @@ package com.morningguard.app.di
 
 import android.content.Context
 import com.morningguard.app.BuildConfig
+import com.morningguard.app.monitoring.SentryScrubber
 import com.morningguard.app.alarm.MorningAlarmScheduler
 import com.morningguard.app.screenshot.ScreenshotDemoSeeder
 import com.morningguard.app.gate.GateStateHolder
@@ -57,11 +58,7 @@ class AppInitializer @Inject constructor(
                         if (SentryEnvironment.isFirebaseTestLab(context)) {
                             return@BeforeSendCallback null
                         }
-                        event.request?.let { request ->
-                            request.headers?.remove("Authorization")
-                            request.headers?.remove("apikey")
-                        }
-                        event
+                        SentryScrubber.scrubEvent(event)
                     }
                 }
             } catch (_: RuntimeException) {

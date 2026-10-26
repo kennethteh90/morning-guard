@@ -226,8 +226,8 @@ final class AppState {
     }
 
     func attemptEmergencyBypass(passphrase: String) throws -> Int64 {
-        let store = settingsStore.goalProgressStore
-        if emergencyPolicy.isLocked(lockedUntilEpochMs: store.lockedUntilEpochMs) {
+        let lockout = settingsStore.emergencyLockoutState()
+        if emergencyPolicy.isLocked(lockedUntilEpochMs: lockout.lockedUntilEpochMs) {
             throw PassphraseStoreError.locked
         }
         guard let stored = passphraseStore.storedHash() else {
@@ -238,24 +238,25 @@ final class AppState {
         }
         guard passphraseStore.verify(passphrase, stored: stored) else {
             let (attempts, lockedUntil) = emergencyPolicy.recordFailure(
-                failedAttempts: store.failedAttempts,
-                lockedUntilEpochMs: store.lockedUntilEpochMs
+                failedAttempts: lockout.failedAttempts,
+                lockedUntilEpochMs: lockout.lockedUntilEpochMs
             )
-            settingsStore.updateGoalProgress {
-                var copy = $0
-                copy.failedAttempts = attempts
-                copy.lockedUntilEpochMs = lockedUntil
-                return copy
-            }
+            settingsStore.setEmergencyLockoutState(
+                EmergencyLockoutState(failedAttempts: attempts, lockedUntilEpochMs: lockedUntil)
+            )
             throw PassphraseStoreError.invalidPassphrase
         }
         let expires = emergencyPolicy.bypassExpiresAt()
         let cleared = emergencyPolicy.clearedLockoutAfterSuccess()
+        settingsStore.setEmergencyLockoutState(
+            EmergencyLockoutState(
+                failedAttempts: cleared.failedAttempts,
+                lockedUntilEpochMs: cleared.lockedUntilEpochMs
+            )
+        )
         settingsStore.updateGoalProgress {
             var copy = $0
             copy.emergencyBypassUntilEpochMs = expires
-            copy.failedAttempts = cleared.failedAttempts
-            copy.lockedUntilEpochMs = cleared.lockedUntilEpochMs
             return copy
         }
         gateService.activateEmergencyBypass(expiresAtMs: expires)
@@ -272,7 +273,7 @@ final class AppState {
 
     func handleDeepLink(_ url: URL) {
         guard url.scheme?.lowercased() == "morningguard" else { return }
-        if url.host?.lowercased() == "auth" || url.path.contains("auth") {
+        if AuthCallbackURL.isSignInCallback(url) {
             Task {
                 do {
                     try await supabaseAuth.handleAuthCallback(url: url)
