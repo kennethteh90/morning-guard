@@ -277,9 +277,11 @@ def build_release_ipa!
   shared = build_app_common_options
   if ENV["CI"] == "true"
     refresh_ci_keychain_for_build!
+    # Identity is set on the app and extension targets only. A command-line
+    # CODE_SIGN_IDENTITY also hits Swift package bundles (swift-crypto_Crypto)
+    # and the archive fails because those bundles have no team.
     build_app(
       **shared,
-      codesigning_identity: ENV.fetch("CI_DISTRIBUTION_IDENTITY"),
       export_options: ci_manual_export_options(JSON.parse(ENV.fetch("CI_EXPORT_PROFILES"))),
     )
   else
