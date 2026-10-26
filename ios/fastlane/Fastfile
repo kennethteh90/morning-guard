@@ -85,7 +85,17 @@ def prepare_ci_signing(_api_key)
       "Re-run ./scripts/push-ios-distribution-cert-secret.sh (exports only Apple Distribution)."
     )
   end
-  # App Store profiles are created/updated during archive via -allowProvisioningUpdates + ASC API on xcodebuild.
+
+  # Headless CI has no Xcode Apple ID; fetch App Store profiles before archive (xcodebuild API auth alone
+  # still resolves targets as "development" without installed distribution profiles).
+  APP_STORE_BUNDLE_IDS.each do |bundle_id|
+    sigh(
+      api_key: _api_key,
+      app_identifier: bundle_id,
+      skip_install: false,
+      readonly: false,
+    )
+  end
 end
 
 platform :ios do

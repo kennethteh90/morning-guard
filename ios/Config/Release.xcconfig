@@ -3,6 +3,4 @@
 #include? "CI.xcconfig"
 
 CODE_SIGN_STYLE = Automatic
-// App Store / CI archive (extensions inherit via shared Release config).
-CODE_SIGN_IDENTITY = Apple Distribution
 SWIFT_COMPILATION_MODE = wholemodule
