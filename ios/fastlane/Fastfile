@@ -95,12 +95,13 @@ def prepare_ci_signing(_api_key)
       skip_install: false,
       readonly: false,
     )
-    profile_name = Actions.lane_context[SharedValues::SIGH_NAME]
+    profile_uuid = Actions.lane_context[SharedValues::SIGH_UUID]
     update_code_signing_settings(
       use_automatic_signing: false,
       path: "MorningGuard.xcodeproj",
       targets: [target_name],
-      profile_name: profile_name,
+      profile_uuid: profile_uuid,
+      team_id: ENV.fetch("IOS_DEVELOPMENT_TEAM"),
       code_sign_identity: "Apple Distribution",
       build_configurations: ["Release"],
     )
