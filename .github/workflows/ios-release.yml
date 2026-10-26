@@ -77,6 +77,16 @@ jobs:
       - name: Generate Xcode project
         run: ./scripts/generate-xcodeproj.sh
 
+      - name: Verify Release code signing settings
+        run: |
+          set -euo pipefail
+          identity="$(xcodebuild -project MorningGuard.xcodeproj -target MorningGuard -configuration Release -showBuildSettings 2>/dev/null | awk -F' = ' '/CODE_SIGN_IDENTITY =/{print $2; exit}')"
+          echo "MorningGuard CODE_SIGN_IDENTITY=${identity}"
+          if [[ "$identity" != "Apple Distribution" ]]; then
+            echo "Expected Apple Distribution for Release archives (got: $identity)" >&2
+            exit 1
+          fi
+
       - name: Test MorningGuardCore
         working-directory: ios/MorningGuardCore
         run: swift test
