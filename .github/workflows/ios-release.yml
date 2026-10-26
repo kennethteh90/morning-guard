@@ -75,6 +75,7 @@ jobs:
         run: ./scripts/write-ios-ci-xcconfig.sh
 
       - name: Validate iOS xcconfig URLs
+        working-directory: .
         run: ./scripts/validate-ios-xcconfig-urls.sh ios/Config/CI.xcconfig
 
       - name: Generate Xcode project
