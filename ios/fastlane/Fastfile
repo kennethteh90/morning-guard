@@ -73,7 +73,10 @@ def prepare_ci_signing(api_key)
     keychain_name: keychain_name,
     keychain_password: keychain_password,
   )
-  sh("security find-identity -v -p codesigning -k #{keychain_name.shellescape}")
+  keychain_path = ENV.fetch("KEYCHAIN_PATH")
+  sh(
+    "security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k '#{keychain_password}' '#{keychain_path}'"
+  )
   APP_STORE_BUNDLE_IDS.each do |app_id|
     get_provisioning_profile(
       api_key: api_key,
