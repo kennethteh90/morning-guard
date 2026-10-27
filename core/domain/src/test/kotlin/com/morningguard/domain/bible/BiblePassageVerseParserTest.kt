@@ -56,6 +56,20 @@ class BiblePassageVerseParserTest {
     }
 
     @Test
+    fun sortsVersesByNumberBeforeSectionHeadings() {
+        val blocks = listOf(
+            BiblePassageBlock.Paragraph("[3] Third. [4] Fourth."),
+            BiblePassageBlock.Paragraph("[1] First."),
+            BiblePassageBlock.SectionHeading("The Work of the Holy Spirit"),
+            BiblePassageBlock.Paragraph("[5] Fifth. [6] Sixth."),
+        )
+        val verses = BiblePassageVerseParser.segments(blocks)
+            .filterIsInstance<BiblePassageVerseParser.Segment.Verse>()
+            .map { it.number }
+        assertEquals(listOf(1, 3, 4, 5, 6), verses)
+    }
+
+    @Test
     fun includesSectionHeadings() {
         val blocks = listOf(
             BiblePassageBlock.SectionHeading("The Beginning"),

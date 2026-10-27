@@ -10,14 +10,28 @@ public enum BiblePassageVerseParser {
 
     public static func segments(blocks: [BiblePassageBlock]) -> [Segment] {
         var out: [Segment] = []
+        var pendingVerses: [Segment] = []
+
+        func flushVerses() {
+            guard !pendingVerses.isEmpty else { return }
+            pendingVerses.sort { lhs, rhs in
+                guard case .verse(let ln, _) = lhs, case .verse(let rn, _) = rhs else { return false }
+                return ln < rn
+            }
+            out.append(contentsOf: pendingVerses)
+            pendingVerses.removeAll(keepingCapacity: true)
+        }
+
         for block in blocks {
             switch block {
             case .sectionHeading(let text):
+                flushVerses()
                 out.append(.heading(text.trimmingCharacters(in: .whitespacesAndNewlines)))
             case .paragraph(let text):
-                out.append(contentsOf: versesInParagraph(text))
+                pendingVerses.append(contentsOf: versesInParagraph(text))
             }
         }
+        flushVerses()
         return out
     }
 

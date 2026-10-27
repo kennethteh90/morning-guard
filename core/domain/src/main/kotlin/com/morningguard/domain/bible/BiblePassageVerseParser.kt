@@ -14,14 +14,26 @@ object BiblePassageVerseParser {
 
     fun segments(blocks: List<BiblePassageBlock>): List<Segment> {
         val out = mutableListOf<Segment>()
+        val pendingVerses = mutableListOf<Segment.Verse>()
+
+        fun flushVerses() {
+            if (pendingVerses.isEmpty()) return
+            pendingVerses.sortBy { it.number }
+            out.addAll(pendingVerses)
+            pendingVerses.clear()
+        }
+
         for (block in blocks) {
             when (block) {
-                is BiblePassageBlock.SectionHeading ->
+                is BiblePassageBlock.SectionHeading -> {
+                    flushVerses()
                     out.add(Segment.Heading(block.text.trim()))
+                }
                 is BiblePassageBlock.Paragraph ->
-                    out.addAll(versesInParagraph(block.text))
+                    pendingVerses.addAll(versesInParagraph(block.text))
             }
         }
+        flushVerses()
         return out
     }
 
