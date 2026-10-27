@@ -24,6 +24,11 @@ struct OnboardingFlowView: View {
     @State private var emergencyPassphrase = ""
     @State private var emergencyPassphraseError: String?
 
+    #if canImport(FamilyControls)
+    @State private var familyActivitySelection = FamilyActivitySelection()
+    @State private var isAppPickerPresented = false
+    #endif
+
     private var stepTitles: [String] {
         [
             L10n.tr("onboarding.step.welcome"),
@@ -69,6 +74,17 @@ struct OnboardingFlowView: View {
             syncWindowPickers()
             selectedGoal = appState.settingsStore.userSettings.morningGoal.type
             choseLocalOnly = appState.settingsStore.userSettings.dataStorageMode == .localOnly
+            #if canImport(FamilyControls)
+            syncFamilyActivitySelectionFromController()
+            #endif
+        }
+        .onChange(of: step) { _, newStep in
+            if newStep == 3 {
+                appState.shieldController.refreshAuthorizationStatus()
+                #if canImport(FamilyControls)
+                syncFamilyActivitySelectionFromController()
+                #endif
+            }
         }
     }
 
@@ -259,9 +275,7 @@ struct OnboardingFlowView: View {
 
                 #if canImport(FamilyControls)
                 if appState.shieldController.isAuthorized || MGDebugFlags.relaxesShieldOnboarding {
-                    FamilyActivityPicker(selection: shieldSelectionBinding)
-                        .frame(maxHeight: 260)
-                        .accessibilityLabel(L10n.tr("a11y.onboarding.app_picker"))
+                    appPickerCard
                 } else {
                     MGCard {
                         Text(L10n.tr("onboarding.apps.need_auth"))
@@ -398,14 +412,45 @@ struct OnboardingFlowView: View {
     }
 
     #if canImport(FamilyControls)
-    private var shieldSelectionBinding: Binding<FamilyActivitySelection> {
-        Binding(
-            get: { appState.shieldController.selection },
-            set: { newValue in
-                appState.shieldController.selection = newValue
-                appState.shieldController.persistSelection()
+    private var appPickerCard: some View {
+        MGCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(shieldSelectionSummary)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Button {
+                    isAppPickerPresented = true
+                } label: {
+                    Label(L10n.tr("onboarding.apps.choose"), systemImage: "apps.iphone")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(MGTheme.accent)
+                .accessibilityLabel(L10n.tr("a11y.onboarding.app_picker"))
+                .accessibilityHint(L10n.tr("onboarding.apps.choose.hint"))
             }
-        )
+        }
+        .familyActivityPicker(isPresented: $isAppPickerPresented, selection: $familyActivitySelection)
+        .onChange(of: familyActivitySelection) { _, newValue in
+            appState.shieldController.selection = newValue
+            appState.shieldController.persistSelection()
+        }
+    }
+
+    private var shieldSelectionSummary: String {
+        let apps = familyActivitySelection.applicationTokens.count
+        let categories = familyActivitySelection.categoryTokens.count
+        let domains = familyActivitySelection.webDomainTokens.count
+        if apps == 0 && categories == 0 && domains == 0 {
+            return L10n.tr("onboarding.apps.none_selected")
+        }
+        return L10n.tr("onboarding.apps.selected_summary", apps, categories, domains)
+    }
+
+    private func syncFamilyActivitySelectionFromController() {
+        #if canImport(FamilyControls)
+        familyActivitySelection = appState.shieldController.selection
+        #endif
     }
     #endif
 
@@ -561,6 +606,7 @@ struct OnboardingFlowView: View {
         defer { isRequestingAuth = false }
         do {
             try await appState.shieldController.requestAuthorization()
+            appState.shieldController.refreshAuthorizationStatus()
         } catch {
             authError = error.localizedDescription
         }

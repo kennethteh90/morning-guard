@@ -2993,6 +2993,28 @@
         }
       }
     },
+    "onboarding.apps.choose": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose apps & categories"
+          }
+        }
+      }
+    },
+    "onboarding.apps.choose.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens the Screen Time picker to select apps, categories, or websites to shield."
+          }
+        }
+      }
+    },
     "onboarding.apps.need_auth": {
       "extractionState": "manual",
       "localizations": {
@@ -3000,6 +3022,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Authorize Screen Time on the previous step to choose apps."
+          }
+        }
+      }
+    },
+    "onboarding.apps.none_selected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing selected yet. Tap the button below to open Apple’s picker (apps may appear under categories such as Social or Games)."
+          }
+        }
+      }
+    },
+    "onboarding.apps.selected_summary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$d apps, %2$d categories, %3$d websites selected."
           }
         }
       }
