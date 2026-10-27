@@ -1,3 +1,4 @@
-Bible chapters load faster with on-device caching and smoother chapter navigation.
-Stats shows total time spent in the Bible reader.
+Settings: edit shielded apps, clearer Sync & recovery (sign-in + recovery password), and Focus tip in onboarding.
+Morning goal: complete only during your morning window; cleaner Bible reading timers.
+Licensed translations (NIV/NKJV/NLT): improved App Attest handling on device and bible-cache worker.
 Stability and backup improvements from recent releases.
