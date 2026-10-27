@@ -131,8 +131,10 @@ object BiblePassageVerseParser {
     private fun stripLeadingVerseMarkers(text: String): String {
         var remainder = text.trim()
         while (remainder.isNotEmpty()) {
-            val match = verseMarker.find(remainder) ?: break
-            if (match.range.first != 0) break
+            val match = verseMarker.find(remainder)
+            if (match == null || match.range.first != 0) {
+                return remainder.trim()
+            }
             remainder = remainder.removeRange(match.range).trimStart()
         }
         return remainder.trim()
