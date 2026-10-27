@@ -23,31 +23,51 @@ object BiblePassageVerseParser {
             pendingVerses.clear()
         }
 
+        var lastVerseInSection = 0
         for (block in blocks) {
             when (block) {
                 is BiblePassageBlock.SectionHeading -> {
                     flushVerses()
+                    lastVerseInSection = 0
                     out.add(Segment.Heading(block.text.trim()))
                 }
-                is BiblePassageBlock.Paragraph ->
-                    pendingVerses.addAll(versesInParagraph(block.text))
+                is BiblePassageBlock.Paragraph -> {
+                    val parsed = versesInParagraph(block.text, lastVerseInSection)
+                    for (verse in parsed) {
+                        mergeVerse(pendingVerses, verse)
+                    }
+                    if (pendingVerses.isNotEmpty()) {
+                        lastVerseInSection = pendingVerses.maxOf { it.number }
+                    }
+                }
             }
         }
         flushVerses()
         return out
     }
 
-    private fun versesInParagraph(paragraph: String): List<Segment.Verse> {
+    private fun mergeVerse(pending: MutableList<Segment.Verse>, verse: Segment.Verse) {
+        val index = pending.indexOfFirst { it.number == verse.number }
+        if (index < 0) {
+            pending.add(verse)
+            return
+        }
+        val existing = pending[index]
+        val combined = "${existing.text}\n\n${verse.text}".trim()
+        pending[index] = Segment.Verse(verse.number, combined)
+    }
+
+    private fun versesInParagraph(paragraph: String, lastVerseInSection: Int): List<Segment.Verse> {
         val trimmed = paragraph.trim()
         if (trimmed.isEmpty()) return emptyList()
 
         val allMatches = verseMarker.findAll(trimmed).toList()
         if (allMatches.isEmpty()) {
-            return listOf(Segment.Verse(number = 1, text = trimmed))
+            return continuationOrFirstVerse(trimmed, lastVerseInSection)
         }
 
         val matches = mutableListOf<MatchResult>()
-        var lastVerse = 0
+        var lastVerse = lastVerseInSection
         for (match in allMatches) {
             val number = verseNumberFromMarker(match.value)
             if (!isIncreasingVerseBoundary(number, lastVerse)) continue
@@ -56,7 +76,11 @@ object BiblePassageVerseParser {
         }
 
         if (matches.isEmpty()) {
-            return listOf(Segment.Verse(number = 1, text = trimmed))
+            return orphanedExplicitVerse(trimmed, lastVerseInSection)
+                ?: continuationOrFirstVerse(
+                    stripLeadingVerseMarkers(trimmed),
+                    lastVerseInSection,
+                )
         }
 
         val verses = mutableListOf<Segment.Verse>()
@@ -74,6 +98,44 @@ object BiblePassageVerseParser {
             }
         }
         return verses
+    }
+
+    /**
+     * Proxy paragraphs can repeat an earlier `[n]` after later verses were parsed; honor the tag
+     * instead of treating the line as a continuation of the highest verse so far.
+     */
+    private fun orphanedExplicitVerse(text: String, lastVerseInSection: Int): List<Segment.Verse>? {
+        if (lastVerseInSection <= 0) return null
+        val number = explicitLeadingVerseNumber(text) ?: return null
+        if (number >= lastVerseInSection) return null
+        val body = stripLeadingVerseMarkers(text)
+        if (body.isEmpty()) return null
+        return listOf(Segment.Verse(number, body))
+    }
+
+    private fun explicitLeadingVerseNumber(text: String): Int? {
+        val match = verseMarker.find(text.trim()) ?: return null
+        if (match.range.first != 0) return null
+        val number = verseNumberFromMarker(match.value)
+        return if (number > 0) number else null
+    }
+
+    private fun continuationOrFirstVerse(text: String, lastVerseInSection: Int): List<Segment.Verse> {
+        if (text.isEmpty()) return emptyList()
+        if (lastVerseInSection > 0) {
+            return listOf(Segment.Verse(lastVerseInSection, text))
+        }
+        return listOf(Segment.Verse(number = 1, text = text))
+    }
+
+    private fun stripLeadingVerseMarkers(text: String): String {
+        var remainder = text.trim()
+        while (remainder.isNotEmpty()) {
+            val match = verseMarker.find(remainder) ?: break
+            if (match.range.first != 0) break
+            remainder = remainder.removeRange(match.range).trimStart()
+        }
+        return remainder.trim()
     }
 
     /**

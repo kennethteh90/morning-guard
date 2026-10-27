@@ -1811,7 +1811,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Could not load chapter. Licensed translations use WEB on iOS until API.Bible is configured."
+            "value": "Could not load this chapter. Check your connection, then try again. Licensed translations need a physical iPhone with the latest app build."
           }
         }
       }
@@ -2053,7 +2053,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Limited use (WEB fallback on iOS)"
+            "value": "Licensed translations"
           }
         }
       }
@@ -2086,7 +2086,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loads as WEB without API.Bible proxy"
+            "value": "Full text via Morning Guard proxy. Physical iPhone required (not Simulator)."
           }
         }
       }

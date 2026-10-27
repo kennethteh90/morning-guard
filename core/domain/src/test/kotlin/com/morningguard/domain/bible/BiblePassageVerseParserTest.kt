@@ -56,6 +56,24 @@ class BiblePassageVerseParserTest {
     }
 
     @Test
+    fun mergesPoeticLineOneContinuationAcrossParagraphs() {
+        val blocks = listOf(
+            BiblePassageBlock.SectionHeading("Betrayal and Arrest in Gethsemane"),
+            BiblePassageBlock.Paragraph(
+                "[1] When Jesus had spoken these words, He went out with His disciples over the Brook Kidron.",
+            ),
+            BiblePassageBlock.Paragraph("1. And they said, \"Jesus of Nazareth.\""),
+            BiblePassageBlock.Paragraph("[2] And Judas, who betrayed Him, also knew the place."),
+            BiblePassageBlock.Paragraph("[3] Then Judas, having received a detachment of troops, came there."),
+        )
+        val verses = BiblePassageVerseParser.segments(blocks)
+            .filterIsInstance<BiblePassageVerseParser.Segment.Verse>()
+        assertEquals(listOf(1, 2, 3), verses.map { it.number })
+        assertTrue(verses[0].text.contains("Brook Kidron"))
+        assertTrue(verses[0].text.contains("Nazareth"))
+    }
+
+    @Test
     fun sortsVersesByNumberBeforeSectionHeadings() {
         val blocks = listOf(
             BiblePassageBlock.Paragraph("[3] Third. [4] Fourth."),
