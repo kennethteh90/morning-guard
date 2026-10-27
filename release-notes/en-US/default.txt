@@ -1,4 +1,3 @@
-Settings: edit shielded apps, clearer Sync & recovery (sign-in + recovery password), and Focus tip in onboarding.
-Morning goal: complete only during your morning window; cleaner Bible reading timers.
-Licensed translations (NIV/NKJV/NLT): improved App Attest handling on device and bible-cache worker.
-Stability and backup improvements from recent releases.
+Bible reading: better verse parsing for licensed chapters from the proxy (Android and iOS).
+iOS: translation picker copy now describes licensed NIV/NKJV/NLT correctly (no misleading WEB fallback label).
+Stability improvements from v1.0.13.
