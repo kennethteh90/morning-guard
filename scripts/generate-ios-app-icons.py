@@ -24,13 +24,12 @@ def write_png(path: Path, size: int) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     pixels = bytearray()
     cx, cy = size / 2, size / 2
-    r_bell = size * 0.22
+    bell_top = -size * 0.12
+    bell_bottom = size * 0.18
     for y in range(size):
         row = b"\x00"
         for x in range(size):
             dx, dy = x + 0.5 - cx, y + 0.5 - cy
-            bell_top = cy - size * 0.12
-            bell_bottom = cy + size * 0.18
             in_dome = (
                 dy >= bell_top
                 and dy <= bell_bottom
