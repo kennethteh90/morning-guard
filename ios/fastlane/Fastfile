@@ -288,7 +288,9 @@ def build_release_ipa!
     build_app(**shared, xcargs: xcode_auth_xcargs)
   end
 
-  ipa_path = File.join(shared[:output_directory], shared[:output_name])
+  # `sh` runs in ios/fastlane, so a relative ./build path does not see gym's IPA.
+  ipa_path = Actions.lane_context[SharedValues::IPA_OUTPUT_PATH].to_s
+  UI.user_error!("Exported IPA not found at #{ipa_path}") unless File.exist?(ipa_path)
   sh("bash", File.expand_path("../../scripts/validate-ios-ipa-entitlements.sh", __dir__), ipa_path)
 end
 

@@ -4,6 +4,7 @@ set -euo pipefail
 
 IPA="${1:-}"
 if [[ -z "$IPA" || ! -f "$IPA" ]]; then
+  echo "FAIL: IPA not found${IPA:+ at $IPA}" >&2
   echo "Usage: $0 path/to/MorningGuard.ipa" >&2
   exit 1
 fi
