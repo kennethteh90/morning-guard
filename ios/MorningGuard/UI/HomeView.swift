@@ -30,7 +30,6 @@ struct HomeView: View {
 
             Section {
                 gateStatusRow
-                shieldStatusRows
             }
 
             primarySection
@@ -135,26 +134,6 @@ struct HomeView: View {
         .accessibilityLabel(L10n.tr("a11y.home.gate_status"))
         .accessibilityValue("\(gateTitle). \(gateSubtitle)")
         .accessibilityHint(L10n.tr("a11y.home.gate_status.hint"))
-    }
-
-    @ViewBuilder
-    private var shieldStatusRows: some View {
-        if appState.shieldController.isAuthorized {
-            LabeledContent(L10n.tr("home.shields.apps_shielded")) {
-                Text("\(appState.shieldController.shieldedAppCount)")
-            }
-            LabeledContent(L10n.tr("home.shields.status")) {
-                Text(appState.shieldController.shieldsApplied ? L10n.tr("home.shields.active") : L10n.tr("home.shields.off"))
-                    .foregroundStyle(appState.shieldController.shieldsApplied ? .orange : .secondary)
-            }
-        } else if MGDebugFlags.relaxesShieldOnboarding {
-            Text(L10n.tr("home.shields.simulator_ok"))
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        } else {
-            Text(L10n.tr("home.shields.not_authorized"))
-                .foregroundStyle(.secondary)
-        }
     }
 
     @ViewBuilder

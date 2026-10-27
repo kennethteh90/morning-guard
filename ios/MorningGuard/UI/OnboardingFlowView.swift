@@ -26,7 +26,6 @@ struct OnboardingFlowView: View {
 
     #if canImport(FamilyControls)
     @State private var familyActivitySelection = FamilyActivitySelection()
-    @State private var isAppPickerPresented = false
     #endif
 
     private var stepTitles: [String] {
@@ -329,10 +328,25 @@ struct OnboardingFlowView: View {
                 }
                 .accessibilityElement(children: .contain)
 
+                focusRecommendationCard
+
                 tipForTestingWindow
             }
             .padding(MGTheme.standardPadding)
         }
+    }
+
+    private var focusRecommendationCard: some View {
+        MGCard {
+            VStack(alignment: .leading, spacing: 8) {
+                Label(L10n.tr("onboarding.focus.title"), systemImage: "moon.fill")
+                    .font(.headline)
+                Text(L10n.tr("onboarding.focus.body"))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .accessibilityElement(children: .combine)
     }
 
     private var emergencyStep: some View {
@@ -413,38 +427,15 @@ struct OnboardingFlowView: View {
 
     #if canImport(FamilyControls)
     private var appPickerCard: some View {
-        MGCard {
-            VStack(alignment: .leading, spacing: 12) {
-                Text(shieldSelectionSummary)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                Button {
-                    isAppPickerPresented = true
-                } label: {
-                    Label(L10n.tr("onboarding.apps.choose"), systemImage: "apps.iphone")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(MGTheme.accent)
-                .accessibilityLabel(L10n.tr("a11y.onboarding.app_picker"))
-                .accessibilityHint(L10n.tr("onboarding.apps.choose.hint"))
+        ShieldAppSelectionEditor(
+            selection: $familyActivitySelection,
+            style: .onboardingCard,
+            onSelectionChanged: {
+                appState.shieldController.selection = familyActivitySelection
+                appState.shieldController.persistSelection()
+                appState.shieldController.refreshShields()
             }
-        }
-        .familyActivityPicker(isPresented: $isAppPickerPresented, selection: $familyActivitySelection)
-        .onChange(of: familyActivitySelection) { _, newValue in
-            appState.shieldController.selection = newValue
-            appState.shieldController.persistSelection()
-        }
-    }
-
-    private var shieldSelectionSummary: String {
-        let apps = familyActivitySelection.applicationTokens.count
-        let categories = familyActivitySelection.categoryTokens.count
-        let domains = familyActivitySelection.webDomainTokens.count
-        if apps == 0 && categories == 0 && domains == 0 {
-            return L10n.tr("onboarding.apps.none_selected")
-        }
-        return L10n.tr("onboarding.apps.selected_summary", apps, categories, domains)
+        )
     }
 
     private func syncFamilyActivitySelectionFromController() {

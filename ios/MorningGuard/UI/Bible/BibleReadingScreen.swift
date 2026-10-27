@@ -257,6 +257,7 @@ struct BibleReadingScreen: View {
     }
 
     private func startBibleReadingTickerIfNeeded() {
+        guard !browseOnly else { return }
         guard bibleReadingTickerTask == nil else { return }
         bibleReadingTickerTask = Task {
             while !Task.isCancelled {

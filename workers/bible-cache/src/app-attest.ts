@@ -1,10 +1,36 @@
+import type { AssertionResult, AttestationResult } from "@bradford-tech/supabase-integrity-attest";
 import type { Env } from "./upstream";
 
 const KEY_PREFIX = "appattest:";
 const DEFAULT_BUNDLE = "com.morningguard.app";
 
+type AttestLib = {
+  verifyAttestation: (
+    appInfo: { appId: string; developmentEnv?: boolean },
+    keyId: string,
+    clientDataHash: Uint8Array,
+    attestation: string,
+  ) => Promise<AttestationResult>;
+  verifyAssertion: (
+    appInfo: { appId: string },
+    assertion: string,
+    clientData: string,
+    publicKeyPem: string,
+    previousSignCount: number,
+  ) => Promise<AssertionResult>;
+};
+
+let attestLibPromise: Promise<AttestLib> | null = null;
+
+async function loadAttestLib(): Promise<AttestLib> {
+  if (!attestLibPromise) {
+    attestLibPromise = import("@bradford-tech/supabase-integrity-attest") as Promise<AttestLib>;
+  }
+  return attestLibPromise;
+}
+
 export interface AppAttestKeyRecord {
-  publicKeySpki: string;
+  publicKeyPem: string;
   signCount: number;
 }
 
@@ -14,11 +40,32 @@ export type AppAttestVerifier = (
   env: Env,
 ) => Promise<boolean>;
 
+function resolveAppId(env: Env): string | null {
+  const teamId = env.APPLE_TEAM_ID?.trim();
+  const bundleId = env.APPLE_APP_ATTEST_BUNDLE_ID?.trim() || DEFAULT_BUNDLE;
+  if (!teamId) return null;
+  return `${teamId}.${bundleId}`;
+}
+
+function developmentAttest(env: Env): boolean {
+  const raw = env.APPLE_APP_ATTEST_DEVELOPMENT?.trim().toLowerCase();
+  return raw === "1" || raw === "true" || raw === "yes";
+}
+
+async function clientDataHashForNonce(nonce: string): Promise<Uint8Array> {
+  return new Uint8Array(
+    await crypto.subtle.digest("SHA-256", new TextEncoder().encode(nonce)),
+  );
+}
+
 export async function verifyAppAttestLicensedRequest(
   request: Request,
   nonce: string,
   env: Env,
 ): Promise<boolean> {
+  const appId = resolveAppId(env);
+  if (!appId || !nonce.trim()) return false;
+
   const keyId = request.headers.get("X-Morning-Guard-App-Attest-Key-Id")?.trim() ?? "";
   const assertionB64 = request.headers.get("X-Morning-Guard-App-Attest-Assertion")?.trim() ?? "";
   const attestationB64 = request.headers.get("X-Morning-Guard-App-Attest-Attestation")?.trim() ?? "";
@@ -26,119 +73,74 @@ export async function verifyAppAttestLicensedRequest(
   if (!keyId) return false;
 
   if (attestationB64) {
-    return registerAppAttestKey(env, keyId, attestationB64, nonce);
+    return registerAppAttestKey(env, appId, keyId, attestationB64, nonce);
   }
 
   if (!assertionB64) return false;
-  return verifyAppAttestAssertion(env, keyId, assertionB64, nonce);
+  return verifyAppAttestAssertion(env, appId, keyId, assertionB64, nonce);
 }
 
 async function registerAppAttestKey(
   env: Env,
+  appId: string,
   keyId: string,
   attestationB64: string,
   nonce: string,
 ): Promise<boolean> {
-  if (!nonce.trim() || !attestationB64) return false;
-  const teamId = env.APPLE_TEAM_ID?.trim();
-  const bundleId = env.APPLE_APP_ATTEST_BUNDLE_ID?.trim() || DEFAULT_BUNDLE;
-  if (!teamId) return false;
-
-  const attestation = base64Decode(attestationB64);
-  if (attestation.length < 32) return false;
-
-  const publicKeySpki = await extractPublicKeySpkiFromAttestation(attestation, bundleId, teamId);
-  if (!publicKeySpki) return false;
-
-  const record: AppAttestKeyRecord = { publicKeySpki, signCount: 0 };
-  await env.BIBLE_CACHE.put(`${KEY_PREFIX}${keyId}`, JSON.stringify(record));
-  return true;
+  try {
+    const { verifyAttestation } = await loadAttestLib();
+    const clientDataHash = await clientDataHashForNonce(nonce);
+    const { publicKeyPem, signCount } = await verifyAttestation(
+      { appId, developmentEnv: developmentAttest(env) },
+      keyId,
+      clientDataHash,
+      attestationB64,
+    );
+    const record: AppAttestKeyRecord = { publicKeyPem, signCount };
+    await env.BIBLE_CACHE.put(`${KEY_PREFIX}${keyId}`, JSON.stringify(record));
+    return true;
+  } catch (error) {
+    console.warn("app_attest_register_failed", {
+      message: String(error).slice(0, 300),
+    });
+    return false;
+  }
 }
 
 async function verifyAppAttestAssertion(
   env: Env,
+  appId: string,
   keyId: string,
   assertionB64: string,
   nonce: string,
 ): Promise<boolean> {
   const raw = await env.BIBLE_CACHE.get(`${KEY_PREFIX}${keyId}`);
   if (!raw) return false;
-  const record = JSON.parse(raw) as AppAttestKeyRecord;
-  const assertion = base64Decode(assertionB64);
-  if (assertion.length < 64) return false;
 
-  const clientData = new TextEncoder().encode(nonce);
-  const clientHash = await crypto.subtle.digest("SHA-256", clientData);
-  const signedPayload = concatBytes(assertion.subarray(0, assertion.length - 64), clientHash);
-  const signature = assertion.subarray(assertion.length - 64);
-
-  const key = await crypto.subtle.importKey(
-    "spki",
-    base64Decode(record.publicKeySpki),
-    { name: "ECDSA", namedCurve: "P-256" },
-    false,
-    ["verify"],
-  );
-  const ok = await crypto.subtle.verify(
-    { name: "ECDSA", hash: "SHA-256" },
-    key,
-    signature,
-    signedPayload,
-  );
-  if (!ok) return false;
-
-  record.signCount += 1;
-  await env.BIBLE_CACHE.put(`${KEY_PREFIX}${keyId}`, JSON.stringify(record));
-  return true;
-}
-
-async function extractPublicKeySpkiFromAttestation(
-  attestation: Uint8Array,
-  bundleId: string,
-  teamId: string,
-): Promise<string | null> {
-  if (envAllowsDevelopmentAttest(teamId, bundleId)) {
-    const tail = attestation.subarray(Math.max(0, attestation.length - 91));
-    if (tail[0] === 0x04 && tail.length >= 65) {
-      const spki = p256SpkiFromUncompressed(tail.subarray(0, 65));
-      return base64Encode(spki);
-    }
+  let record: AppAttestKeyRecord;
+  try {
+    record = JSON.parse(raw) as AppAttestKeyRecord;
+  } catch {
+    return false;
   }
-  return null;
-}
+  if (!record.publicKeyPem) return false;
 
-function envAllowsDevelopmentAttest(teamId: string, bundleId: string): boolean {
-  return Boolean(teamId && bundleId);
-}
-
-function p256SpkiFromUncompressed(uncompressed: Uint8Array): Uint8Array {
-  const prefix = new Uint8Array([
-    0x30, 0x59, 0x30, 0x13, 0x06, 0x07, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01, 0x06, 0x08, 0x2a,
-    0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07, 0x03, 0x42, 0x00,
-  ]);
-  return concatBytes(prefix, uncompressed);
-}
-
-function concatBytes(...parts: Uint8Array[]): Uint8Array {
-  const total = parts.reduce((n, p) => n + p.length, 0);
-  const out = new Uint8Array(total);
-  let offset = 0;
-  for (const p of parts) {
-    out.set(p, offset);
-    offset += p.length;
+  try {
+    const { verifyAssertion } = await loadAttestLib();
+    const { signCount } = await verifyAssertion(
+      { appId },
+      assertionB64,
+      nonce,
+      record.publicKeyPem,
+      record.signCount ?? 0,
+    );
+    record.signCount = signCount;
+    await env.BIBLE_CACHE.put(`${KEY_PREFIX}${keyId}`, JSON.stringify(record));
+    return true;
+  } catch (error) {
+    console.warn("app_attest_assertion_failed", {
+      message: String(error).slice(0, 300),
+    });
+    return false;
   }
-  return out;
-}
-
-function base64Decode(value: string): Uint8Array {
-  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
-  const raw = atob(padded);
-  const bytes = new Uint8Array(raw.length);
-  for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
-  return bytes;
-}
-
-function base64Encode(bytes: Uint8Array): string {
-  return btoa(String.fromCharCode(...bytes));
 }

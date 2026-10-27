@@ -33,6 +33,8 @@ export interface Env {
   PLAY_ALLOW_UNRECOGNIZED_DEBUG_CERT?: string;
   APPLE_TEAM_ID?: string;
   APPLE_APP_ATTEST_BUNDLE_ID?: string;
+  /** When true, accept App Attest development-environment AAGUID (Xcode debug builds). */
+  APPLE_APP_ATTEST_DEVELOPMENT?: string;
 }
 
 const API_BIBLE_BASE = "https://api.scripture.api.bible/v1";

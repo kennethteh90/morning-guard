@@ -23,9 +23,7 @@ struct AccountView: View {
     var body: some View {
         Form {
             Section {
-                Text(L10n.tr("account.intro"))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                MGSettingsSectionIntro(text: L10n.tr("account.intro"))
             }
 
             switch appState.supabaseAuth.state {
@@ -95,10 +93,8 @@ struct AccountView: View {
     private func signedInSection(user: AuthUser) -> some View {
         Section {
             Label(user.email ?? L10n.tr("account.signed_in_label"), systemImage: "person.crop.circle")
-            Text(L10n.tr("account.sync_enabled"))
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Button(L10n.tr("account.sign_out"), role: .destructive) {
+            MGSettingsSectionIntro(text: L10n.tr("account.sync_enabled"))
+            MGSettingsSecondaryButton(title: L10n.tr("account.sign_out")) {
                 Task {
                     await appState.signOut()
                     statusMessage = L10n.tr("account.signed_out")
@@ -128,18 +124,25 @@ struct AccountView: View {
                 Button {
                     Task { await sendMagicLink() }
                 } label: {
-                    if isSending {
-                        ProgressView()
-                    } else {
-                        Text(L10n.tr("account.send_link"))
+                    Group {
+                        if isSending {
+                            ProgressView()
+                        } else {
+                            Text(L10n.tr("account.send_link"))
+                                .font(.body.weight(.semibold))
+                                .frame(maxWidth: .infinity)
+                        }
                     }
                 }
+                .buttonStyle(.borderedProminent)
+                .tint(MGTheme.accent)
                 .disabled(isSending || email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 .accessibilityLabel(L10n.tr("a11y.account.send_link"))
             } header: {
                 Text(L10n.tr("account.magic_link.header"))
             } footer: {
                 Text(L10n.tr("account.magic_link.footer"))
+                    .font(.footnote)
             }
         case .awaitingInbox:
             Section {

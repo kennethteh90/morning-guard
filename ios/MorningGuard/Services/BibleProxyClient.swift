@@ -5,6 +5,22 @@ import MorningGuardCore
 
 private let bibleProxyNonceHeader = "X-Morning-Guard-Nonce"
 
+private enum AppAttestRegistrationState {
+    private static let registeredDefaultsKey = "bibleProxyAppAttestRegistered"
+
+    static var isRegistered: Bool {
+        UserDefaults.standard.bool(forKey: registeredDefaultsKey)
+    }
+
+    static func markRegistered() {
+        UserDefaults.standard.set(true, forKey: registeredDefaultsKey)
+    }
+
+    static func clearRegistered() {
+        UserDefaults.standard.removeObject(forKey: registeredDefaultsKey)
+    }
+}
+
 struct BibleProxyClient: Sendable {
     static let sessionHeader = "X-Morning-Guard-Session"
 
@@ -52,6 +68,7 @@ struct BibleProxyClient: Sendable {
         guard let http = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
         if http.statusCode == 401, retryOnUnauthorized, BibleProxyConfig.isLicensedTranslation(normalized) {
             await licensedAuth.invalidateSession()
+            await licensedAuth.resetRegistration()
             return try await loadChapterWithRetry(
                 translation: translation,
                 book: book,
@@ -61,6 +78,10 @@ struct BibleProxyClient: Sendable {
         }
         guard (200...299).contains(http.statusCode) else {
             throw BibleProxyError.http(status: http.statusCode, body: String(data: data, encoding: .utf8) ?? "")
+        }
+
+        if BibleProxyConfig.isLicensedTranslation(normalized) {
+            await licensedAuth.confirmRegistration()
         }
 
         return try decodeChapter(data: data, book: book, chapter: chapter)
@@ -101,12 +122,13 @@ struct BibleProxyClient: Sendable {
 protocol BibleProxyLicensedAuth: Sendable {
     func applyLicensedChapterHeaders(to request: inout URLRequest) async throws
     func invalidateSession() async
+    func confirmRegistration() async
+    func resetRegistration() async
 }
 
 struct AppAttestBibleProxyLicensedAuth: BibleProxyLicensedAuth, Sendable {
     private let service = DCAppAttestService.shared
     private let keyIdDefaultsKey = "bibleProxyAppAttestKeyId"
-    private let attestedDefaultsKey = "bibleProxyAppAttestRegistered"
     private let sessionCoordinator: LicensedSessionCoordinator
 
     init() {
@@ -131,6 +153,14 @@ struct AppAttestBibleProxyLicensedAuth: BibleProxyLicensedAuth, Sendable {
         await sessionCoordinator.invalidate()
     }
 
+    func confirmRegistration() async {
+        AppAttestRegistrationState.markRegistered()
+    }
+
+    func resetRegistration() async {
+        AppAttestRegistrationState.clearRegistered()
+    }
+
     private func applyFreshAttestation(to request: inout URLRequest) async throws {
         let nonce = try await fetchChallengeNonce()
         request.setValue(nonce, forHTTPHeaderField: bibleProxyNonceHeader)
@@ -142,10 +172,9 @@ struct AppAttestBibleProxyLicensedAuth: BibleProxyLicensedAuth, Sendable {
         let clientData = Data(nonce.utf8)
         let hash = Data(SHA256.hash(data: clientData))
         request.setValue(keyId, forHTTPHeaderField: "X-Morning-Guard-App-Attest-Key-Id")
-        if !UserDefaults.standard.bool(forKey: attestedDefaultsKey) {
+        if !AppAttestRegistrationState.isRegistered {
             let attestation = try await attestKey(keyId: keyId, clientDataHash: hash)
             request.setValue(attestation.base64EncodedString(), forHTTPHeaderField: "X-Morning-Guard-App-Attest-Attestation")
-            UserDefaults.standard.set(true, forKey: attestedDefaultsKey)
         } else {
             let assertion = try await generateAssertion(keyId: keyId, clientDataHash: hash)
             request.setValue(assertion.base64EncodedString(), forHTTPHeaderField: "X-Morning-Guard-App-Attest-Assertion")
@@ -221,7 +250,6 @@ struct AppAttestBibleProxyLicensedAuth: BibleProxyLicensedAuth, Sendable {
 private enum AppAttestBibleProxySessionMinter {
     private static let service = DCAppAttestService.shared
     private static let keyIdDefaultsKey = "bibleProxyAppAttestKeyId"
-    private static let attestedDefaultsKey = "bibleProxyAppAttestRegistered"
     static func mintSessionGrant() async throws -> LicensedSessionCoordinator.SessionGrant {
         let nonce = try await fetchChallengeNonce()
         guard let sessionURL = URL(string: "\(BibleProxyConfig.baseURL)/v1/session") else {
@@ -252,6 +280,7 @@ private enum AppAttestBibleProxySessionMinter {
         } else {
             expiresAtMs = Int64(Date().timeIntervalSince1970 * 1000) + max(expiresIn, 60) * 1000
         }
+        AppAttestRegistrationState.markRegistered()
         return LicensedSessionCoordinator.SessionGrant(token: token, expiresAtEpochMs: expiresAtMs)
     }
 
@@ -277,10 +306,9 @@ private enum AppAttestBibleProxySessionMinter {
         let clientData = Data(nonce.utf8)
         let hash = Data(SHA256.hash(data: clientData))
         request.setValue(keyId, forHTTPHeaderField: "X-Morning-Guard-App-Attest-Key-Id")
-        if !UserDefaults.standard.bool(forKey: attestedDefaultsKey) {
+        if !AppAttestRegistrationState.isRegistered {
             let attestation = try await attestKey(keyId: keyId, clientDataHash: hash)
             request.setValue(attestation.base64EncodedString(), forHTTPHeaderField: "X-Morning-Guard-App-Attest-Attestation")
-            UserDefaults.standard.set(true, forKey: attestedDefaultsKey)
         } else {
             let assertion = try await generateAssertion(keyId: keyId, clientDataHash: hash)
             request.setValue(assertion.base64EncodedString(), forHTTPHeaderField: "X-Morning-Guard-App-Attest-Assertion")

@@ -57,10 +57,5 @@ struct RootView: View {
                 appState.deepLinkGoalPending = false
             }
         }
-        .onChange(of: appState.settingsStore.userSettings.onboardingCompleted) { wasComplete, isComplete in
-            if isComplete, !wasComplete {
-                showGoal = true
-            }
-        }
     }
 }

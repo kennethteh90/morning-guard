@@ -50,6 +50,7 @@ Licensed requests use a one-time challenge, then prefer a short-lived session:
    npx wrangler secret put PLAY_INTEGRITY_SERVICE_ACCOUNT_JSON --name morning-guard-bible-cache < key.json
    npx wrangler secret put PLAY_APP_SIGNING_CERT_SHA256 --name morning-guard-bible-cache
    npx wrangler secret put APPLE_TEAM_ID --name morning-guard-bible-cache
+   # Must match your Apple Developer Team ID (e.g. Q4KRZH9G2F). Worker builds App ID as TEAMID.com.morningguard.app for App Attest.
    npx wrangler secret put BIBLE_PROXY_SESSION_HMAC_SECRET --name morning-guard-bible-cache
    ```
 

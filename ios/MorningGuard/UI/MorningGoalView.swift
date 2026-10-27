@@ -9,6 +9,8 @@ struct MorningGoalView: View {
 
     @State private var todaySteps: Int?
     @State private var tickerTask: Task<Void, Never>?
+    @State private var earlyCompleteNotice: String?
+    @State private var earlyCompleteNoticeTask: Task<Void, Never>?
 
     private var config: MorningGoalConfig {
         appState.settingsStore.userSettings.morningGoal
@@ -39,6 +41,10 @@ struct MorningGoalView: View {
                         Text(bibleToolbarSubtitle)
                             .font(.caption2)
                             .foregroundStyle(.secondary)
+                        Text(bibleGoalTimerLabel)
+                            .font(.caption.monospacedDigit().weight(.medium))
+                            .foregroundStyle(bibleGoalTimerReady ? MGTheme.accent : .secondary)
+                            .accessibilityLabel(L10n.tr("a11y.goal.timer"))
                     }
                     .accessibilityElement(children: .combine)
                     .accessibilityLabel(L10n.tr("a11y.goal.header"))
@@ -48,10 +54,14 @@ struct MorningGoalView: View {
         .task { await onAppearWork() }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
+                appState.refreshGateAndShields()
                 startTickerIfNeeded()
             } else {
                 stopTicker()
             }
+        }
+        .onChange(of: appState.gateService.evaluation) { _, _ in
+            startTickerIfNeeded()
         }
         .onDisappear {
             stopTicker()
@@ -70,9 +80,7 @@ struct MorningGoalView: View {
             }
             BibleReadingScreen(
                 browseOnly: false,
-                showsGoalProgress: true,
-                elapsedSeconds: progress?.onScreenSeconds ?? 0,
-                requiredSeconds: 60
+                showsGoalProgress: false
             )
             completionFooter
                 .padding(MGTheme.standardPadding)
@@ -199,11 +207,38 @@ struct MorningGoalView: View {
         }
     }
 
+    /// Matches Home: morning goal can only be finished while the gate is locked for the morning window.
+    private var morningGoalCompletionAllowed: Bool {
+        let evaluation = appState.gateService.evaluation
+        return evaluation.state == .locked && evaluation.reason == "morning_window"
+    }
+
     private var completionFooter: some View {
         VStack(alignment: .leading, spacing: 12) {
             if let progress {
                 if progress.isComplete {
                     goalCompleteCard
+                } else if !morningGoalCompletionAllowed {
+                    EmptyView()
+                } else if config.type == .bibleChapter {
+                    if let earlyCompleteNotice {
+                        Text(earlyCompleteNotice)
+                            .font(.callout)
+                            .foregroundStyle(.red)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+                            .transition(.opacity)
+                    }
+                    Button {
+                        attemptCompleteGoal()
+                    } label: {
+                        Label(L10n.tr("goal.complete_button"), systemImage: "checkmark.circle.fill")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(MGTheme.accent)
+                    .accessibilityLabel(L10n.tr("a11y.goal.complete"))
+                    .accessibilityHint(L10n.tr("a11y.goal.complete.hint"))
                 } else {
                     Text(progressLabel(progress: progress))
                         .font(.callout)
@@ -268,7 +303,36 @@ struct MorningGoalView: View {
         }
     }
 
+    private func attemptCompleteGoal() {
+        guard morningGoalCompletionAllowed else {
+            showEarlyCompleteNotice(L10n.tr("goal.error.outside_morning_window"))
+            MGHaptics.warning()
+            return
+        }
+        if appState.gateService.canComplete(currentSteps: todaySteps) {
+            completeGoalExplicitly()
+            return
+        }
+        guard config.type == .bibleChapter else { return }
+        let remaining = max(0, 60 - (progress?.onScreenSeconds ?? 0))
+        showEarlyCompleteNotice(L10n.tr("goal.error.reading_seconds_remaining", remaining))
+        MGHaptics.warning()
+    }
+
+    private func showEarlyCompleteNotice(_ message: String) {
+        earlyCompleteNoticeTask?.cancel()
+        withAnimation { earlyCompleteNotice = message }
+        earlyCompleteNoticeTask = Task {
+            try? await Task.sleep(for: .seconds(4))
+            await MainActor.run {
+                withAnimation { earlyCompleteNotice = nil }
+            }
+        }
+    }
+
     private func completeGoalExplicitly() {
+        earlyCompleteNoticeTask?.cancel()
+        earlyCompleteNotice = nil
         appState.gateService.markComplete()
         appState.shieldController.refreshShields()
         MGHaptics.success()
@@ -295,6 +359,23 @@ struct MorningGoalView: View {
             config.bibleChapter,
             BibleCanon.chapterCount(bookName: config.bibleBook)
         )
+    }
+
+    private var bibleGoalTimerReady: Bool {
+        morningGoalCompletionAllowed && appState.gateService.canComplete(currentSteps: todaySteps)
+    }
+
+    private var bibleGoalTimerLabel: String {
+        if !morningGoalCompletionAllowed {
+            return L10n.tr("goal.timer.outside_window")
+        }
+        if bibleGoalTimerReady {
+            return L10n.tr("goal.timer.reading_ready")
+        }
+        let remaining = max(0, 60 - (progress?.onScreenSeconds ?? 0))
+        let minutes = remaining / 60
+        let seconds = remaining % 60
+        return L10n.tr("goal.timer.reading_remaining_format", minutes, seconds)
     }
 
     private var headerSubtitle: String {
@@ -333,6 +414,7 @@ struct MorningGoalView: View {
     }
 
     private func onAppearWork() async {
+        appState.refreshGateAndShields()
         _ = appState.gateService.startGoalIfNeeded()
         if config.type == .stepCount {
             try? await appState.healthKitStepReader.requestAuthorization()
@@ -355,10 +437,15 @@ struct MorningGoalView: View {
     private func startTickerIfNeeded() {
         guard config.type != .stepCount else { return }
         stopTicker()
+        guard morningGoalCompletionAllowed else { return }
         tickerTask = Task {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(1))
                 await MainActor.run {
+                    guard morningGoalCompletionAllowed else {
+                        stopTicker()
+                        return
+                    }
                     appState.gateService.incrementOnScreenSeconds()
                     appState.shieldController.refreshShields()
                 }

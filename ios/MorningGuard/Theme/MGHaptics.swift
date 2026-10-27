@@ -19,11 +19,18 @@ enum MGHaptics {
         generator.prepare()
         generator.notificationOccurred(.success)
     }
+
+    static func warning() {
+        let generator = UINotificationFeedbackGenerator()
+        generator.prepare()
+        generator.notificationOccurred(.warning)
+    }
 }
 #else
 enum MGHaptics {
     static func selection() {}
     static func lightImpact() {}
     static func success() {}
+    static func warning() {}
 }
 #endif

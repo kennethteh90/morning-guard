@@ -1189,6 +1189,17 @@
         }
       }
     },
+    "a11y.settings.edit_shielded_apps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shielded apps and categories"
+          }
+        }
+      }
+    },
     "a11y.settings.export_backup": {
       "extractionState": "manual",
       "localizations": {
@@ -1283,7 +1294,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Morning window, goals, backup, privacy, and shields"
+            "value": "Morning window, sync and recovery, backup, privacy, and shields"
           }
         }
       }
@@ -1448,7 +1459,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign in to sync streaks and highlights across devices. Your reflection notes stay encrypted; set a recovery password in Settings."
+            "value": "We email you a magic link — open it on this iPhone to finish signing in. Pair this with your recovery password in Sync & recovery for full note recovery on a new device."
           }
         }
       }
@@ -2388,6 +2399,28 @@
         }
       }
     },
+    "goal.error.outside_morning_window": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can read here anytime. Complete your morning goal only during your morning window."
+          }
+        }
+      }
+    },
+    "goal.error.reading_seconds_remaining": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep reading on this screen — %1$lld seconds left."
+          }
+        }
+      }
+    },
     "goal.header.bible": {
       "extractionState": "manual",
       "localizations": {
@@ -2549,6 +2582,39 @@
           "stringUnit": {
             "state": "translated",
             "value": "HealthKit is not available on this device."
+          }
+        }
+      }
+    },
+    "goal.timer.outside_window": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outside morning window"
+          }
+        }
+      }
+    },
+    "goal.timer.reading_ready": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready to complete"
+          }
+        }
+      }
+    },
+    "goal.timer.reading_remaining_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld:%2$02lld remaining"
           }
         }
       }
@@ -3032,7 +3098,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nothing selected yet. Tap the button below to open Apple’s picker (apps may appear under categories such as Social or Games)."
+            "value": "Nothing selected yet. Tap below to open Apple’s picker, then choose apps or categories—skip Morning Guard itself."
           }
         }
       }
@@ -3065,7 +3131,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose what to limit during your morning window. Leave out Phone and Messages if you need them."
+            "value": "Pick distractions to limit during your morning window. Apple’s picker usually lists apps inside categories (Social, Games, etc.)—not system apps like Phone. Don’t add Morning Guard; you need it to finish your goal."
           }
         }
       }
@@ -3253,6 +3319,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Emergency bypass"
+          }
+        }
+      }
+    },
+    "onboarding.focus.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morning Guard blocks the apps you pick—it doesn’t silence notifications. For a quieter morning, schedule a Focus in Settings → Focus for the same hours. Apple doesn’t let apps turn Focus on for you."
+          }
+        }
+      }
+    },
+    "onboarding.focus.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Also turn on Focus?"
           }
         }
       }
@@ -3714,7 +3802,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Notes are encrypted on this device but cannot be recovered on a new phone until you set one."
+            "value": "You’re signed in, but reflection notes need a recovery password before they can open on a new iPhone. Set one in Settings → Sync & recovery."
           }
         }
       }
@@ -3725,7 +3813,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recovery password not set"
+            "value": "Finish cloud recovery setup"
           }
         }
       }
@@ -3802,7 +3890,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your reflection notes are encrypted with a key that stays on this phone. Without a recovery password, reinstalling or switching phones means cloud copies cannot be opened."
+            "value": "You’re signed in for cloud sync. Reflection notes are encrypted — on a new iPhone you’ll need this recovery password (plus the same email sign-in) to open them."
           }
         }
       }
@@ -4089,6 +4177,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Reset onboarding"
+          }
+        }
+      }
+    },
+    "settings.emergency.intro": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional phrase to unlock the gate early if you’re stuck. Separate from your cloud recovery password."
           }
         }
       }
@@ -4489,6 +4588,182 @@
         }
       }
     },
+    "settings.recovery.footer.local_backup": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encrypted backup is the way to move local data to another device."
+          }
+        }
+      }
+    },
+    "settings.recovery.form.header": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery password"
+          }
+        }
+      }
+    },
+    "settings.recovery.intro.cloud": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On a new iPhone, recovering encrypted reflection notes takes two steps: sign in with the same email, then enter the recovery password you set here. Streaks sync with sign-in alone; notes stay locked without the password."
+          }
+        }
+      }
+    },
+    "settings.recovery.intro.local": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This device keeps data local. A recovery password unlocks reflection notes on this iPhone. To move everything to a new phone, export an encrypted backup below."
+          }
+        }
+      }
+    },
+    "settings.recovery.not_ready": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete both steps above for cloud recovery."
+          }
+        }
+      }
+    },
+    "settings.recovery.password_after_sign_in": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in first, then set a recovery password below."
+          }
+        }
+      }
+    },
+    "settings.recovery.ready": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You’re set for cloud recovery on a new phone."
+          }
+        }
+      }
+    },
+    "settings.recovery.section": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync & recovery"
+          }
+        }
+      }
+    },
+    "settings.recovery.step.password": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery password"
+          }
+        }
+      }
+    },
+    "settings.recovery.step.password.detail.needed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required — decrypts reflection notes on a new phone."
+          }
+        }
+      }
+    },
+    "settings.recovery.step.password.detail.set": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set — save it in a password manager."
+          }
+        }
+      }
+    },
+    "settings.recovery.step.sign_in": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in with email"
+          }
+        }
+      }
+    },
+    "settings.recovery.step.sign_in.detail.needed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required — syncs streaks and encrypted note data to your account."
+          }
+        }
+      }
+    },
+    "settings.recovery.step.sign_in.detail.signed_in": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signed in as %1$@."
+          }
+        }
+      }
+    },
+    "settings.recovery.step.sign_in.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens account sign-in with a magic link."
+          }
+        }
+      }
+    },
+    "settings.recovery.unlock_on_device": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter your recovery password to view encrypted notes on this device."
+          }
+        }
+      }
+    },
     "settings.setup.replay": {
       "extractionState": "manual",
       "localizations": {
@@ -4533,13 +4808,46 @@
         }
       }
     },
+    "settings.shields.edit_apps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shielded apps & categories"
+          }
+        }
+      }
+    },
+    "settings.shields.edit_apps.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens Apple’s Screen Time picker to change what Morning Guard blocks during your morning window."
+          }
+        }
+      }
+    },
     "settings.shields.help": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "To fully remove shields, revoke Screen Time access for Morning Guard in Settings → Screen Time, or clear your app selection during onboarding."
+            "value": "Tap shielded apps above to change your selection. To fully remove shields, revoke Screen Time access for Morning Guard in Settings → Screen Time."
+          }
+        }
+      }
+    },
+    "settings.shields.not_authorized": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen Time isn’t authorized. Run the setup guide again to allow Morning Guard to shield apps."
           }
         }
       }
@@ -4551,6 +4859,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Shields"
+          }
+        }
+      }
+    },
+    "settings.shields.status": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shield status"
           }
         }
       }

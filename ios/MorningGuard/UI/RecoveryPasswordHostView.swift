@@ -55,19 +55,20 @@ struct RecoveryPasswordHostView<Content: View>: View {
         NavigationStack {
             Form {
                 Section {
-                    Text(L10n.tr("recovery.blocking.intro"))
+                    MGSettingsSectionIntro(text: L10n.tr("recovery.blocking.intro"))
                     SecureField(L10n.tr("settings.notes.recovery_field"), text: $password)
                         .accessibilityLabel(L10n.tr("a11y.recovery.password"))
                     if let error = appState.recoveryPassword.errorMessage {
-                        Text(error).foregroundStyle(.red).font(.caption)
+                        MGSettingsInlineMessage(text: error, style: .error)
                     }
                     Button(L10n.tr("recovery.blocking.forgot")) {
                         showStartFreshConfirm = true
                     }
+                    .font(.subheadline)
                     .accessibilityLabel(L10n.tr("a11y.recovery.forgot"))
                 }
                 Section {
-                    Button(L10n.tr("recovery.blocking.unlock")) {
+                    MGSettingsPrimaryButton(title: L10n.tr("recovery.blocking.unlock"), disabled: password.count < 8) {
                         appState.recoveryPassword.unlockCloudRecovery(password: password)
                         password = ""
                     }
@@ -84,35 +85,36 @@ struct RecoveryPasswordHostView<Content: View>: View {
             Form {
                 Section {
                     Text(L10n.tr("recovery.dedicated.title"))
-                        .font(.headline)
-                    Text(L10n.tr("recovery.dedicated.body"))
-                        .font(.subheadline)
-                    Text(L10n.tr("settings.notes.rules"))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.title3.weight(.semibold))
+                    MGSettingsSectionIntro(text: L10n.tr("recovery.dedicated.body"))
+                    MGSettingsSectionIntro(text: L10n.tr("settings.notes.rules"))
                     SecureField(L10n.tr("settings.notes.recovery_field"), text: $password)
                         .accessibilityLabel(L10n.tr("a11y.recovery.password"))
                     SecureField(L10n.tr("settings.notes.confirm_field"), text: $confirmation)
                     if let error = appState.recoveryPassword.errorMessage {
-                        Text(error).foregroundStyle(.red).font(.caption)
+                        MGSettingsInlineMessage(text: error, style: .error)
                     }
                     if let status = appState.recoveryPassword.statusMessage {
-                        Text(status).foregroundStyle(MGTheme.accent).font(.caption)
+                        MGSettingsInlineMessage(text: status, style: .success)
                     }
                 }
                 Section {
-                    Button(L10n.tr("settings.notes.set_button")) {
+                    MGSettingsPrimaryButton(
+                        title: L10n.tr("settings.notes.set_button"),
+                        disabled: password.count < 8 || confirmation.count < 8
+                    ) {
                         appState.recoveryPassword.setRecoveryPassword(password: password, confirmation: confirmation)
                         password = ""
                         confirmation = ""
                         appState.recoveryPassword.markPromptShown()
                     }
-                    .disabled(password.count < 8 || confirmation.count < 8)
                     .accessibilityLabel(L10n.tr("a11y.recovery.set"))
                     Button(L10n.tr("recovery.dedicated.later")) {
                         appState.recoveryPassword.dismissLater()
                         appState.recoveryPassword.markPromptShown()
                     }
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                 }
             }
             .navigationTitle(L10n.tr("recovery.dedicated.title"))
@@ -125,20 +127,23 @@ struct RecoveryPasswordBannerView: View {
 
     var body: some View {
         if appState.recoveryPassword.showBanner, !appState.noteEncryption.cryptoState.hasRecoveryPassword() {
-            VStack(alignment: .leading, spacing: 6) {
-                Text(L10n.tr("recovery.banner.not_set.title")).font(.subheadline.weight(.semibold))
+            VStack(alignment: .leading, spacing: 10) {
+                Text(L10n.tr("recovery.banner.not_set.title"))
+                    .font(.subheadline.weight(.semibold))
                 Text(L10n.tr("recovery.banner.not_set.body"))
-                    .font(.caption)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                 Button(L10n.tr("recovery.banner.set_password")) {
                     appState.recoveryPassword.onSignedIn()
                 }
-                .font(.caption)
+                .buttonStyle(.borderedProminent)
+                .tint(MGTheme.accent)
                 .accessibilityLabel(L10n.tr("a11y.recovery.banner.set"))
             }
-            .padding(12)
+            .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(MGTheme.accent.opacity(0.12))
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .accessibilityElement(children: .contain)
         }
     }

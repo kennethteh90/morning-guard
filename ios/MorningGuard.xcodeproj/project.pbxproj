@@ -24,6 +24,7 @@
 		3187CCD6FC2B78573321F544 /* MorningGuardShieldConfig.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5EB14626797E34D4CD697E25 /* MorningGuardShieldConfig.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		3565C54DDCD6F1138B7D7CCD /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34878214D2A86E3258BC9B47 /* StatsView.swift */; };
 		39838EAEDDC02306160E4A1B /* MorningGuardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0330BD22B2E0AE54225793F /* MorningGuardApp.swift */; };
+		3A319C31AAC5B2708DE58039 /* SettingsFormStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94B352DF766980329C975C2 /* SettingsFormStyles.swift */; };
 		41278D220998DF81CE3632AD /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42993978A265440269330EE9 /* AppState.swift */; };
 		415043BA13D1B74C7CA486DE /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29FB39C52848C828709960F4 /* SettingsStore.swift */; };
 		4274072E4EEA4C8CB0267C16 /* BibleProxyConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 499E1D244A1C8245C9D8FA41 /* BibleProxyConfig.swift */; };
@@ -48,6 +49,7 @@
 		778139E733F7AE04A44F98BC /* MorningGuardCore in Frameworks */ = {isa = PBXBuildFile; productRef = 7258E8B77C6E5792FF4818AF /* MorningGuardCore */; };
 		77FC47CF3A46C4FB3E3DA417 /* ErrorReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46BD0B8BDF94A296EEBCEC67 /* ErrorReporter.swift */; };
 		7CB1791FF6DB8C6D796DB933 /* LocalBackupCipher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03D152911B7FD945A2233F09 /* LocalBackupCipher.swift */; };
+		7FC5A54DA647EB227D752C46 /* SyncAndRecoverySettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A1296D66CCBA84E0D971267 /* SyncAndRecoverySettingsSection.swift */; };
 		83E741FA658ED17B2E29B2C2 /* BibleReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D194A1FA3E9D61F393EA7E /* BibleReaderView.swift */; };
 		86CAC395C18F66E34B91AC0D /* PrivacyPolicyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C26C737036BC341DF97A4A6 /* PrivacyPolicyView.swift */; };
 		871006D6B5FC19798D40E7D3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CC04609DE5D3A40C0470AA12 /* Assets.xcassets */; };
@@ -86,6 +88,7 @@
 		D7E65E035F362735A2EEA3C1 /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E50DC86C7F1E9546E9949CBD /* ManagedSettings.framework */; };
 		D932241988B4B86B725CDF94 /* MGPlatform.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB55726A615DCBBDAA187CBA /* MGPlatform.swift */; };
 		DED626B7EBED49959EF28BEC /* BibleProxyClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28EEC5ED6D4B4CEE9980433 /* BibleProxyClient.swift */; };
+		E09C114977B410A62DB8F6C7 /* ShieldAppSelectionEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5229398E127BEFA028DF6D29 /* ShieldAppSelectionEditor.swift */; };
 		E494CDC8424AAFE4FA7C5576 /* MGDebugFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49FCA280F824D62EFA63A793 /* MGDebugFlags.swift */; };
 		E6568041212C4AAE50FF02F0 /* BibleChapterMemoryCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = A410306757517A4CDA976C58 /* BibleChapterMemoryCache.swift */; };
 		E8D3A246548C943CA36BCFB5 /* OnboardingFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D099254BB94BFF52BD4A9281 /* OnboardingFlowView.swift */; };
@@ -164,6 +167,7 @@
 		4AF12FA7596EFAD759B7CC84 /* SentryConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SentryConfig.swift; sourceTree = "<group>"; };
 		502213472F6BCB56CD7EC780 /* LocalBackupModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalBackupModels.swift; sourceTree = "<group>"; };
 		5025D8E16E133D5CA3244C86 /* ShieldController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldController.swift; sourceTree = "<group>"; };
+		5229398E127BEFA028DF6D29 /* ShieldAppSelectionEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldAppSelectionEditor.swift; sourceTree = "<group>"; };
 		524B571C131B9ED4A5F38ABD /* AuthCallbackURL.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthCallbackURL.swift; sourceTree = "<group>"; };
 		58F8D3285385626C6BAF84B7 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		5C1541EC4FCF1EBB7468EFFE /* MorningGuardShieldAction.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = MorningGuardShieldAction.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -190,6 +194,7 @@
 		8F4A4508E00B0AD8DE86EAD5 /* SentryPrivacyScrubber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SentryPrivacyScrubber.swift; sourceTree = "<group>"; };
 		90D9266C4AF969C46EE56AC0 /* MorningGuard.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MorningGuard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		94E21AC5482DB20B3A769B3D /* SharedShieldSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedShieldSupport.swift; sourceTree = "<group>"; };
+		9A1296D66CCBA84E0D971267 /* SyncAndRecoverySettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncAndRecoverySettingsSection.swift; sourceTree = "<group>"; };
 		A1CC0EE43A6FEBE2A16D6AD2 /* BackupFileDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupFileDocument.swift; sourceTree = "<group>"; };
 		A410306757517A4CDA976C58 /* BibleChapterMemoryCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BibleChapterMemoryCache.swift; sourceTree = "<group>"; };
 		A9FF4E1C5661F2515393720B /* MGBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MGBanner.swift; sourceTree = "<group>"; };
@@ -198,6 +203,7 @@
 		B0330BD22B2E0AE54225793F /* MorningGuardApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningGuardApp.swift; sourceTree = "<group>"; };
 		B316D8B969A5BEC19BD72B3F /* DebugWindowPresets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugWindowPresets.swift; sourceTree = "<group>"; };
 		B507F9B055B9959F9CCDEB7C /* MorningGuardCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = MorningGuardCore; path = MorningGuardCore; sourceTree = SOURCE_ROOT; };
+		B94B352DF766980329C975C2 /* SettingsFormStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsFormStyles.swift; sourceTree = "<group>"; };
 		BB55726A615DCBBDAA187CBA /* MGPlatform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MGPlatform.swift; sourceTree = "<group>"; };
 		C0B8AA1262E1E8C6E594E9B1 /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
 		C1BCC9FF14F8C4AF6FE0469C /* RecoveryPasswordHostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryPasswordHostView.swift; sourceTree = "<group>"; };
@@ -450,6 +456,7 @@
 				CA40742C4506B895EC0E8223 /* MGBottomAccessory.swift */,
 				6177EA375C190E65BFC9E184 /* MGHaptics.swift */,
 				FBE493E65A0A9FD8BEAC9040 /* MGTheme.swift */,
+				B94B352DF766980329C975C2 /* SettingsFormStyles.swift */,
 			);
 			path = Theme;
 			sourceTree = "<group>";
@@ -479,7 +486,9 @@
 				C1BCC9FF14F8C4AF6FE0469C /* RecoveryPasswordHostView.swift */,
 				7F20887AEF14B2BF7F49298D /* RootView.swift */,
 				6967BC8AA43D1B5C4A20E03C /* SettingsView.swift */,
+				5229398E127BEFA028DF6D29 /* ShieldAppSelectionEditor.swift */,
 				34878214D2A86E3258BC9B47 /* StatsView.swift */,
+				9A1296D66CCBA84E0D971267 /* SyncAndRecoverySettingsSection.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -719,12 +728,15 @@
 				AD070CF2759D4499AE24035F /* SentryConfig.swift in Sources */,
 				A1FEC9BB18B0AA4C3782FC90 /* SentryErrorReporter.swift in Sources */,
 				9829F55AA60286C88FDB99E0 /* SentryPrivacyScrubber.swift in Sources */,
+				3A319C31AAC5B2708DE58039 /* SettingsFormStyles.swift in Sources */,
 				415043BA13D1B74C7CA486DE /* SettingsStore.swift in Sources */,
 				8BF92AD9C2DFB8AECD0986EE /* SettingsView.swift in Sources */,
+				E09C114977B410A62DB8F6C7 /* ShieldAppSelectionEditor.swift in Sources */,
 				0F1574FFEF474497BAEB1E59 /* ShieldController.swift in Sources */,
 				3565C54DDCD6F1138B7D7CCD /* StatsView.swift in Sources */,
 				FBE9FD43606D5A9E635E8C7C /* SupabaseAuthService.swift in Sources */,
 				A7B662924D6F2FAC559E43FE /* SupabaseConfig.swift in Sources */,
+				7FC5A54DA647EB227D752C46 /* SyncAndRecoverySettingsSection.swift in Sources */,
 				552E4E2F1F023FB84AA70BBE /* SyncErrorReporting.swift in Sources */,
 				6EAF95B0AAEE4416A39CF98B /* UserDataSyncService.swift in Sources */,
 				F81E2EFD8BD30A3FB59EF6E4 /* VerseHighlightBottomBar.swift in Sources */,
@@ -952,6 +964,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = MorningGuard/MorningGuard.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = MorningGuard/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
