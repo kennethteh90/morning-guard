@@ -11,6 +11,7 @@ struct MorningGoalView: View {
     @State private var tickerTask: Task<Void, Never>?
     @State private var earlyCompleteNotice: String?
     @State private var earlyCompleteNoticeTask: Task<Void, Never>?
+    @State private var bibleNavigationToolbarHidden = false
 
     private var config: MorningGoalConfig {
         appState.settingsStore.userSettings.morningGoal
@@ -32,25 +33,6 @@ struct MorningGoalView: View {
         .navigationTitle(L10n.tr("goal.nav_title"))
         .navigationBarTitleDisplayMode(.inline)
         .accessibilityLabel(L10n.tr("goal.nav_title"))
-        .toolbar {
-            if config.type == .bibleChapter {
-                ToolbarItem(placement: .principal) {
-                    VStack(spacing: 2) {
-                        Text(headerTitle)
-                            .font(.subheadline.weight(.semibold))
-                        Text(bibleToolbarSubtitle)
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                        Text(bibleGoalTimerLabel)
-                            .font(.caption.monospacedDigit().weight(.medium))
-                            .foregroundStyle(bibleGoalTimerReady ? MGTheme.accent : .secondary)
-                            .accessibilityLabel(L10n.tr("a11y.goal.timer"))
-                    }
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel(L10n.tr("a11y.goal.header"))
-                }
-            }
-        }
         .task { await onAppearWork() }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
@@ -80,7 +62,12 @@ struct MorningGoalView: View {
             }
             BibleReadingScreen(
                 browseOnly: false,
-                showsGoalProgress: false
+                showsGoalProgress: false,
+                showsTranslationInToolbar: true,
+                morningGoalTimerLabel: bibleGoalTimerLabel,
+                morningGoalTimerReady: bibleGoalTimerReady,
+                collapseToolbarOnScroll: true,
+                navigationToolbarHidden: $bibleNavigationToolbarHidden
             )
             completionFooter
                 .padding(MGTheme.standardPadding)
@@ -236,7 +223,7 @@ struct MorningGoalView: View {
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
-                    .tint(MGTheme.accent)
+                    .tint(bibleGoalTimerReady ? MGTheme.accent : Color(.systemGray3))
                     .accessibilityLabel(L10n.tr("a11y.goal.complete"))
                     .accessibilityHint(L10n.tr("a11y.goal.complete.hint"))
                 } else {
@@ -351,14 +338,6 @@ struct MorningGoalView: View {
         case .timedFocus: L10n.tr("goal.header.timed")
         case .stepCount: L10n.tr("goal.header.steps")
         }
-    }
-
-    private var bibleToolbarSubtitle: String {
-        L10n.tr(
-            "goal.chapter.stay_format",
-            config.bibleChapter,
-            BibleCanon.chapterCount(bookName: config.bibleBook)
-        )
     }
 
     private var bibleGoalTimerReady: Bool {

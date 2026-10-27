@@ -2,7 +2,12 @@ import SwiftUI
 
 struct BibleReaderView: View {
     var body: some View {
-        BibleReadingScreen(browseOnly: true, showsGoalProgress: false, showsNavigationChrome: true)
+        BibleReadingScreen(
+            browseOnly: true,
+            showsGoalProgress: false,
+            showsChapterInToolbar: true,
+            showsTranslationInToolbar: true
+        )
             .background(MGTheme.background)
             .navigationTitle(L10n.tr("bible.reader.title"))
             .navigationBarTitleDisplayMode(.inline)

@@ -35,6 +35,7 @@ struct OnboardingFlowView: View {
             L10n.tr("onboarding.step.access"),
             L10n.tr("onboarding.step.apps"),
             L10n.tr("onboarding.step.routine"),
+            L10n.tr("onboarding.step.focus"),
             L10n.tr("onboarding.step.emergency"),
         ]
     }
@@ -59,6 +60,7 @@ struct OnboardingFlowView: View {
                 case 2: screenTimeStep
                 case 3: appPickerStep
                 case 4: setupStep
+                case 5: focusStep
                 default: emergencyStep
                 }
             }
@@ -328,25 +330,38 @@ struct OnboardingFlowView: View {
                 }
                 .accessibilityElement(children: .contain)
 
-                focusRecommendationCard
-
                 tipForTestingWindow
             }
             .padding(MGTheme.standardPadding)
         }
     }
 
-    private var focusRecommendationCard: some View {
-        MGCard {
-            VStack(alignment: .leading, spacing: 8) {
-                Label(L10n.tr("onboarding.focus.title"), systemImage: "moon.fill")
-                    .font(.headline)
-                Text(L10n.tr("onboarding.focus.body"))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+    private var focusStep: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                OnboardingSectionTitle(
+                    title: L10n.tr("onboarding.focus.title"),
+                    subtitle: L10n.tr("onboarding.focus.subtitle")
+                )
+                MGCard {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Label(L10n.tr("onboarding.focus.card.shields"), systemImage: "lock.shield")
+                            .font(.headline)
+                        Text(L10n.tr("onboarding.focus.card.shields_detail"))
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        Divider()
+                        Label(L10n.tr("onboarding.focus.card.focus"), systemImage: "moon.fill")
+                            .font(.headline)
+                        Text(L10n.tr("onboarding.focus.body"))
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .accessibilityElement(children: .combine)
             }
+            .padding(MGTheme.standardPadding)
         }
-        .accessibilityElement(children: .combine)
     }
 
     private var emergencyStep: some View {

@@ -3329,7 +3329,51 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Morning Guard blocks the apps you pick—it doesn’t silence notifications. For a quieter morning, schedule a Focus in Settings → Focus for the same hours. Apple doesn’t let apps turn Focus on for you."
+            "value": "Open Settings → Focus and schedule a morning Focus for the same hours as your routine. That quiets notifications while you read or pray."
+          }
+        }
+      }
+    },
+    "onboarding.focus.card.focus": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What to do in Settings"
+          }
+        }
+      }
+    },
+    "onboarding.focus.card.shields": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What Morning Guard does"
+          }
+        }
+      }
+    },
+    "onboarding.focus.card.shields_detail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "During your morning window, apps you chose stay blocked until you finish your goal."
+          }
+        }
+      }
+    },
+    "onboarding.focus.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Morning Guard shields apps; Focus helps silence notifications. You set both in iOS Settings—we can’t turn Focus on for you."
           }
         }
       }
@@ -3340,7 +3384,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Also turn on Focus?"
+            "value": "Quiet mornings with Focus"
           }
         }
       }
@@ -3594,6 +3638,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Emergency"
+          }
+        }
+      }
+    },
+    "onboarding.step.focus": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Focus"
           }
         }
       }

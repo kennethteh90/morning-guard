@@ -62,6 +62,26 @@ struct BiblePassageView: View {
                     ) {
                         guard verseSelectionEnabled else { return }
                         MGHaptics.selection()
+                        if isSelected {
+                            var selected = highlightBarState?.selectedVerses ?? []
+                            selected.remove(number)
+                            if selected.isEmpty {
+                                withAnimation(.spring(duration: 0.35)) {
+                                    highlightBarState = nil
+                                }
+                            } else {
+                                withAnimation(.spring(duration: 0.35)) {
+                                    highlightBarState = VerseHighlightBarState(
+                                        selectedVerses: selected,
+                                        verseSnippets: verseSnippets,
+                                        colorKey: highlightBarState?.colorKey ?? defaultHighlightColorKey,
+                                        note: highlightBarState?.note ?? "",
+                                        existingHighlight: highlightBarState?.existingHighlight
+                                    )
+                                }
+                            }
+                            return
+                        }
                         if let saved {
                             let verses = BibleHighlightVerses.numbers(highlight: saved)
                             withAnimation(.spring(duration: 0.35)) {
@@ -76,25 +96,15 @@ struct BiblePassageView: View {
                             return
                         }
                         var selected = highlightBarState?.selectedVerses ?? []
-                        if isSelected {
-                            selected.remove(number)
-                        } else {
-                            selected.insert(number)
-                        }
-                        if selected.isEmpty {
-                            withAnimation(.spring(duration: 0.35)) {
-                                highlightBarState = nil
-                            }
-                        } else {
-                            withAnimation(.spring(duration: 0.35)) {
-                                highlightBarState = VerseHighlightBarState(
-                                    selectedVerses: selected,
-                                    verseSnippets: verseSnippets,
-                                    colorKey: highlightBarState?.colorKey ?? defaultHighlightColorKey,
-                                    note: highlightBarState?.note ?? "",
-                                    existingHighlight: nil
-                                )
-                            }
+                        selected.insert(number)
+                        withAnimation(.spring(duration: 0.35)) {
+                            highlightBarState = VerseHighlightBarState(
+                                selectedVerses: selected,
+                                verseSnippets: verseSnippets,
+                                colorKey: highlightBarState?.colorKey ?? defaultHighlightColorKey,
+                                note: highlightBarState?.note ?? "",
+                                existingHighlight: nil
+                            )
                         }
                     }
                 }

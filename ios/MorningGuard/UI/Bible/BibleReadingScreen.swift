@@ -8,9 +8,40 @@ struct BibleReadingScreen: View {
 
     var browseOnly: Bool
     var showsGoalProgress: Bool
-    var showsNavigationChrome: Bool = false
+    /// Read Bible: chapter title in the nav bar.
+    var showsChapterInToolbar: Bool = false
+    /// Read Bible and morning goal: translation chip in the nav bar.
+    var showsTranslationInToolbar: Bool = false
+    var morningGoalTimerLabel: String?
+    var morningGoalTimerReady: Bool = false
+    var collapseToolbarOnScroll: Bool = false
+    @Binding var navigationToolbarHidden: Bool
     var elapsedSeconds: Int = 0
     var requiredSeconds: Int = 60
+
+    init(
+        browseOnly: Bool,
+        showsGoalProgress: Bool,
+        showsChapterInToolbar: Bool = false,
+        showsTranslationInToolbar: Bool = false,
+        morningGoalTimerLabel: String? = nil,
+        morningGoalTimerReady: Bool = false,
+        collapseToolbarOnScroll: Bool = false,
+        navigationToolbarHidden: Binding<Bool> = .constant(false),
+        elapsedSeconds: Int = 0,
+        requiredSeconds: Int = 60
+    ) {
+        self.browseOnly = browseOnly
+        self.showsGoalProgress = showsGoalProgress
+        self.showsChapterInToolbar = showsChapterInToolbar
+        self.showsTranslationInToolbar = showsTranslationInToolbar
+        self.morningGoalTimerLabel = morningGoalTimerLabel
+        self.morningGoalTimerReady = morningGoalTimerReady
+        self.collapseToolbarOnScroll = collapseToolbarOnScroll
+        _navigationToolbarHidden = navigationToolbarHidden
+        self.elapsedSeconds = elapsedSeconds
+        self.requiredSeconds = requiredSeconds
+    }
 
     @State private var passage: BibleChapterPassage?
     @State private var loading = false
@@ -36,9 +67,15 @@ struct BibleReadingScreen: View {
         )
     }
 
+    private var showsAnyNavigationToolbar: Bool {
+        showsChapterInToolbar || showsTranslationInToolbar || morningGoalTimerLabel != nil
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
+                scrollTopMarker
+
                 if let errorMessage, !loading {
                     bibleLoadErrorBanner(errorMessage)
                 }
@@ -74,6 +111,11 @@ struct BibleReadingScreen: View {
             }
             .padding(MGTheme.standardPadding)
         }
+        .coordinateSpace(name: "bibleScroll")
+        .onPreferenceChange(ScrollTopOffsetKey.self) { offset in
+            guard collapseToolbarOnScroll else { return }
+            navigationToolbarHidden = offset < -36
+        }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             bottomChrome
                 .animation(.spring(duration: 0.35), value: highlightBarState != nil)
@@ -82,25 +124,36 @@ struct BibleReadingScreen: View {
             MGBannerOverlay(payload: banner)
         }
         .toolbar {
-            if showsNavigationChrome {
-                ToolbarItem(placement: .principal) {
-                    Button {
-                        bookChapterSheet = true
-                    } label: {
-                        Text("\(config.bibleBook) \(config.bibleChapter)")
-                            .font(.headline)
+            if showsAnyNavigationToolbar, !navigationToolbarHidden {
+                if let morningGoalTimerLabel {
+                    ToolbarItem(placement: .principal) {
+                        Text(morningGoalTimerLabel)
+                            .font(.subheadline.monospacedDigit().weight(.semibold))
+                            .foregroundStyle(morningGoalTimerReady ? MGTheme.accent : .secondary)
+                            .accessibilityLabel(L10n.tr("a11y.goal.timer"))
                     }
-                    .accessibilityLabel(L10n.tr("a11y.bible.chapter_nav"))
-                    .accessibilityHint(L10n.tr("a11y.bible.book_picker"))
+                } else if showsChapterInToolbar {
+                    ToolbarItem(placement: .principal) {
+                        Button {
+                            bookChapterSheet = true
+                        } label: {
+                            Text("\(config.bibleBook) \(config.bibleChapter)")
+                                .font(.headline)
+                        }
+                        .accessibilityLabel(L10n.tr("a11y.bible.chapter_nav"))
+                        .accessibilityHint(L10n.tr("a11y.bible.book_picker"))
+                    }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        translationSheet = true
-                    } label: {
-                        Text(BibleTranslations.chipLabel(id: config.bibleTranslation))
-                            .font(.subheadline.weight(.semibold))
+                if showsTranslationInToolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            translationSheet = true
+                        } label: {
+                            Text(BibleTranslations.chipLabel(id: config.bibleTranslation))
+                                .font(.subheadline.weight(.semibold))
+                        }
+                        .accessibilityLabel(L10n.tr("a11y.bible.translation_picker"))
                     }
-                    .accessibilityLabel(L10n.tr("a11y.bible.translation_picker"))
                 }
             }
         }
@@ -214,7 +267,7 @@ struct BibleReadingScreen: View {
                     action: { appState.stepBibleChapter(delta: -1) }
                 )
                 Spacer(minLength: 8)
-                if !showsNavigationChrome {
+                if !showsChapterInToolbar {
                     Button {
                         bookChapterSheet = true
                     } label: {
@@ -225,10 +278,6 @@ struct BibleReadingScreen: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel(L10n.tr("a11y.bible.chapter_nav"))
                     .accessibilityHint(L10n.tr("a11y.bible.book_picker"))
-                } else {
-                    Text(BibleTranslations.chipLabel(id: config.bibleTranslation))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 8)
                 chapterNavCaretButton(
@@ -399,6 +448,24 @@ struct BibleReadingScreen: View {
         #endif
         MGHaptics.lightImpact()
         MGBanner.present(.message(L10n.tr("bible.copied")), binding: $banner)
+    }
+
+    private var scrollTopMarker: some View {
+        GeometryReader { geometry in
+            Color.clear
+                .preference(
+                    key: ScrollTopOffsetKey.self,
+                    value: geometry.frame(in: .named("bibleScroll")).minY
+                )
+        }
+        .frame(height: 1)
+    }
+}
+
+private enum ScrollTopOffsetKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }
 
