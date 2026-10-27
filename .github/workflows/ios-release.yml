@@ -41,6 +41,8 @@ jobs:
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          IOS_DISTRIBUTION_CERTIFICATE_P12: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_P12 }}
+          IOS_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           BIBLE_PROXY_BASE_URL: ${{ secrets.BIBLE_PROXY_BASE_URL }}
@@ -48,7 +50,8 @@ jobs:
           set -euo pipefail
           missing=()
           for name in IOS_DEVELOPMENT_TEAM APP_STORE_CONNECT_API_KEY_ID APP_STORE_CONNECT_API_ISSUER_ID \
-            APP_STORE_CONNECT_API_KEY SUPABASE_URL SUPABASE_ANON_KEY BIBLE_PROXY_BASE_URL; do
+            APP_STORE_CONNECT_API_KEY IOS_DISTRIBUTION_CERTIFICATE_P12 IOS_DISTRIBUTION_CERTIFICATE_PASSWORD \
+            SUPABASE_URL SUPABASE_ANON_KEY BIBLE_PROXY_BASE_URL; do
             eval "val=\${$name:-}"
             if [ -z "$val" ]; then
               missing+=("$name")
@@ -112,7 +115,6 @@ jobs:
           IOS_DEVELOPMENT_TEAM: ${{ secrets.IOS_DEVELOPMENT_TEAM }}
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
           APP_STORE_CONNECT_API_KEY_PATH: ${{ env.APP_STORE_CONNECT_API_KEY_PATH }}
           IOS_DISTRIBUTION_CERTIFICATE_P12: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_P12 }}
           IOS_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
@@ -126,9 +128,10 @@ jobs:
           # Tag pushes always upload; workflow_dispatch can set upload_testflight=false for archive-only.
 
       - name: Upload IPA artifact
-        if: always()
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: morning-guard-ios-${{ github.ref_name }}
           path: ios/build/MorningGuard.ipa
           if-no-files-found: ignore
+          retention-days: 7

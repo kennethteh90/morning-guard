@@ -123,6 +123,7 @@ jobs:
           name: morning-guard-full-release-${{ steps.release_label.outputs.label }}
           path: app/build/outputs/bundle/fullRelease/*.aab
           if-no-files-found: error
+          retention-days: 7
 
       - name: Upload R8 mapping
         uses: actions/upload-artifact@v4
@@ -130,6 +131,7 @@ jobs:
           name: morning-guard-r8-mapping-${{ steps.release_label.outputs.label }}
           path: app/build/outputs/mapping/fullRelease/mapping.txt
           if-no-files-found: warn
+          retention-days: 7
 
       - name: Upload native debug symbols
         uses: actions/upload-artifact@v4
@@ -137,6 +139,7 @@ jobs:
           name: morning-guard-native-symbols-${{ steps.release_label.outputs.label }}
           path: app/build/outputs/native-debug-symbols/fullRelease/**
           if-no-files-found: warn
+          retention-days: 7
 
       - name: Prepare Play deobfuscation artifacts
         id: play_deobfuscation

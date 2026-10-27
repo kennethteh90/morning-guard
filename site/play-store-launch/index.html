@@ -65,7 +65,7 @@ Play requires an **Android App Bundle (.aab)**, not an APK.
    - `BIBLE_PROXY_BASE_URL`, `PLAY_CLOUD_PROJECT_NUMBER` (Android; no proxy token in the app)
    - `PRIVACY_POLICY_URL` — **required**; `bundleRelease` fails if blank
    - `GOOGLE_WEB_CLIENT_ID` if Google sign-in is enabled
-   - `RELEASE_KEYSTORE_BASE64` + `RELEASE_STORE_PASSWORD` + `RELEASE_KEY_ALIAS` + `RELEASE_KEY_PASSWORD` in CI
+   - `ANDROID_KEYSTORE_B64` + `RELEASE_STORE_PASSWORD` + `RELEASE_KEY_ALIAS` + `RELEASE_KEY_PASSWORD` in GitHub Actions (via `./scripts/push-github-secrets.sh`)
 3. Build locally or download the CI artifact after push to `main`.
 
 ```

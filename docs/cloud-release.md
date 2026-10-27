@@ -46,6 +46,15 @@ The script reads values from `local.properties`, never prints them, and pipes ea
 
 Local Mac builds are unchanged: keep using `local.properties` and a filesystem path for `RELEASE_STORE_FILE`.
 
+Validate secrets from your Mac:
+
+```bash
+./scripts/validate-android-release-setup.sh
+./scripts/validate-ios-release-setup.sh
+```
+
+**Actions supply chain:** the repo allows GitHub-owned actions, verified Marketplace publishers, and `maxim-lobanov/*` + `r0adkll/*` (see [ci-workflows-security-audit-2026-10-27.md](ci-workflows-security-audit-2026-10-27.md)).
+
 ## Google Play service account (optional)
 
 Used to upload the AAB to the **internal testing** track (never production). Merges that bump `version.properties` publish with status **completed**; manual workflow runs use **draft** so you can review in Play Console first.

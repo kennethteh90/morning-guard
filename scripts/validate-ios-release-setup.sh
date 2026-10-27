@@ -68,6 +68,13 @@ if command -v gh >/dev/null 2>&1 && gh auth status --hostname github.com >/dev/n
       bad "GitHub secret $name (run ./scripts/push-ios-github-secrets.sh after creating ASC API key)"
     fi
   done
+  for name in IOS_DISTRIBUTION_CERTIFICATE_P12 IOS_DISTRIBUTION_CERTIFICATE_PASSWORD; do
+    if gh secret list --repo "$REPO" 2>/dev/null | awk '{print $1}' | grep -qx "$name"; then
+      pass "GitHub secret $name"
+    else
+      bad "GitHub secret $name (run ./scripts/push-ios-distribution-cert-secret.sh)"
+    fi
+  done
   for name in SUPABASE_URL SUPABASE_ANON_KEY BIBLE_PROXY_BASE_URL; do
     if gh secret list --repo "$REPO" 2>/dev/null | awk '{print $1}' | grep -qx "$name"; then
       pass "GitHub secret $name (shared with Android)"
