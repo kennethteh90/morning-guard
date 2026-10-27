@@ -151,6 +151,18 @@
       background: #1a1a1a;
     }
     .figure.wide img { max-width: 320px; }
+    .figure-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+      justify-content: center;
+      margin: 2rem 0;
+    }
+    .figure-row .figure {
+      margin: 0;
+      flex: 1 1 220px;
+      max-width: 280px;
+    }
     .figure figcaption {
       margin-top: 1rem;
       font-size: .9rem;

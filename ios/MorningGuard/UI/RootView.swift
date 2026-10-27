@@ -57,5 +57,21 @@ struct RootView: View {
                 appState.deepLinkGoalPending = false
             }
         }
+        .task {
+            await applyScreenshotGuideSceneIfNeeded()
+        }
+    }
+
+    private func applyScreenshotGuideSceneIfNeeded() async {
+        guard let scene = appState.screenshotGuideScene else { return }
+        try? await Task.sleep(for: .milliseconds(800))
+        switch scene {
+        case "goal":
+            showGoal = true
+        case "settings":
+            showSettings = true
+        default:
+            break
+        }
     }
 }

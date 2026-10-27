@@ -12,6 +12,7 @@ rsync -a \
   "$REPO/docs/ios/downtime-and-focus-with-morning-guard.html" \
   "$REPO/docs/ios/downtime-and-focus-without-morning-guard.html" \
   "$DIR/iphone/"
+rsync -a "$REPO/docs/ios/guide-assets/" "$DIR/iphone/guide-assets/"
 cp "$REPO/docs/ios/downtime-and-focus-guide.html" "$DIR/iphone/index.html"
 # Deploy from site root so wrangler always bundles functions/ (absolute-path deploy can skip the Worker).
 cd "$DIR"

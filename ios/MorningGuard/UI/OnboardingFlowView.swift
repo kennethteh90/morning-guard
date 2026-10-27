@@ -78,6 +78,9 @@ struct OnboardingFlowView: View {
             #if canImport(FamilyControls)
             syncFamilyActivitySelectionFromController()
             #endif
+            if let forced = ScreenshotDemoSeeder.forcedOnboardingStep {
+                step = forced
+            }
         }
         .onChange(of: step) { _, newStep in
             if newStep == 3 {

@@ -70,10 +70,16 @@ final class AppState {
             await supabaseAuth.restoreSession()
             await userDataSync.syncAllIfSignedIn()
         }
-        ScreenshotDemoSeeder.seedIfNeeded(
+        let guideScene = ScreenshotGuideScene.nameFromLaunchArguments()
+        ScreenshotGuideScene.applyIfNeeded(
+            scene: guideScene,
             settingsStore: settings,
             highlightStore: bibleHighlightStore
         )
+    }
+
+    var screenshotGuideScene: String? {
+        ScreenshotGuideScene.nameFromLaunchArguments()
     }
 
     func replayOnboarding() {

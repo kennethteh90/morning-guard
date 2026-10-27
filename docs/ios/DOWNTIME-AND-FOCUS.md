@@ -6,7 +6,7 @@
 - [With Morning Guard](https://morning-guard.codingagents.cc/iphone/downtime-and-focus-with-morning-guard.html)
 - [Without Morning Guard](https://morning-guard.codingagents.cc/iphone/downtime-and-focus-without-morning-guard.html)
 
-Local copies for editing live in this folder (`downtime-and-focus-*.html`, `downtime-focus-guide.css`). Deploy via `site/auth-landing/deploy.sh`.
+Local copies for editing live in this folder (`downtime-and-focus-*.html`, `downtime-focus-guide.css`, `guide-assets/`). Regenerate app screenshots with `./scripts/capture-ios-guide-screenshots.sh`. Deploy via `site/auth-landing/deploy.sh`.
 
 ## Quick comparison
 

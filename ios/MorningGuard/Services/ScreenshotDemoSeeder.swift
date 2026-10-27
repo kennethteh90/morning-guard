@@ -4,6 +4,9 @@ import MorningGuardCore
 /// Seeds demo data for App Store screenshots (mirrors Android `ScreenshotDemoSeeder`).
 @MainActor
 enum ScreenshotDemoSeeder {
+    /// When set, onboarding opens on this step index (screenshot builds only).
+    static var forcedOnboardingStep: Int?
+
     static func seedIfNeeded(
         settingsStore: SettingsStore,
         highlightStore: BibleHighlightStore

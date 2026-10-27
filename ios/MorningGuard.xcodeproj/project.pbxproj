@@ -39,6 +39,7 @@
 		594A97B5D6F21FEE47323703 /* MGBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FF4E1C5661F2515393720B /* MGBanner.swift */; };
 		5DFFC47675206278C63F95AB /* LicensedSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 398B4A29A98C3C7B2D5190A1 /* LicensedSessionCoordinator.swift */; };
 		5E9BDE3B1D2378470ADADBBA /* MorningAlarmScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBAF823193E616E15A616E3 /* MorningAlarmScheduler.swift */; };
+		5F242E93CE074165E696A641 /* ScreenshotGuideScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F96B380EB294FC47BE3FBB1 /* ScreenshotGuideScene.swift */; };
 		64F59E15FBD5DFCA175EB8ED /* BiblePickerSheets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AD51AB9B3ACBCB613D10CDE /* BiblePickerSheets.swift */; };
 		679ECC4D80854F9E9A9D2AFE /* NoteEncryptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 876C7622D3B87E3B93583CF0 /* NoteEncryptionService.swift */; };
 		691F506F90486C4078869207 /* ManagedSettingsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B8A456134914D12B205E142 /* ManagedSettingsUI.framework */; };
@@ -146,6 +147,7 @@
 		12AEE98B7502F8B576D7F6B1 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		178431605567AC60B0149348 /* SentryErrorReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SentryErrorReporter.swift; sourceTree = "<group>"; };
 		1DBCE1CDF5685CA54BBA681D /* RecoveryPasswordCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryPasswordCoordinator.swift; sourceTree = "<group>"; };
+		1F96B380EB294FC47BE3FBB1 /* ScreenshotGuideScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotGuideScene.swift; sourceTree = "<group>"; };
 		20270B3D7E5FF2F9935AD9E7 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		22FAB501E558C2E954BFB647 /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
 		26F7B8A214D92CED4400BBB7 /* DeviceActivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DeviceActivity.framework; path = System/Library/Frameworks/DeviceActivity.framework; sourceTree = SDKROOT; };
@@ -398,6 +400,7 @@
 				AA704C42B2AE3CAFAD8A7190 /* PeaceSessionService.swift */,
 				1DBCE1CDF5685CA54BBA681D /* RecoveryPasswordCoordinator.swift */,
 				FCA7DF23AC0B033C91BBE43B /* ScreenshotDemoSeeder.swift */,
+				1F96B380EB294FC47BE3FBB1 /* ScreenshotGuideScene.swift */,
 				29FB39C52848C828709960F4 /* SettingsStore.swift */,
 				5025D8E16E133D5CA3244C86 /* ShieldController.swift */,
 				5F48EC1F35BB651FBC71EBB6 /* SupabaseAuthService.swift */,
@@ -725,6 +728,7 @@
 				44C49BFEE23F4D2CF5C18866 /* RecoveryPasswordHostView.swift in Sources */,
 				8C2539D20C139920BDCF16FB /* RootView.swift in Sources */,
 				B2C361CEFF623480B45CB8AF /* ScreenshotDemoSeeder.swift in Sources */,
+				5F242E93CE074165E696A641 /* ScreenshotGuideScene.swift in Sources */,
 				AD070CF2759D4499AE24035F /* SentryConfig.swift in Sources */,
 				A1FEC9BB18B0AA4C3782FC90 /* SentryErrorReporter.swift in Sources */,
 				9829F55AA60286C88FDB99E0 /* SentryPrivacyScrubber.swift in Sources */,
