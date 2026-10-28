@@ -30,6 +30,7 @@
     <string name="auth_magic_link_rate_limit">Please wait %1$d seconds before requesting another link.</string>
     <string name="auth_sign_in_or">or</string>
     <string name="auth_sign_in_with_google">Sign in with Google</string>
+    <string name="auth_google_sign_in_failed">Could not sign in with Google. Try again.</string>
 
     <plurals name="digest_held_count">
         <item quantity="one">1 notification held from %2$s</item>

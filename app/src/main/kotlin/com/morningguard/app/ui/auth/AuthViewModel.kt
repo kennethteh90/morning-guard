@@ -7,7 +7,9 @@ import androidx.lifecycle.viewModelScope
 import com.morningguard.app.BuildConfig
 import com.morningguard.app.R
 import com.morningguard.app.auth.GoogleSignInHelper
+import com.morningguard.app.auth.GoogleSignInUserCancelledException
 import com.morningguard.data.auth.AuthRepository
+import com.morningguard.data.monitoring.ErrorReporter
 import com.morningguard.data.auth.AuthState
 import com.morningguard.data.auth.MagicLinkRateLimitedException
 import com.morningguard.data.auth.MagicLinkRateLimitStore
@@ -42,6 +44,7 @@ class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val magicLinkRateLimitStore: MagicLinkRateLimitStore,
     private val googleSignInHelper: GoogleSignInHelper,
+    private val errorReporter: ErrorReporter,
 ) : ViewModel() {
 
     private val _local = MutableStateFlow(AuthUiState())
@@ -175,17 +178,29 @@ class AuthViewModel @Inject constructor(
         }
         viewModelScope.launch {
             _local.value = _local.value.copy(isSigningInWithGoogle = true, error = null)
-            googleSignInHelper.requestIdToken(context)
-                .onSuccess { token ->
-                    authRepository.signInWithGoogle(token)
-                        .onFailure { error ->
-                            _local.value = _local.value.copy(error = error.message)
-                        }
-                }
-                .onFailure { error ->
-                    _local.value = _local.value.copy(error = error.message)
-                }
-            _local.value = _local.value.copy(isSigningInWithGoogle = false)
+            try {
+                googleSignInHelper.requestIdToken(context)
+                    .onSuccess { token ->
+                        authRepository.signInWithGoogle(token)
+                            .onFailure { error -> handleGoogleSignInFailure(error) }
+                    }
+                    .onFailure { error -> handleGoogleSignInFailure(error) }
+            } finally {
+                _local.value = _local.value.copy(isSigningInWithGoogle = false)
+            }
         }
+    }
+
+    private fun handleGoogleSignInFailure(error: Throwable) {
+        if (error is GoogleSignInUserCancelledException) {
+            return
+        }
+        errorReporter.reportNonFatal(
+            error,
+            tags = mapOf("flow" to "google_sign_in"),
+        )
+        _local.value = _local.value.copy(
+            error = appContext.getString(R.string.auth_google_sign_in_failed),
+        )
     }
 }
