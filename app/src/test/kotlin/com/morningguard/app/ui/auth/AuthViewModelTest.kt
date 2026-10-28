@@ -103,4 +103,18 @@ class AuthViewModelTest {
 
         coVerify(exactly = 0) { authRepository.sendMagicLink(any()) }
     }
+
+    @Test
+    fun `google sign in exchanges id token with repository`() = runTest {
+        val activityContext: Context = mockk(relaxed = true)
+        coEvery { googleSignInHelper.requestIdToken(activityContext) } returns Result.success("id-token")
+        coEvery { authRepository.signInWithGoogle("id-token") } returns Result.success(Unit)
+        val viewModel = viewModel()
+
+        viewModel.signInWithGoogle(activityContext)
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { authRepository.signInWithGoogle("id-token") }
+        assertEquals(false, viewModel.uiState.value.isSigningInWithGoogle)
+    }
 }

@@ -27,6 +27,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -40,6 +41,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun AuthScreen(onBack: () -> Unit, viewModel: AuthViewModel = hiltViewModel()) {
     var email by rememberSaveable { mutableStateOf("") }
+    val context = LocalContext.current
     val authState by viewModel.authState.collectAsStateWithLifecycle()
     val local by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -82,12 +84,15 @@ fun AuthScreen(onBack: () -> Unit, viewModel: AuthViewModel = hiltViewModel()) {
                     MagicLinkUiPhase.EnterEmail -> SignInCard(
                         email = email,
                         onEmailChange = { email = it },
-                        isSending = local.isSendingMagicLink,
+                        isSendingMagicLink = local.isSendingMagicLink,
+                        isSigningInWithGoogle = local.isSigningInWithGoogle,
+                        googleSignInEnabled = viewModel.isGoogleSignInEnabled(),
                         onMagicLink = {
                             val trimmed = email.trim()
                             email = trimmed
                             viewModel.sendMagicLink(trimmed)
                         },
+                        onGoogleSignIn = { viewModel.signInWithGoogle(context) },
                     )
                 }
             }
@@ -252,9 +257,13 @@ private fun SignedInCard(
 private fun SignInCard(
     email: String,
     onEmailChange: (String) -> Unit,
-    isSending: Boolean,
+    isSendingMagicLink: Boolean,
+    isSigningInWithGoogle: Boolean,
+    googleSignInEnabled: Boolean,
     onMagicLink: () -> Unit,
+    onGoogleSignIn: () -> Unit,
 ) {
+    val busy = isSendingMagicLink || isSigningInWithGoogle
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("Sign in", style = MaterialTheme.typography.titleLarge)
@@ -270,20 +279,41 @@ private fun SignInCard(
                 leadingIcon = { Icon(Icons.Outlined.Email, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                enabled = !isSending,
+                enabled = !busy,
             )
             Button(
                 onClick = onMagicLink,
                 modifier = Modifier.fillMaxWidth(),
-                enabled = !isSending,
+                enabled = !busy,
             ) {
-                if (isSending) {
+                if (isSendingMagicLink) {
                     CircularProgressIndicator(
                         modifier = Modifier.padding(end = 8.dp),
                         strokeWidth = 2.dp,
                     )
                 }
                 Text("Send magic link", maxLines = 1)
+            }
+            if (googleSignInEnabled) {
+                Text(
+                    stringResource(R.string.auth_sign_in_or),
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                OutlinedButton(
+                    onClick = onGoogleSignIn,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !busy,
+                ) {
+                    if (isSigningInWithGoogle) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.padding(end = 8.dp),
+                            strokeWidth = 2.dp,
+                        )
+                    }
+                    Text(stringResource(R.string.auth_sign_in_with_google), maxLines = 1)
+                }
             }
         }
     }

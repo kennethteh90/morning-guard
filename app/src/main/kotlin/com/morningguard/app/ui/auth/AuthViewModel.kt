@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.morningguard.app.BuildConfig
 import com.morningguard.app.R
 import com.morningguard.app.auth.GoogleSignInHelper
 import com.morningguard.data.auth.AuthRepository
@@ -29,6 +30,7 @@ data class AuthUiState(
     val magicLinkPhase: MagicLinkUiPhase = MagicLinkUiPhase.EnterEmail,
     val pendingEmail: String? = null,
     val isSendingMagicLink: Boolean = false,
+    val isSigningInWithGoogle: Boolean = false,
     val resendCooldownSeconds: Int = 0,
     val statusMessage: String? = null,
     val error: String? = null,
@@ -47,6 +49,8 @@ class AuthViewModel @Inject constructor(
 
     val authState: StateFlow<AuthState> = authRepository.state
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AuthState.Unconfigured)
+
+    fun isGoogleSignInEnabled(): Boolean = BuildConfig.GOOGLE_WEB_CLIENT_ID.isNotBlank()
 
     init {
         viewModelScope.launch {
@@ -165,13 +169,23 @@ class AuthViewModel @Inject constructor(
     }
 
     fun signInWithGoogle(context: Context) {
+        if (!isGoogleSignInEnabled()) {
+            _local.value = _local.value.copy(error = "Google sign-in is not configured for this build.")
+            return
+        }
         viewModelScope.launch {
+            _local.value = _local.value.copy(isSigningInWithGoogle = true, error = null)
             googleSignInHelper.requestIdToken(context)
                 .onSuccess { token ->
                     authRepository.signInWithGoogle(token)
-                        .onFailure { _local.value = _local.value.copy(error = it.message) }
+                        .onFailure { error ->
+                            _local.value = _local.value.copy(error = error.message)
+                        }
                 }
-                .onFailure { _local.value = _local.value.copy(error = it.message) }
+                .onFailure { error ->
+                    _local.value = _local.value.copy(error = error.message)
+                }
+            _local.value = _local.value.copy(isSigningInWithGoogle = false)
         }
     }
 }
