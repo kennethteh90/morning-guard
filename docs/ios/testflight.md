@@ -32,6 +32,8 @@ Validate:
 | Tag `v*` (e.g. `v1.0.8`) | Build + TestFlight upload |
 | **Actions → iOS Release → Run workflow** | Same; uncheck **Upload** to archive only |
 
+**Xcode Cloud:** keep `ios/MorningGuard.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved` in git (see [ios/README.md](../../ios/README.md)). Cloud builds fail with “resolved file is required” if it is missing after adding or bumping Supabase/Sentry in `project.yml`.
+
 After upload, open App Store Connect → your app → **TestFlight** → add **Internal Testing** testers.
 
 ## Local TestFlight (recommended while CI signing is tuned)

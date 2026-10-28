@@ -29,6 +29,8 @@ See [site/ios-demo/README.md](../site/ios-demo/README.md).
 # or: open ios/MorningGuard.xcodeproj
 ```
 
+After changing SPM dependencies in [`project.yml`](project.yml), open the project in Xcode (or run `xcodebuild -resolvePackageDependencies -project MorningGuard.xcodeproj -scheme MorningGuard`) and commit the updated lockfile at `MorningGuard.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved`. **Xcode Cloud** requires this file when automatic package resolution is disabled; GitHub Actions resolves packages at build time without it.
+
 **⌘R only works when Xcode is the frontmost app** (not Cursor/Terminal). Click the Xcode window, then Run (▶) or ⌘R.
 
 In Xcode:
