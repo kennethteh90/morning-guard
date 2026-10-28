@@ -1,3 +1,3 @@
-Android: Sign in with Google is now available.
+Android: Settings → Account now offers Sign in with Google (Credential Manager) as well as email magic link.
 iOS: polished morning goal, Bible reader and onboarding Focus step.
 Stability improvements from v1.0.14.

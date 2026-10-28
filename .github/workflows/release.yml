@@ -62,7 +62,7 @@ jobs:
           missing=()
           for name in ANDROID_KEYSTORE_B64 RELEASE_STORE_PASSWORD RELEASE_KEY_ALIAS RELEASE_KEY_PASSWORD \
             PRIVACY_POLICY_URL SUPABASE_URL SUPABASE_ANON_KEY \
-            BIBLE_PROXY_BASE_URL PLAY_CLOUD_PROJECT_NUMBER; do
+            GOOGLE_WEB_CLIENT_ID BIBLE_PROXY_BASE_URL PLAY_CLOUD_PROJECT_NUMBER; do
             eval "val=\${$name:-}"
             if [ -z "$val" ]; then
               missing+=("$name")
