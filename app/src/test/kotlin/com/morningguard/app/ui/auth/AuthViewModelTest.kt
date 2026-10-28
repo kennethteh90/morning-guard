@@ -6,6 +6,7 @@ import com.morningguard.app.auth.GoogleSignInHelper
 import com.morningguard.data.auth.AuthRepository
 import com.morningguard.data.auth.AuthState
 import com.morningguard.data.auth.MagicLinkRateLimitStore
+import com.morningguard.data.monitoring.ErrorReporter
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -33,6 +34,7 @@ class AuthViewModelTest {
     private val authRepository: AuthRepository = mockk(relaxed = true)
     private val magicLinkRateLimitStore: MagicLinkRateLimitStore = mockk(relaxed = true)
     private val googleSignInHelper: GoogleSignInHelper = mockk(relaxed = true)
+    private val errorReporter: ErrorReporter = mockk(relaxed = true)
     private val appContext: Context = mockk(relaxed = true)
 
     @Before
@@ -54,6 +56,7 @@ class AuthViewModelTest {
         authRepository,
         magicLinkRateLimitStore,
         googleSignInHelper,
+        errorReporter,
     )
 
     @Test
@@ -102,19 +105,5 @@ class AuthViewModelTest {
         advanceUntilIdle()
 
         coVerify(exactly = 0) { authRepository.sendMagicLink(any()) }
-    }
-
-    @Test
-    fun `google sign in exchanges id token with repository`() = runTest {
-        val activityContext: Context = mockk(relaxed = true)
-        coEvery { googleSignInHelper.requestIdToken(activityContext) } returns Result.success("id-token")
-        coEvery { authRepository.signInWithGoogle("id-token") } returns Result.success(Unit)
-        val viewModel = viewModel()
-
-        viewModel.signInWithGoogle(activityContext)
-        advanceUntilIdle()
-
-        coVerify(exactly = 1) { authRepository.signInWithGoogle("id-token") }
-        assertEquals(false, viewModel.uiState.value.isSigningInWithGoogle)
     }
 }

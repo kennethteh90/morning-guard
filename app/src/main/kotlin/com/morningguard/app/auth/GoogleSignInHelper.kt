@@ -4,10 +4,12 @@ import android.content.Context
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.morningguard.app.BuildConfig
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -21,10 +23,7 @@ class GoogleSignInHelper @Inject constructor(
             return Result.failure(IllegalStateException("GOOGLE_WEB_CLIENT_ID is not configured"))
         }
 
-        val option = GetGoogleIdOption.Builder()
-            .setFilterByAuthorizedAccounts(false)
-            .setServerClientId(clientId)
-            .build()
+        val option = GetSignInWithGoogleOption.Builder(clientId).build()
 
         val request = GetCredentialRequest.Builder()
             .addCredentialOption(option)
@@ -41,7 +40,11 @@ class GoogleSignInHelper @Inject constructor(
             } else {
                 Result.failure(IllegalStateException("Unexpected credential type"))
             }
-        } catch (e: RuntimeException) {
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: GetCredentialCancellationException) {
+            Result.failure(GoogleSignInUserCancelledException())
+        } catch (e: Exception) {
             Result.failure(e)
         }
     }

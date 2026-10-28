@@ -301,19 +301,11 @@ private fun SignInCard(
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                OutlinedButton(
+                GoogleSignInButton(
                     onClick = onGoogleSignIn,
-                    modifier = Modifier.fillMaxWidth(),
                     enabled = !busy,
-                ) {
-                    if (isSigningInWithGoogle) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.padding(end = 8.dp),
-                            strokeWidth = 2.dp,
-                        )
-                    }
-                    Text(stringResource(R.string.auth_sign_in_with_google), maxLines = 1)
-                }
+                    isLoading = isSigningInWithGoogle,
+                )
             }
         }
     }
