@@ -15,12 +15,14 @@ import com.morningguard.domain.bible.BibleChapterContent
 import com.morningguard.domain.bible.BiblePassageBlock
 import com.morningguard.domain.model.GoalType
 import com.morningguard.domain.model.MorningGoalConfig
+import com.morningguard.domain.model.DigestSummary
 import com.morningguard.domain.model.UserSettings
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -137,6 +139,34 @@ class MorningGoalViewModelBibleLoadTest {
         val state = viewModel.uiState.value
         assertNull(state.bibleLoadError)
         assertEquals(blocks, state.biblePassage)
+        collectJob.cancel()
+    }
+
+    @Test
+    fun `completeGoal emits held count without waiting for sync`() = runTest {
+        var syncInvoked = false
+        coEvery { morningGateRepository.completeGoal(any()) } returns Result.success(Unit)
+        coEvery { notificationCaptureRepository.snapshotDigestSummary() } returns DigestSummary(
+            count = 7,
+            latestTitle = "t",
+            latestText = "x",
+            latestPackage = "com.example",
+        )
+        coEvery { userDataSyncService.syncMorningHistoryIfSignedIn() } coAnswers {
+            syncInvoked = true
+            awaitCancellation()
+        }
+
+        val viewModel = viewModel()
+        val heldCounts = mutableListOf<Int>()
+        val collectJob = launch { viewModel.goalCompleted.collect { heldCounts.add(it) } }
+
+        viewModel.completeGoal()
+        advanceUntilIdle()
+
+        assertEquals(listOf(7), heldCounts)
+        assertTrue(syncInvoked)
+
         collectJob.cancel()
     }
 }
