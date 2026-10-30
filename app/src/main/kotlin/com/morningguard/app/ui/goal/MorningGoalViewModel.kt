@@ -573,12 +573,14 @@ class MorningGoalViewModel @Inject constructor(
         viewModelScope.launch {
             val result = morningGateRepository.completeGoal(currentSteps.value)
             result.onSuccess {
-                analyticsTracker.track("goal_completed")
-                userDataSyncService.syncMorningHistoryIfSignedIn()
-                    .onFailure { /* logged in UserDataSyncService */ }
-                loadBibleIfNeeded()
                 val held = notificationCaptureRepository.snapshotDigestSummary().count
                 _goalCompleted.emit(held)
+                viewModelScope.launch {
+                    analyticsTracker.track("goal_completed")
+                    userDataSyncService.syncMorningHistoryIfSignedIn()
+                        .onFailure { /* logged in UserDataSyncService */ }
+                    loadBibleIfNeeded()
+                }
             }.onFailure {
                 error.value = it.message
             }

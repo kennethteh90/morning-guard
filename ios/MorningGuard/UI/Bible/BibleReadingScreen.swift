@@ -72,6 +72,7 @@ struct BibleReadingScreen: View {
     }
 
     var body: some View {
+        ScrollViewReader { scrollProxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 scrollTopMarker
@@ -112,9 +113,16 @@ struct BibleReadingScreen: View {
             .padding(MGTheme.standardPadding)
         }
         .coordinateSpace(name: "bibleScroll")
+        .onChange(of: chapterLoadKey) { _, _ in
+            navigationToolbarHidden = false
+            withAnimation(.easeOut(duration: 0.2)) {
+                scrollProxy.scrollTo(BibleScrollTopAnchor.id, anchor: .top)
+            }
+        }
         .onPreferenceChange(ScrollTopOffsetKey.self) { offset in
             guard collapseToolbarOnScroll else { return }
             navigationToolbarHidden = offset < -36
+        }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             bottomChrome
@@ -459,7 +467,12 @@ struct BibleReadingScreen: View {
                 )
         }
         .frame(height: 1)
+        .id(BibleScrollTopAnchor.id)
     }
+}
+
+private enum BibleScrollTopAnchor {
+    static let id = "bibleScrollTop"
 }
 
 private enum ScrollTopOffsetKey: PreferenceKey {
