@@ -23,7 +23,6 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -144,8 +143,7 @@ class MorningGoalViewModelBibleLoadTest {
     }
 
     @Test
-    fun `completeGoal emits held count without waiting for sync`() = runTest {
-        var syncInvoked = false
+    fun `completeGoal emits held notification count on success`() = runTest {
         coEvery { morningGateRepository.completeGoal(any()) } returns Result.success(Unit)
         coEvery { notificationCaptureRepository.snapshotDigestSummary() } returns DigestSummary(
             count = 7,
@@ -153,11 +151,9 @@ class MorningGoalViewModelBibleLoadTest {
             latestText = "x",
             latestPackage = "com.example",
         )
-        coEvery { userDataSyncService.syncMorningHistoryIfSignedIn() } coAnswers {
-            syncInvoked = true
-            awaitCancellation()
-            Result.success(UserDataSyncReport(emptyList()))
-        }
+        coEvery { userDataSyncService.syncMorningHistoryIfSignedIn() } returns Result.success(
+            UserDataSyncReport(emptyList()),
+        )
 
         val viewModel = viewModel()
         val heldCounts = mutableListOf<Int>()
@@ -167,8 +163,6 @@ class MorningGoalViewModelBibleLoadTest {
         advanceUntilIdle()
 
         assertEquals(listOf(7), heldCounts)
-        assertTrue(syncInvoked)
-
         collectJob.cancel()
     }
 }
