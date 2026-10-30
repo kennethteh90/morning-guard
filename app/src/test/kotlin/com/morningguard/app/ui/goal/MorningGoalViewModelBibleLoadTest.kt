@@ -2,6 +2,7 @@ package com.morningguard.app.ui.goal
 
 import com.morningguard.app.sensors.HealthConnectStepReader
 import com.morningguard.app.sensors.StepCounterProvider
+import com.morningguard.app.sync.UserDataSyncReport
 import com.morningguard.app.sync.UserDataSyncService
 import com.morningguard.data.analytics.AnalyticsTracker
 import com.morningguard.data.bible.BibleHighlightColorStore
@@ -155,6 +156,7 @@ class MorningGoalViewModelBibleLoadTest {
         coEvery { userDataSyncService.syncMorningHistoryIfSignedIn() } coAnswers {
             syncInvoked = true
             awaitCancellation()
+            Result.success(UserDataSyncReport(emptyList()))
         }
 
         val viewModel = viewModel()
