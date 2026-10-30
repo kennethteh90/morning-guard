@@ -3,6 +3,7 @@ package com.morningguard.app.ui.goal
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.morningguard.app.platform.AppDebugFlags
+import com.morningguard.app.di.ApplicationScope
 import com.morningguard.app.sensors.HealthConnectStepReader
 import com.morningguard.app.sensors.StepCounterProvider
 import java.time.Instant
@@ -38,6 +39,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -73,6 +75,7 @@ class MorningGoalViewModel @Inject constructor(
     private val bibleHighlightRepository: BibleHighlightRepository,
     private val bibleHighlightColorStore: BibleHighlightColorStore,
     private val userDataSyncService: UserDataSyncService,
+    @ApplicationScope private val applicationScope: CoroutineScope,
 ) : ViewModel() {
 
     private val _goalCompleted = MutableSharedFlow<Int>(extraBufferCapacity = 1)
@@ -575,12 +578,12 @@ class MorningGoalViewModel @Inject constructor(
             result.onSuccess {
                 val held = notificationCaptureRepository.snapshotDigestSummary().count
                 _goalCompleted.emit(held)
-                viewModelScope.launch {
+                applicationScope.launch {
                     analyticsTracker.track("goal_completed")
                     userDataSyncService.syncMorningHistoryIfSignedIn()
                         .onFailure { /* logged in UserDataSyncService */ }
-                    loadBibleIfNeeded()
                 }
+                loadBibleIfNeeded()
             }.onFailure {
                 error.value = it.message
             }
