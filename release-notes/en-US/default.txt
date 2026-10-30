@@ -1,3 +1,3 @@
-Android: Sign in with Google now opens Google's account picker and shows a clear message if something goes wrong.
-Android: refreshed Sign in with Google button.
-Stability improvements from v1.0.16.
+Bible reading now jumps back to the top when you change chapters.
+Morning goal completion now shows up right away after you tap complete.
+Stability improvements from v1.0.17.
