@@ -138,6 +138,12 @@ fun MorningGoalScreen(
 
     val showBible = browseOnly || state.config.type == GoalType.BIBLE_CHAPTER
     val scrollState = rememberScrollState()
+    val bibleScrollKey =
+        "${state.config.bibleTranslation}|${state.config.bibleBook}|${state.config.bibleChapter}"
+    LaunchedEffect(bibleScrollKey) {
+        scrollState.scrollTo(0)
+        verseHighlightBar = null
+    }
     val fadeRangePx = with(LocalDensity.current) { 96.dp.toPx() }
     val bottomNavTitleAlpha by remember(scrollState, fadeRangePx) {
         derivedStateOf { (scrollState.value / fadeRangePx).coerceIn(0f, 1f) }

@@ -21,6 +21,8 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -43,6 +45,7 @@ import org.robolectric.RobolectricTestRunner
 class MorningGoalViewModelBibleLoadTest {
 
     private val testDispatcher = StandardTestDispatcher()
+    private val applicationScope = CoroutineScope(SupervisorJob() + testDispatcher)
 
     private val settingsRepository: SettingsRepository = mockk(relaxed = true)
     private val morningGateRepository: MorningGateRepository = mockk(relaxed = true)
@@ -95,6 +98,7 @@ class MorningGoalViewModelBibleLoadTest {
         bibleHighlightRepository = bibleHighlightRepository,
         bibleHighlightColorStore = bibleHighlightColorStore,
         userDataSyncService = userDataSyncService,
+        applicationScope = applicationScope,
     )
 
     @Test
