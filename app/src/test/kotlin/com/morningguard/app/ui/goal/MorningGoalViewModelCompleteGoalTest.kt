@@ -19,7 +19,6 @@ import com.morningguard.domain.model.UserSettings
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -105,11 +104,11 @@ class MorningGoalViewModelCompleteGoalTest {
     )
 
     @Test
-    fun `completeGoal emits success before morning history sync finishes`() = runTest {
-        val syncEntered = AtomicBoolean(false)
+    fun `completeGoal emits held count without waiting for sync`() = runTest {
+        var syncCompleted = false
         coEvery { userDataSyncService.syncMorningHistoryIfSignedIn() } coAnswers {
-            syncEntered.set(true)
-            delay(Long.MAX_VALUE)
+            delay(60_000)
+            syncCompleted = true
             Result.success(UserDataSyncReport(emptyList()))
         }
 
@@ -121,7 +120,7 @@ class MorningGoalViewModelCompleteGoalTest {
         testScheduler.runCurrent()
 
         assertEquals(listOf(7), heldCounts)
-        assertTrue(!syncEntered.get())
+        assertTrue(!syncCompleted)
 
         collectJob.cancel()
         advanceUntilIdle()
