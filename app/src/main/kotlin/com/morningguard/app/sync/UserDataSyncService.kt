@@ -335,98 +335,16 @@ class UserDataSyncService @Inject constructor(
             dekUnlocked = noteEncryptionRepository.isDekUnlocked(),
         )
 
-        val pushStats = pushHighlightPayloads(client, toPush)
-        outcomes += when {
-            pushStats.failed > 0 && pushStats.succeeded == 0 -> {
-                val error = pushStats.lastError ?: IllegalStateException("highlight push failed")
-                recordSyncFailure(PHASE_HIGHLIGHTS_PUSH, error)
-                SyncPhaseOutcome.Failed(PHASE_HIGHLIGHTS_PUSH, error)
-            }
-            pushStats.failed > 0 -> {
-                SyncLog.info(
-                    "$PHASE_HIGHLIGHTS_PUSH partial: ${pushStats.succeeded} ok, ${pushStats.failed} failed",
-                )
-                recordSyncFailure(
-                    PHASE_HIGHLIGHTS_PUSH,
-                    pushStats.lastError ?: IllegalStateException("partial highlight push failure"),
-                )
-                SyncPhaseOutcome.Ok(
-                    PHASE_HIGHLIGHTS_PUSH,
-                    "${pushStats.succeeded}/${toPush.size} local row(s)",
-                )
-            }
-            toPush.isEmpty() -> {
-                SyncLog.skipped(PHASE_HIGHLIGHTS_PUSH, "nothing to upsert after note policy")
-                SyncPhaseOutcome.Skipped(PHASE_HIGHLIGHTS_PUSH, "nothing to upsert after note policy")
-            }
-            else -> {
-                SyncLog.ok(PHASE_HIGHLIGHTS_PUSH, "upserted ${pushStats.succeeded} row(s)")
-                SyncPhaseOutcome.Ok(PHASE_HIGHLIGHTS_PUSH, "${pushStats.succeeded} local row(s)")
-            }
-        }
+        val pushStats = BibleHighlightRemotePush.push(client, toPush)
+        outcomes += BibleHighlightRemotePush.outcomeFromStats(
+            stats = pushStats,
+            payloadCount = toPush.size,
+            onFailure = ::recordSyncFailure,
+        )
 
         pullHighlights(client)?.outcome?.let { outcomes += it }
 
         return UserDataSyncReport(outcomes)
-    }
-
-    private data class HighlightPushStats(
-        val succeeded: Int,
-        val failed: Int,
-        val lastError: Throwable?,
-    )
-
-    private suspend fun pushHighlightPayloads(
-        client: SupabaseClient,
-        payloads: List<BibleHighlightPushPayload>,
-    ): HighlightPushStats {
-        var succeeded = 0
-        var failed = 0
-        var lastError: Throwable? = null
-
-        val updates = payloads.filterIsInstance<BibleHighlightPushPayload.UpdateExisting>().map { it.row }
-        if (updates.isNotEmpty()) {
-            val batchResult = runCatching {
-                client.postgrest.from(TABLE_HIGHLIGHTS).upsert(updates) {
-                    onConflict = "id"
-                }
-            }
-            if (batchResult.isSuccess) {
-                succeeded += updates.size
-            } else {
-                for (row in updates) {
-                    val rowResult = runCatching {
-                        client.postgrest.from(TABLE_HIGHLIGHTS).upsert(listOf(row)) {
-                            onConflict = "id"
-                        }
-                    }
-                    if (rowResult.isSuccess) {
-                        succeeded++
-                    } else {
-                        failed++
-                        lastError = rowResult.exceptionOrNull()
-                        SyncLog.failure(PHASE_HIGHLIGHTS_PUSH, lastError!!)
-                    }
-                }
-            }
-        }
-
-        for (payload in payloads.filterIsInstance<BibleHighlightPushPayload.InsertNew>()) {
-            val rowResult = runCatching {
-                client.postgrest.from(TABLE_HIGHLIGHTS).upsert(listOf(payload.row)) {
-                    onConflict = "user_id,client_id"
-                }
-            }
-            if (rowResult.isSuccess) {
-                succeeded++
-            } else {
-                failed++
-                lastError = rowResult.exceptionOrNull()
-                SyncLog.failure(PHASE_HIGHLIGHTS_PUSH, lastError!!)
-            }
-        }
-
-        return HighlightPushStats(succeeded = succeeded, failed = failed, lastError = lastError)
     }
 
     private fun buildHighlightPushPayloads(
