@@ -4,6 +4,7 @@ import com.morningguard.domain.bible.BibleHighlight
 import com.morningguard.domain.bible.BibleHighlightColors
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @Serializable
@@ -53,9 +54,11 @@ internal sealed class BibleHighlightPushPayload {
 internal object BibleHighlightPushRows {
     private val json = Json { explicitNulls = false }
 
-    fun encodeInsertRow(row: BibleHighlightInsertRow): String = json.encodeToString(row)
+    fun encodeInsertRow(row: BibleHighlightInsertRow): String =
+        json.encodeToString(BibleHighlightInsertRow.serializer(), row)
 
-    fun encodeUpdateRow(row: BibleHighlightUpdateRow): String = json.encodeToString(row)
+    fun encodeUpdateRow(row: BibleHighlightUpdateRow): String =
+        json.encodeToString(BibleHighlightUpdateRow.serializer(), row)
 
     fun fromWireRow(
         userId: String,
