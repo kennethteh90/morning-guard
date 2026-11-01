@@ -328,41 +328,113 @@ class UserDataSyncService @Inject constructor(
             return UserDataSyncReport(outcomes)
         }
 
-        val toPush = buildHighlightPushRows(
+        val toPush = buildHighlightPushPayloads(
             local = local,
             userId = userId,
             remoteNoteByServerId = remoteNoteByServerId,
             dekUnlocked = noteEncryptionRepository.isDekUnlocked(),
         )
 
-        val pushResult = runCatching {
-            client.postgrest.from(TABLE_HIGHLIGHTS).upsert(toPush) {
-                onConflict = "id"
-            }
-        }
-
-        outcomes += pushResult.fold(
-            onSuccess = {
-                SyncLog.ok(PHASE_HIGHLIGHTS_PUSH, "upserted ${toPush.size} row(s)")
-                SyncPhaseOutcome.Ok(PHASE_HIGHLIGHTS_PUSH, "${toPush.size} local row(s)")
-            },
-            onFailure = { error ->
+        val pushStats = pushHighlightPayloads(client, toPush)
+        outcomes += when {
+            pushStats.failed > 0 && pushStats.succeeded == 0 -> {
+                val error = pushStats.lastError ?: IllegalStateException("highlight push failed")
                 recordSyncFailure(PHASE_HIGHLIGHTS_PUSH, error)
                 SyncPhaseOutcome.Failed(PHASE_HIGHLIGHTS_PUSH, error)
-            },
-        )
+            }
+            pushStats.failed > 0 -> {
+                SyncLog.info(
+                    "$PHASE_HIGHLIGHTS_PUSH partial: ${pushStats.succeeded} ok, ${pushStats.failed} failed",
+                )
+                recordSyncFailure(
+                    PHASE_HIGHLIGHTS_PUSH,
+                    pushStats.lastError ?: IllegalStateException("partial highlight push failure"),
+                )
+                SyncPhaseOutcome.Ok(
+                    PHASE_HIGHLIGHTS_PUSH,
+                    "${pushStats.succeeded}/${toPush.size} local row(s)",
+                )
+            }
+            toPush.isEmpty() -> {
+                SyncLog.skipped(PHASE_HIGHLIGHTS_PUSH, "nothing to upsert after note policy")
+                SyncPhaseOutcome.Skipped(PHASE_HIGHLIGHTS_PUSH, "nothing to upsert after note policy")
+            }
+            else -> {
+                SyncLog.ok(PHASE_HIGHLIGHTS_PUSH, "upserted ${pushStats.succeeded} row(s)")
+                SyncPhaseOutcome.Ok(PHASE_HIGHLIGHTS_PUSH, "${pushStats.succeeded} local row(s)")
+            }
+        }
 
         pullHighlights(client)?.outcome?.let { outcomes += it }
 
         return UserDataSyncReport(outcomes)
     }
 
-    private fun buildHighlightPushRows(
+    private data class HighlightPushStats(
+        val succeeded: Int,
+        val failed: Int,
+        val lastError: Throwable?,
+    )
+
+    private suspend fun pushHighlightPayloads(
+        client: SupabaseClient,
+        payloads: List<BibleHighlightPushPayload>,
+    ): HighlightPushStats {
+        var succeeded = 0
+        var failed = 0
+        var lastError: Throwable? = null
+
+        val updates = payloads.filterIsInstance<BibleHighlightPushPayload.UpdateExisting>().map { it.row }
+        if (updates.isNotEmpty()) {
+            val batchResult = runCatching {
+                client.postgrest.from(TABLE_HIGHLIGHTS).upsert(updates) {
+                    onConflict = "id"
+                }
+            }
+            if (batchResult.isSuccess) {
+                succeeded += updates.size
+            } else {
+                for (row in updates) {
+                    val rowResult = runCatching {
+                        client.postgrest.from(TABLE_HIGHLIGHTS).upsert(listOf(row)) {
+                            onConflict = "id"
+                        }
+                    }
+                    if (rowResult.isSuccess) {
+                        succeeded++
+                    } else {
+                        failed++
+                        lastError = rowResult.exceptionOrNull()
+                        SyncLog.failure(PHASE_HIGHLIGHTS_PUSH, lastError!!)
+                    }
+                }
+            }
+        }
+
+        for (payload in payloads.filterIsInstance<BibleHighlightPushPayload.InsertNew>()) {
+            val rowResult = runCatching {
+                client.postgrest.from(TABLE_HIGHLIGHTS).upsert(listOf(payload.row)) {
+                    onConflict = "user_id,client_id"
+                }
+            }
+            if (rowResult.isSuccess) {
+                succeeded++
+            } else {
+                failed++
+                lastError = rowResult.exceptionOrNull()
+                SyncLog.failure(PHASE_HIGHLIGHTS_PUSH, lastError!!)
+            }
+        }
+
+        return HighlightPushStats(succeeded = succeeded, failed = failed, lastError = lastError)
+    }
+
+    private fun buildHighlightPushPayloads(
         local: List<BibleHighlight>,
         userId: String,
         remoteNoteByServerId: Map<Long, String>,
         dekUnlocked: Boolean,
-    ): List<BibleHighlightRow> = local.mapNotNull { highlight ->
+    ): List<BibleHighlightPushPayload> = local.mapNotNull { highlight ->
         val remoteNote = highlight.remoteId.takeIf { it > 0 }?.let { remoteNoteByServerId[it] }
         val decision = HighlightSyncNotePolicy.resolve(
             localPlainNote = highlight.note,
@@ -380,23 +452,12 @@ class UserDataSyncService @Inject constructor(
             remoteNote != null && NoteContentCipher.isCiphertext(remoteNote) -> remoteNote
             else -> ""
         }
-        BibleHighlightRow(
-            id = highlight.remoteId.takeIf { it > 0 },
+        BibleHighlightPushRows.fromWireRow(
             userId = userId,
-            clientId = highlight.id.takeIf { it > 0 },
-            translationId = highlight.translationId,
-            book = highlight.book,
-            chapter = highlight.chapter,
-            label = highlight.label,
-            excerpt = highlight.excerpt,
-            verse = highlight.verse,
-            verseEnd = highlight.verseEnd,
-            verseNumbers = highlight.verseNumbers,
-            colorKey = highlight.colorKey.ifBlank { BibleHighlightColors.DEFAULT_KEY },
-            note = noteForRow,
-            selectionStart = highlight.selectionStart,
-            selectionEnd = highlight.selectionEnd,
-            createdAt = instantToIso(highlight.createdAtEpochMs),
+            highlight = highlight,
+            noteForRow = noteForRow,
+            createdAtIso = instantToIso(highlight.createdAtEpochMs),
+            remoteServerId = highlight.remoteId.takeIf { it > 0 },
         )
     }
 
