@@ -22,7 +22,7 @@ class SentryScrubberTest {
         assertFalse(scrubbed.contains("Bearer eyJ"))
         assertFalse(scrubbed.contains("apikey: eyJ"))
         assertFalse(scrubbed.contains("user@example.com"))
-        assertTrue(scrubbed.contains("Bearer [redacted]"))
+        assertTrue(scrubbed.contains("Authorization: [redacted]"))
         assertTrue(scrubbed.contains("apikey: [redacted]"))
         assertTrue(scrubbed.contains("[redacted-email]"))
     }

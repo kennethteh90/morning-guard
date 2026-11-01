@@ -14,20 +14,20 @@ enum SentryPrivacyScrubber {
         options: []
     )
     private static let authorizationHeader = try! NSRegularExpression(
-        pattern: "Authorization:\\s*\\S+",
+        pattern: "Authorization:.*",
         options: [.caseInsensitive]
     )
     private static let apikeyHeader = try! NSRegularExpression(
-        pattern: "apikey:\\s*\\S+",
+        pattern: "apikey:.*",
         options: [.caseInsensitive]
     )
 
     static func redact(_ text: String) -> String {
         var result = text
-        result = replacingMatches(in: result, regex: bearerToken, with: "Bearer [redacted]")
-        result = replacingMatches(in: result, regex: jwt, with: "[redacted-jwt]")
         result = replacingMatches(in: result, regex: authorizationHeader, with: "Authorization: [redacted]")
         result = replacingMatches(in: result, regex: apikeyHeader, with: "apikey: [redacted]")
+        result = replacingMatches(in: result, regex: bearerToken, with: "Bearer [redacted]")
+        result = replacingMatches(in: result, regex: jwt, with: "[redacted-jwt]")
         result = replacingMatches(in: result, regex: emailLike, with: "[redacted-email]")
         return result
     }

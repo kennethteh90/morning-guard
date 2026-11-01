@@ -7,18 +7,18 @@ import io.sentry.protocol.SentryException
 private val EMAIL_LIKE = Regex("""[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}""", RegexOption.IGNORE_CASE)
 private val BEARER_TOKEN = Regex("""Bearer\s+\S+""", RegexOption.IGNORE_CASE)
 private val JWT = Regex("""eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+""")
-private val AUTHORIZATION_HEADER = Regex("""Authorization:\s*\S+""", RegexOption.IGNORE_CASE)
-private val APIKEY_HEADER = Regex("""apikey:\s*\S+""", RegexOption.IGNORE_CASE)
+private val AUTHORIZATION_HEADER = Regex("""Authorization:.*""", RegexOption.IGNORE_CASE)
+private val APIKEY_HEADER = Regex("""apikey:.*""", RegexOption.IGNORE_CASE)
 private val APIKEY_JSON = Regex(""""apikey"\s*:\s*"[^"]*"""", RegexOption.IGNORE_CASE)
 
 object SentryScrubber {
 
     fun redact(text: String): String =
         text
-            .replace(BEARER_TOKEN, "Bearer [redacted]")
-            .replace(JWT, "[redacted-jwt]")
             .replace(AUTHORIZATION_HEADER, "Authorization: [redacted]")
             .replace(APIKEY_HEADER, "apikey: [redacted]")
+            .replace(BEARER_TOKEN, "Bearer [redacted]")
+            .replace(JWT, "[redacted-jwt]")
             .replace(APIKEY_JSON, """"apikey":"[redacted]"""")
             .replace(EMAIL_LIKE, "[redacted-email]")
 
