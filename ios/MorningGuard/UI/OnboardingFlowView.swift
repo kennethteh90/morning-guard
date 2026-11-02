@@ -616,6 +616,7 @@ struct OnboardingFlowView: View {
         do {
             try await appState.shieldController.requestAuthorization()
             appState.shieldController.refreshAuthorizationStatus()
+            _ = await ShieldGoalLaunchRouter.shared.requestAuthorizationIfNeeded()
         } catch {
             authError = error.localizedDescription
         }

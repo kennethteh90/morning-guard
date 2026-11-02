@@ -46,7 +46,7 @@ In Xcode:
 | MorningGuard | `com.morningguard.app` | Main SwiftUI app |
 | MorningGuardMonitor | `com.morningguard.app.monitor` | Device Activity Monitor — applies/clears shields from app group state |
 | MorningGuardShieldConfig | `com.morningguard.app.shieldconfig` | Branded shield UI |
-| MorningGuardShieldAction | `com.morningguard.app.shieldaction` | Primary **Open goal** returns `.defer` to foreground the app (Apple does not pass a custom URL from the extension). Deep link `morningguard://goal` works when opened from elsewhere (e.g. magic link flows). |
+| MorningGuardShieldAction | `com.morningguard.app.shieldaction` | Primary **Send notification** closes the shield and posts a local notification; tapping it opens `morningguard://goal` in the app (Screen Time extensions cannot launch the parent app directly). |
 
 Shared logic lives in the local Swift package **MorningGuardCore** (`ios/MorningGuardCore`).
 
