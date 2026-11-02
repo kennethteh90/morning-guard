@@ -100,5 +100,26 @@ class LicensedSessionCoordinatorTest {
         }
     }
 
+    @Test
+    fun `retries transient session 401 then succeeds`() = runBlocking {
+        val attempts = AtomicInteger(0)
+        val coordinator = LicensedSessionCoordinator(
+            mintSession = {
+                val n = attempts.incrementAndGet()
+                if (n < 2) {
+                    throw BibleProxyLicensedAuthException("Licensed Bible session failed (401)")
+                }
+                LicensedSessionCoordinator.SessionGrant(
+                    token = "ok",
+                    expiresAtEpochMs = System.currentTimeMillis() + 3_600_000L,
+                )
+            },
+            isTransientFailure = PlayIntegrityBibleProxyLicensedAuth::isTransientLicensedAuthFailure,
+            sleepMs = {},
+        )
+        assertEquals("ok", coordinator.sessionToken())
+        assertEquals(2, attempts.get())
+    }
+
     private class FakeTransient(message: String) : RuntimeException(message)
 }

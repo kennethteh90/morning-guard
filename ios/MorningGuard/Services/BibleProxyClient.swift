@@ -76,6 +76,17 @@ struct BibleProxyClient: Sendable {
                 retryOnUnauthorized: false
             )
         }
+        if shouldRetryLicensedChapter(http.statusCode),
+           retryOnUnauthorized,
+           BibleProxyConfig.isLicensedTranslation(normalized) {
+            await licensedAuth.invalidateSession()
+            return try await loadChapterWithRetry(
+                translation: translation,
+                book: book,
+                chapter: chapter,
+                retryOnUnauthorized: false
+            )
+        }
         guard (200...299).contains(http.statusCode) else {
             throw BibleProxyError.http(status: http.statusCode, body: String(data: data, encoding: .utf8) ?? "")
         }
@@ -85,6 +96,10 @@ struct BibleProxyClient: Sendable {
         }
 
         return try decodeChapter(data: data, book: book, chapter: chapter)
+    }
+
+    private func shouldRetryLicensedChapter(_ statusCode: Int) -> Bool {
+        statusCode == 502 || statusCode == 503 || statusCode == 504
     }
 
     private func decodeChapter(data: Data, book: String, chapter: Int) throws -> BibleChapterPassage {
@@ -130,6 +145,7 @@ struct AppAttestBibleProxyLicensedAuth: BibleProxyLicensedAuth, Sendable {
     private let service = DCAppAttestService.shared
     private let keyIdDefaultsKey = "bibleProxyAppAttestKeyId"
     private let sessionCoordinator: LicensedSessionCoordinator
+    private let failureGate = LicensedAuthFailureGate()
 
     init() {
         sessionCoordinator = LicensedSessionCoordinator(mintSession: {
@@ -141,11 +157,19 @@ struct AppAttestBibleProxyLicensedAuth: BibleProxyLicensedAuth, Sendable {
         guard service.isSupported else {
             throw BibleProxyError.appAttestUnavailable
         }
+        if failureGate.inCooldown() {
+            failureGate.breadcrumbTransient("licensed auth in client cooldown")
+            throw BibleProxyError.http(status: 503, body: "")
+        }
         do {
             let token = try await sessionCoordinator.sessionToken()
             request.setValue(token, forHTTPHeaderField: BibleProxyClient.sessionHeader)
         } catch is SessionEndpointUnavailable {
             try await applyFreshAttestation(to: &request)
+        } catch {
+            failureGate.markFailure()
+            failureGate.reportFailure(error: error, exhausted: true)
+            throw error
         }
     }
 
@@ -416,4 +440,62 @@ private struct BibleProxyChapterResponse: Decodable {
 private struct BibleProxyBlockDto: Decodable {
     var type: String
     var text: String
+}
+
+private final class LicensedAuthFailureGate: @unchecked Sendable {
+    private let lock = NSLock()
+    private var cooldownUntilMs: Int64 = 0
+    private var lastSentryReportMs: Int64 = 0
+    private let cooldownMs: Int64 = 60_000
+
+    func inCooldown() -> Bool {
+        lock.withLock { Self.nowMs() < cooldownUntilMs }
+    }
+
+    func markFailure() {
+        lock.withLock { cooldownUntilMs = Self.nowMs() + cooldownMs }
+    }
+
+    func breadcrumbTransient(_ message: String) {
+        AppMonitoring.errorReporter.breadcrumb(category: "bible_licensed_auth", message: message)
+    }
+
+    func reportFailure(error: Error, exhausted: Bool) {
+        guard exhausted else {
+            breadcrumbTransient(error.localizedDescription)
+            return
+        }
+        let shouldReport = lock.withLock { () -> Bool in
+            let now = Self.nowMs()
+            if now - lastSentryReportMs < cooldownMs {
+                return false
+            }
+            lastSentryReportMs = now
+            return true
+        }
+        if !shouldReport {
+            breadcrumbTransient(error.localizedDescription)
+            return
+        }
+        AppMonitoring.errorReporter.reportNonFatal(
+            throwable: error,
+            tags: [
+                "area": "bible_licensed_auth",
+                "licensed_auth_exhausted": "true",
+            ],
+            extras: ["detail": String(error.localizedDescription.prefix(200))]
+        )
+    }
+
+    private static func nowMs() -> Int64 {
+        Int64(Date().timeIntervalSince1970 * 1000)
+    }
+}
+
+private extension NSLock {
+    func withLock<T>(_ body: () -> T) -> T {
+        lock()
+        defer { unlock() }
+        return body()
+    }
 }

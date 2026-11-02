@@ -45,10 +45,20 @@ class SentryScrubberTest {
             }
         }
 
-        val scrubbed = SentryScrubber.scrubEvent(event)
+        val scrubbed = SentryScrubber.scrubEvent(event)!!
         assertFalse(scrubbed.exceptions!!.first().value!!.contains("leaked-key"))
         assertFalse(scrubbed.request!!.headers!!.containsKey("Authorization"))
         assertFalse(scrubbed.request!!.headers!!.containsKey("apikey"))
         assertTrue(scrubbed.request!!.headers!!["Content-Type"] == "application/json")
+    }
+
+    @Test
+    fun `scrubEvent drops bible licensed auth events without exhausted tag`() {
+        val event = io.sentry.SentryEvent().apply {
+            setTag("area", "bible_licensed_auth")
+        }
+        assertTrue(SentryScrubber.scrubEvent(event) == null)
+        event.setTag("licensed_auth_exhausted", "true")
+        assertTrue(SentryScrubber.scrubEvent(event) != null)
     }
 }

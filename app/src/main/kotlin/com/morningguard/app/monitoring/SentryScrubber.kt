@@ -22,7 +22,10 @@ object SentryScrubber {
             .replace(APIKEY_JSON, """"apikey":"[redacted]"""")
             .replace(EMAIL_LIKE, "[redacted-email]")
 
-    fun scrubEvent(event: SentryEvent): SentryEvent {
+    fun scrubEvent(event: SentryEvent): SentryEvent? {
+        if (shouldDropLicensedAuthNoise(event)) {
+            return null
+        }
         event.message = event.message?.let { scrubMessage(it) }
         event.exceptions = event.exceptions?.map { scrubException(it) }
         event.request?.headers?.remove("Authorization")
@@ -43,6 +46,12 @@ object SentryScrubber {
             }
         }
         return event
+    }
+
+    private fun shouldDropLicensedAuthNoise(event: SentryEvent): Boolean {
+        val tags = event.tags ?: return false
+        if (tags["area"] != "bible_licensed_auth") return false
+        return tags["licensed_auth_exhausted"] != "true"
     }
 
     private fun scrubMessage(message: Message): Message {
