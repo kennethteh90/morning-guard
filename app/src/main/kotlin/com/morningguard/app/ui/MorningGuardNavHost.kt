@@ -130,7 +130,10 @@ fun MorningGuardNavHost(screenshotScene: String? = null) {
             StatsScreen(onBack = { navController.popBackStack() })
         }
         composable(MorningGuardRoutes.HIGHLIGHTS) {
-            HighlightsScreen(onBack = { navController.popBackStack() })
+            HighlightsScreen(
+                onBack = { navController.popBackStack() },
+                onOpenBibleReader = { navController.navigate(MorningGuardRoutes.BIBLE_READER) },
+            )
         }
         composable(MorningGuardRoutes.BYPASS) { BypassAppsScreen(onBack = { navController.popBackStack() }) }
         composable(MorningGuardRoutes.EMERGENCY) {

@@ -1,6 +1,10 @@
 package com.morningguard.app.ui.home
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
@@ -63,6 +67,7 @@ import com.morningguard.app.demo.DemoSession
 import com.morningguard.app.platform.PresenterMode
 import com.morningguard.data.auth.AuthState
 import com.morningguard.domain.gate.GateDigestPolicy
+import com.morningguard.domain.gate.GateEvaluation
 import com.morningguard.domain.gate.GateState
 import com.morningguard.domain.gate.PeaceBreakPolicy
 
@@ -147,8 +152,7 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             GateStatusCard(
-                gateState = state.gate?.state,
-                reason = state.gate?.reason.orEmpty(),
+                gate = state.gate,
                 heldCount = state.digest.count,
                 peaceSessionUntilEpochMs = state.peaceSessionUntilEpochMs,
             )
@@ -414,11 +418,16 @@ fun HomeScreen(
 
 @Composable
 private fun GateStatusCard(
-    gateState: GateState?,
-    reason: String,
+    gate: GateEvaluation?,
     heldCount: Int,
     peaceSessionUntilEpochMs: Long?,
 ) {
+    if (gate == null) {
+        GateStatusLoadingCard()
+        return
+    }
+    val gateState = gate.state
+    val reason = gate.reason
     val peaceActive = peaceSessionUntilEpochMs != null
     val (title, subtitle) = when {
         peaceActive ->
@@ -429,7 +438,6 @@ private fun GateStatusCard(
             "Gate open" to friendlyReason(reason)
         gateState == GateState.INACTIVE ->
             "Gate resting" to "Outside your morning window."
-        gateState == null -> "Loading…" to ""
         else -> "Gate resting" to ""
     }
     Card(
@@ -448,6 +456,53 @@ private fun GateStatusCard(
                 Text(subtitle, style = MaterialTheme.typography.bodyMedium)
             }
             Text("$heldCount held in digest", style = MaterialTheme.typography.bodyLarge)
+        }
+    }
+}
+
+@Composable
+private fun GateStatusLoadingCard() {
+    val placeholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+    val shape = RoundedCornerShape(6.dp)
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics { contentDescription = stringResource(R.string.a11y_gate_loading) },
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .height(14.dp)
+                    .fillMaxWidth(0.18f)
+                    .clip(shape)
+                    .background(placeholderColor),
+            )
+            Box(
+                modifier = Modifier
+                    .height(28.dp)
+                    .fillMaxWidth(0.72f)
+                    .clip(shape)
+                    .background(placeholderColor),
+            )
+            Box(
+                modifier = Modifier
+                    .height(16.dp)
+                    .fillMaxWidth(0.92f)
+                    .clip(shape)
+                    .background(placeholderColor),
+            )
+            Box(
+                modifier = Modifier
+                    .height(18.dp)
+                    .fillMaxWidth(0.45f)
+                    .clip(shape)
+                    .background(placeholderColor),
+            )
         }
     }
 }

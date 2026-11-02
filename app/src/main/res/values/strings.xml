@@ -31,6 +31,11 @@
     <string name="a11y_goal_complete">Morning goal complete</string>
     <string name="a11y_bible_retry">Retry loading Bible chapter</string>
     <string name="a11y_gate_status">Morning gate status</string>
+    <string name="a11y_gate_loading">Loading morning gate status</string>
+    <string name="highlights_empty_title">No highlights yet</string>
+    <string name="highlights_empty_detail">Highlight verses while reading your morning chapter or in Read Bible.</string>
+    <string name="highlights_no_matches">No matches for your filters.</string>
+    <string name="highlights_read_bible">Read Bible</string>
     <string name="auth_magic_link_hint">We\'ll email a one-time sign-in link for Morning Guard (cloud sync only). The message may come from Supabase; after you tap the link you\'ll see the Morning Guard sign-in page, then the app.</string>
     <string name="auth_magic_link_inbox_title">Check your inbox</string>
     <string name="auth_magic_link_inbox_body">We sent a sign-in link to %1$s. Open it on this phone to finish logging in to Morning Guard. The email subject may look generic — it\'s still for this app.</string>
