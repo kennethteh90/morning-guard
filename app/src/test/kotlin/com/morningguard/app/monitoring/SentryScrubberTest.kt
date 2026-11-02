@@ -46,9 +46,22 @@ class SentryScrubberTest {
         }
 
         val scrubbed = SentryScrubber.scrubEvent(event)
-        assertFalse(scrubbed.exceptions!!.first().value!!.contains("leaked-key"))
+        assertFalse(scrubbed!!.exceptions!!.first().value!!.contains("leaked-key"))
         assertFalse(scrubbed.request!!.headers!!.containsKey("Authorization"))
         assertFalse(scrubbed.request!!.headers!!.containsKey("apikey"))
-        assertTrue(scrubbed.request!!.headers!!["Content-Type"] == "application/json")
+        assertTrue(scrubbed!!.request!!.headers!!["Content-Type"] == "application/json")
+    }
+
+    @Test
+    fun `scrubEvent drops benign cancellation events`() {
+        val event = io.sentry.SentryEvent().apply {
+            exceptions = listOf(
+                SentryException().apply {
+                    type = "kotlinx.coroutines.JobCancellationException"
+                    value = "Job was cancelled"
+                },
+            )
+        }
+        assertTrue(SentryScrubber.scrubEvent(event) == null)
     }
 }

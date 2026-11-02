@@ -15,6 +15,9 @@ class SentryErrorReporter @Inject constructor() : ErrorReporter {
         tags: Map<String, String>,
         extras: Map<String, String>,
     ) {
+        if (!SentryReportingPolicy.shouldReport(throwable)) {
+            return
+        }
         Sentry.withScope { scope ->
             scope.level = SentryLevel.WARNING
             tags.forEach { (key, value) ->

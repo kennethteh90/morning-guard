@@ -64,7 +64,23 @@ Rebuild:
 gh secret set SENTRY_DSN --repo kennethteh90/morning-guard
 ```
 
-Workflows already pass `SENTRY_DSN` into `local.properties` when the secret exists (`.github/workflows/ci.yml`, `release.yml`).
+Optional (deobfuscate release stacks in Sentry — R8 on Android, dSYM on iOS):
+
+```bash
+gh secret set SENTRY_AUTH_TOKEN --repo kennethteh90/morning-guard
+```
+
+Create the token at [User auth tokens](https://sentry.io/settings/account/api/auth-tokens/) with **`project:releases`** and **`org:read`**. The Android `release.yml` workflow runs `./scripts/upload-sentry-android-mapping.sh` when this secret is set. iOS TestFlight builds can run `./scripts/upload-sentry-ios-dsyms.sh` against the archive path (wire in Fastlane when automating).
+
+Workflows already pass `SENTRY_DSN` into `local.properties` / iOS xcconfig when the secret exists (`.github/workflows/ci.yml`, `release.yml`, `ios-release.yml`).
+
+### Release / dist naming
+
+Both apps report **`release`** as `com.morningguard.app@<versionName>` (e.g. `1.0.19`) and **`dist`** as the numeric build (`versionCode` / `CFBundleVersion`) so Sentry issues line up with store builds.
+
+### iOS app extensions (Screen Time)
+
+`MorningGuardMonitor`, `MorningGuardShieldAction`, and `MorningGuardShieldConfig` do **not** initialize Sentry (memory and startup limits). Crashes in those processes appear in **Xcode Organizer / App Store Connect** crash logs for the extension bundle IDs, not in the main Sentry project unless you add a separate Sentry project per extension. The main app already breadcrumbs shield launches (`shield_launch`) and gate transitions (`morning_gate`).
 
 ---
 

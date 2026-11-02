@@ -21,8 +21,27 @@ final class GateService {
     }
 
     func refresh() {
+        let previous = evaluation.state
         evaluation = Self.evaluate(settingsStore: settingsStore, evaluator: evaluator)
         settingsStore.mirrorGateEvaluation(evaluation)
+        if previous != evaluation.state {
+            switch evaluation.state {
+            case .locked:
+                AppMonitoring.errorReporter.breadcrumb(
+                    category: "morning_gate",
+                    message: "gate_locked reason=\(evaluation.reason)"
+                )
+            case .unlocked:
+                if previous == .locked {
+                    AppMonitoring.errorReporter.breadcrumb(
+                        category: "morning_gate",
+                        message: "gate_unlocked reason=\(evaluation.reason)"
+                    )
+                }
+            case .inactive:
+                break
+            }
+        }
     }
 
     func startGoalIfNeeded() -> MorningGoalProgress {

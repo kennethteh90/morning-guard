@@ -3,6 +3,7 @@ import Sentry
 
 struct SentryErrorReporter: ErrorReporter {
     func reportNonFatal(throwable: Error, tags: [String: String], extras: [String: String]) {
+        guard SentryReportingPolicy.shouldReport(throwable) else { return }
         SentrySDK.capture(error: throwable) { scope in
             scope.setLevel(.warning)
             for (key, value) in tags {
@@ -35,11 +36,16 @@ enum SentryBootstrap {
             options.tracesSampleRate = 0.1
             #endif
             options.sendDefaultPii = false
-            if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
-               let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
-                options.releaseName = "com.morningguard.app@\(version)+\(build)"
+            if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
+                options.releaseName = "com.morningguard.app@\(version)"
+            }
+            if let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
+                options.dist = build
             }
             options.beforeSend = { event in
+                if SentryReportingPolicy.shouldDrop(event) {
+                    return nil
+                }
                 event.request?.headers?.removeValue(forKey: "Authorization")
                 event.request?.headers?.removeValue(forKey: "apikey")
                 if let message = event.message?.message {

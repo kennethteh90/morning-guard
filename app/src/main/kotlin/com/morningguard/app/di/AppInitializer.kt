@@ -2,6 +2,7 @@ package com.morningguard.app.di
 
 import android.content.Context
 import com.morningguard.app.BuildConfig
+import com.morningguard.app.monitoring.SentryReportingPolicy
 import com.morningguard.app.monitoring.SentryScrubber
 import com.morningguard.app.alarm.MorningAlarmScheduler
 import com.morningguard.app.screenshot.ScreenshotDemoSeeder
@@ -52,8 +53,12 @@ class AppInitializer @Inject constructor(
                         "production"
                     }
                     options.release = "${BuildConfig.APPLICATION_ID}@${BuildConfig.VERSION_NAME}"
+                    options.dist = BuildConfig.VERSION_CODE.toString()
                     options.tracesSampleRate = if (BuildConfig.DEBUG && !BuildConfig.SCREENSHOT_MODE) 0.0 else 0.1
                     options.isSendDefaultPii = false
+                    SentryReportingPolicy.ignoredExceptionTypesForInit().forEach { type ->
+                        options.addIgnoredExceptionForType(type)
+                    }
                     options.beforeSend = SentryOptions.BeforeSendCallback { event, _ ->
                         if (SentryEnvironment.isFirebaseTestLab(context)) {
                             return@BeforeSendCallback null

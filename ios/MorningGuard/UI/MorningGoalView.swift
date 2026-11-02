@@ -323,6 +323,7 @@ struct MorningGoalView: View {
         appState.gateService.markComplete()
         appState.shieldController.refreshShields()
         MGHaptics.success()
+        AppMonitoring.errorReporter.breadcrumb(category: "morning_gate", message: "goal_completed")
         stopTicker()
         Task { await appState.userDataSync.syncMorningHistoryIfSignedIn() }
     }

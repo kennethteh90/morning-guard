@@ -8,6 +8,7 @@ import com.morningguard.app.BuildConfig
 import com.morningguard.app.R
 import com.morningguard.app.auth.GoogleSignInHelper
 import com.morningguard.app.auth.GoogleSignInUserCancelledException
+import com.morningguard.app.auth.SupabaseAuthFailurePolicy
 import com.morningguard.data.auth.AuthRepository
 import com.morningguard.data.monitoring.ErrorReporter
 import com.morningguard.data.auth.AuthState
@@ -193,6 +194,15 @@ class AuthViewModel @Inject constructor(
 
     private fun handleGoogleSignInFailure(error: Throwable) {
         if (error is GoogleSignInUserCancelledException) {
+            return
+        }
+        if (SupabaseAuthFailurePolicy.isStaleSessionFailure(error)) {
+            viewModelScope.launch {
+                authRepository.signOut()
+            }
+            _local.value = _local.value.copy(
+                error = SupabaseAuthFailurePolicy.userFacingMessage(error),
+            )
             return
         }
         errorReporter.reportNonFatal(

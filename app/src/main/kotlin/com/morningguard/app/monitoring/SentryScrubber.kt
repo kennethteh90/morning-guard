@@ -22,7 +22,10 @@ object SentryScrubber {
             .replace(APIKEY_JSON, """"apikey":"[redacted]"""")
             .replace(EMAIL_LIKE, "[redacted-email]")
 
-    fun scrubEvent(event: SentryEvent): SentryEvent {
+    fun scrubEvent(event: SentryEvent): SentryEvent? {
+        if (SentryReportingPolicy.shouldDropEvent(event)) {
+            return null
+        }
         event.message = event.message?.let { scrubMessage(it) }
         event.exceptions = event.exceptions?.map { scrubException(it) }
         event.request?.headers?.remove("Authorization")
