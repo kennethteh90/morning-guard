@@ -465,10 +465,11 @@ private fun GateStatusCard(
 private fun GateStatusLoadingCard() {
     val placeholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
     val shape = RoundedCornerShape(6.dp)
+    val loadingLabel = stringResource(R.string.a11y_gate_loading)
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .semantics { contentDescription = stringResource(R.string.a11y_gate_loading) },
+            .semantics { contentDescription = loadingLabel },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
