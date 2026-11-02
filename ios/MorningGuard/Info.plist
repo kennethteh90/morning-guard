@@ -48,7 +48,7 @@
 	<key>NSHealthUpdateUsageDescription</key>
 	<string>Morning Guard does not write to Health. This description is required because the app uses HealthKit to read step counts for morning goals.</string>
 	<key>NSUserNotificationsUsageDescription</key>
-	<string>Morning Guard can remind you when your morning window begins.</string>
+	<string>Morning Guard sends notifications when your morning window begins and when you tap Continue on a Screen Time shield, so you can open your morning goal.</string>
 	<key>PRIVACY_POLICY_URL</key>
 	<string>https://morning-guard.codingagents.cc/privacy/</string>
 	<key>SENTRY_DSN</key>

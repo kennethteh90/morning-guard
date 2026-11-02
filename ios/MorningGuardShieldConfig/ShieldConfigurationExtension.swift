@@ -13,11 +13,11 @@ final class ShieldConfigurationExtension: ShieldConfigurationDataSource {
                 color: UIColor.label
             ),
             subtitle: ShieldConfiguration.Label(
-                text: "Tap Open goal to continue your morning routine in Morning Guard.",
+                text: "Tap below to get a notification. Tap that notification to open your morning goal in Morning Guard.",
                 color: UIColor.secondaryLabel
             ),
             primaryButtonLabel: ShieldConfiguration.Label(
-                text: "Open goal",
+                text: "Send notification",
                 color: UIColor.label
             ),
             primaryButtonBackgroundColor: UIColor.systemOrange,

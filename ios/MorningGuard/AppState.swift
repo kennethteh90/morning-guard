@@ -65,6 +65,7 @@ final class AppState {
         gate.refresh()
         shieldController.refreshShields()
         deviceActivityScheduler.reschedule(for: settings.userSettings.morningWindow)
+        ShieldGoalLaunchRouter.shared.bind(appState: self)
         Task { await alarmScheduler.apply(alarm: settings.userSettings.alarm) }
         Task {
             await supabaseAuth.restoreSession()
@@ -92,13 +93,23 @@ final class AppState {
 
     func onAppear() {
         refreshGateAndShields()
+        ShieldGoalLaunchRouter.shared.consumePendingAppGroupLaunch()
         AppMonitoring.analytics.track("app_open", properties: [:])
         Task { await userDataSync.syncAllIfSignedIn() }
     }
 
     func onSceneActive() {
         refreshGateAndShields()
+        ShieldGoalLaunchRouter.shared.consumePendingAppGroupLaunch()
         Task { await userDataSync.syncAllIfSignedIn() }
+    }
+
+    func openGoalFromShieldPath(source: ShieldGoalLaunchSource) {
+        AppMonitoring.errorReporter.breadcrumb(
+            category: "shield_launch",
+            message: "open_goal source=\(source.rawValue)"
+        )
+        deepLinkGoalPending = true
     }
 
     func refreshGateAndShields() {
@@ -296,8 +307,8 @@ final class AppState {
             }
             return
         }
-        if url.host?.lowercased() == "goal" || url.path == "/goal" {
-            deepLinkGoalPending = true
+        if ShieldGoalLaunch.isGoalDeepLink(url) {
+            openGoalFromShieldPath(source: .deepLink)
         }
     }
 
