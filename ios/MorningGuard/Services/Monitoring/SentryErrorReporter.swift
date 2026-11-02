@@ -46,9 +46,7 @@ enum SentryBootstrap {
                     event.message?.message = SentryPrivacyScrubber.redact(message)
                 }
                 event.exceptions = event.exceptions?.map { exception in
-                    if let value = exception.value {
-                        exception.value = SentryPrivacyScrubber.redact(value)
-                    }
+                    exception.value = SentryPrivacyScrubber.redact(exception.value)
                     return exception
                 }
                 if let extra = event.extra {
