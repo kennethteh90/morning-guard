@@ -190,13 +190,13 @@ final class UserDataSyncService {
             let local = highlightStore.highlights
             guard !local.isEmpty else { return }
 
-            let pushRows = buildHighlightPushRows(
+            let pushPayloads = buildHighlightPushPayloads(
                 local: local,
                 userId: userId,
                 remoteNoteByServerId: remoteNoteByServerId
             )
-            guard !pushRows.isEmpty else { return }
-            try await client.from("bible_highlights").upsert(pushRows, onConflict: "id").execute()
+            guard !pushPayloads.isEmpty else { return }
+            try await pushHighlightPayloads(client: client, payloads: pushPayloads)
 
             let refreshed: [BibleHighlightRow] = try await client
                 .from("bible_highlights")
@@ -212,11 +212,61 @@ final class UserDataSyncService {
         }
     }
 
-    private func buildHighlightPushRows(
+    private enum HighlightPushPayload {
+        case insertNew(BibleHighlightInsertRow)
+        case updateExisting(BibleHighlightUpdateRow)
+    }
+
+    private func pushHighlightPayloads(client: SupabaseClient, payloads: [HighlightPushPayload]) async throws {
+        var lastError: Error?
+        var failures = 0
+        var successes = 0
+
+        let updates = payloads.compactMap { payload -> BibleHighlightUpdateRow? in
+            if case let .updateExisting(row) = payload { return row }
+            return nil
+        }
+        if !updates.isEmpty {
+            do {
+                try await client.from("bible_highlights").upsert(updates, onConflict: "id").execute()
+                successes += updates.count
+            } catch {
+                for row in updates {
+                    do {
+                        try await client.from("bible_highlights").upsert([row], onConflict: "id").execute()
+                        successes += 1
+                    } catch let rowError {
+                        failures += 1
+                        lastError = rowError
+                    }
+                }
+            }
+        }
+
+        for payload in payloads {
+            guard case let .insertNew(row) = payload else { continue }
+            do {
+                try await client.from("bible_highlights").upsert([row], onConflict: "user_id,client_id").execute()
+                successes += 1
+            } catch let rowError {
+                failures += 1
+                lastError = rowError
+            }
+        }
+
+        if failures > 0, successes == 0, let lastError {
+            throw lastError
+        }
+        if failures > 0, let lastError {
+            recordFailure(phase: "bible_highlights push", error: lastError)
+        }
+    }
+
+    private func buildHighlightPushPayloads(
         local: [BibleHighlight],
         userId: String,
         remoteNoteByServerId: [Int64: String]
-    ) -> [BibleHighlightRow] {
+    ) -> [HighlightPushPayload] {
         local.compactMap { highlight in
             let remoteNote = highlight.remoteId > 0 ? remoteNoteByServerId[highlight.remoteId] : nil
             let plainNote = highlightStore.displayNote(for: highlight)
@@ -242,23 +292,49 @@ final class UserDataSyncService {
             } else {
                 noteForRow = ""
             }
-            return BibleHighlightRow(
-                id: highlight.remoteId > 0 ? highlight.remoteId : nil,
-                userId: userId,
-                clientId: highlight.id > 0 ? highlight.id : nil,
-                translationId: highlight.translationId,
-                book: highlight.book,
-                chapter: highlight.chapter,
-                label: highlight.label,
-                excerpt: highlight.excerpt,
-                verse: highlight.verse,
-                verseEnd: highlight.verseEnd,
-                verseNumbers: highlight.verseNumbers,
-                colorKey: highlight.colorKey.isEmpty ? BibleHighlightColors.defaultKey : highlight.colorKey,
-                note: noteForRow,
-                selectionStart: highlight.selectionStart,
-                selectionEnd: highlight.selectionEnd,
-                createdAt: isoString(epochMs: highlight.createdAtEpochMs)
+            guard highlight.id > 0 else { return nil }
+            let createdAt = isoString(epochMs: highlight.createdAtEpochMs)
+            let colorKey = highlight.colorKey.isEmpty ? BibleHighlightColors.defaultKey : highlight.colorKey
+            if highlight.remoteId > 0 {
+                return .updateExisting(
+                    BibleHighlightUpdateRow(
+                        id: highlight.remoteId,
+                        userId: userId,
+                        clientId: highlight.id,
+                        translationId: highlight.translationId,
+                        book: highlight.book,
+                        chapter: highlight.chapter,
+                        label: highlight.label,
+                        excerpt: highlight.excerpt,
+                        verse: highlight.verse,
+                        verseEnd: highlight.verseEnd,
+                        verseNumbers: highlight.verseNumbers,
+                        colorKey: colorKey,
+                        note: noteForRow,
+                        selectionStart: highlight.selectionStart,
+                        selectionEnd: highlight.selectionEnd,
+                        createdAt: createdAt
+                    )
+                )
+            }
+            return .insertNew(
+                BibleHighlightInsertRow(
+                    userId: userId,
+                    clientId: highlight.id,
+                    translationId: highlight.translationId,
+                    book: highlight.book,
+                    chapter: highlight.chapter,
+                    label: highlight.label,
+                    excerpt: highlight.excerpt,
+                    verse: highlight.verse,
+                    verseEnd: highlight.verseEnd,
+                    verseNumbers: highlight.verseNumbers,
+                    colorKey: colorKey,
+                    note: noteForRow,
+                    selectionStart: highlight.selectionStart,
+                    selectionEnd: highlight.selectionEnd,
+                    createdAt: createdAt
+                )
             )
         }
     }
@@ -318,6 +394,72 @@ private struct UserNoteCryptoRow: Codable {
         case saltBase64 = "salt_base64"
         case wrapIvBase64 = "wrap_iv_base64"
         case kdfIterations = "kdf_iterations"
+    }
+}
+
+private struct BibleHighlightInsertRow: Codable {
+    var userId: String
+    var clientId: Int64
+    var translationId: String
+    var book: String
+    var chapter: Int
+    var label: String
+    var excerpt: String
+    var verse: Int?
+    var verseEnd: Int?
+    var verseNumbers: String?
+    var colorKey: String
+    var note: String?
+    var selectionStart: Int?
+    var selectionEnd: Int?
+    var createdAt: String?
+
+    enum CodingKeys: String, CodingKey {
+        case userId = "user_id"
+        case clientId = "client_id"
+        case translationId = "translation_id"
+        case book, chapter, label, excerpt, verse
+        case verseEnd = "verse_end"
+        case verseNumbers = "verse_numbers"
+        case colorKey = "color_key"
+        case note
+        case selectionStart = "selection_start"
+        case selectionEnd = "selection_end"
+        case createdAt = "created_at"
+    }
+}
+
+private struct BibleHighlightUpdateRow: Codable {
+    var id: Int64
+    var userId: String
+    var clientId: Int64?
+    var translationId: String
+    var book: String
+    var chapter: Int
+    var label: String
+    var excerpt: String
+    var verse: Int?
+    var verseEnd: Int?
+    var verseNumbers: String?
+    var colorKey: String
+    var note: String?
+    var selectionStart: Int?
+    var selectionEnd: Int?
+    var createdAt: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId = "user_id"
+        case clientId = "client_id"
+        case translationId = "translation_id"
+        case book, chapter, label, excerpt, verse
+        case verseEnd = "verse_end"
+        case verseNumbers = "verse_numbers"
+        case colorKey = "color_key"
+        case note
+        case selectionStart = "selection_start"
+        case selectionEnd = "selection_end"
+        case createdAt = "created_at"
     }
 }
 

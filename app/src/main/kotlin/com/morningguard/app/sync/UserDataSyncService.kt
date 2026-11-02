@@ -328,28 +328,18 @@ class UserDataSyncService @Inject constructor(
             return UserDataSyncReport(outcomes)
         }
 
-        val toPush = buildHighlightPushRows(
+        val toPush = buildHighlightPushPayloads(
             local = local,
             userId = userId,
             remoteNoteByServerId = remoteNoteByServerId,
             dekUnlocked = noteEncryptionRepository.isDekUnlocked(),
         )
 
-        val pushResult = runCatching {
-            client.postgrest.from(TABLE_HIGHLIGHTS).upsert(toPush) {
-                onConflict = "id"
-            }
-        }
-
-        outcomes += pushResult.fold(
-            onSuccess = {
-                SyncLog.ok(PHASE_HIGHLIGHTS_PUSH, "upserted ${toPush.size} row(s)")
-                SyncPhaseOutcome.Ok(PHASE_HIGHLIGHTS_PUSH, "${toPush.size} local row(s)")
-            },
-            onFailure = { error ->
-                recordSyncFailure(PHASE_HIGHLIGHTS_PUSH, error)
-                SyncPhaseOutcome.Failed(PHASE_HIGHLIGHTS_PUSH, error)
-            },
+        val pushStats = BibleHighlightRemotePush.push(client, toPush)
+        outcomes += BibleHighlightRemotePush.outcomeFromStats(
+            stats = pushStats,
+            payloadCount = toPush.size,
+            onFailure = ::recordSyncFailure,
         )
 
         pullHighlights(client)?.outcome?.let { outcomes += it }
@@ -357,12 +347,12 @@ class UserDataSyncService @Inject constructor(
         return UserDataSyncReport(outcomes)
     }
 
-    private fun buildHighlightPushRows(
+    private fun buildHighlightPushPayloads(
         local: List<BibleHighlight>,
         userId: String,
         remoteNoteByServerId: Map<Long, String>,
         dekUnlocked: Boolean,
-    ): List<BibleHighlightRow> = local.mapNotNull { highlight ->
+    ): List<BibleHighlightPushPayload> = local.mapNotNull { highlight ->
         val remoteNote = highlight.remoteId.takeIf { it > 0 }?.let { remoteNoteByServerId[it] }
         val decision = HighlightSyncNotePolicy.resolve(
             localPlainNote = highlight.note,
@@ -380,23 +370,12 @@ class UserDataSyncService @Inject constructor(
             remoteNote != null && NoteContentCipher.isCiphertext(remoteNote) -> remoteNote
             else -> ""
         }
-        BibleHighlightRow(
-            id = highlight.remoteId.takeIf { it > 0 },
+        BibleHighlightPushRows.fromWireRow(
             userId = userId,
-            clientId = highlight.id.takeIf { it > 0 },
-            translationId = highlight.translationId,
-            book = highlight.book,
-            chapter = highlight.chapter,
-            label = highlight.label,
-            excerpt = highlight.excerpt,
-            verse = highlight.verse,
-            verseEnd = highlight.verseEnd,
-            verseNumbers = highlight.verseNumbers,
-            colorKey = highlight.colorKey.ifBlank { BibleHighlightColors.DEFAULT_KEY },
-            note = noteForRow,
-            selectionStart = highlight.selectionStart,
-            selectionEnd = highlight.selectionEnd,
-            createdAt = instantToIso(highlight.createdAtEpochMs),
+            highlight = highlight,
+            noteForRow = noteForRow,
+            createdAtIso = instantToIso(highlight.createdAtEpochMs),
+            remoteServerId = highlight.remoteId.takeIf { it > 0 },
         )
     }
 
