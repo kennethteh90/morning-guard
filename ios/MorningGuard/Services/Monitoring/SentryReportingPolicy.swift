@@ -16,7 +16,7 @@ enum SentryReportingPolicy {
         guard let exceptions = event.exceptions, !exceptions.isEmpty else {
             return false
         }
-        return exceptions.all { isBenignException($0) }
+        return exceptions.allSatisfy { isBenignException($0) }
     }
 
     private static func isCoroutineCancellation(_ error: Error) -> Bool {
