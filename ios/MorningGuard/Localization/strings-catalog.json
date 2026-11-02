@@ -239,7 +239,7 @@
   "account.intro": "We email you a magic link — open it on this iPhone to finish signing in. Pair this with your recovery password in Sync & recovery for full note recovery on a new device.",
   "account.unconfigured": "Cloud sync is not configured in this build.",
   "account.signed_in_label": "Signed in",
-  "account.sync_enabled": "Streaks and highlights sync while cloud sync is enabled.",
+  "account.sync_enabled": "Streak stats and highlights sync while cloud sync is on. Settings, bypass apps, and notification text stay on this iPhone.",
   "account.sign_out": "Sign out",
   "account.delete": "Delete account",
   "account.email": "Email",

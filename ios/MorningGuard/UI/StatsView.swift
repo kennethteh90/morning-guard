@@ -54,6 +54,7 @@ struct StatsView: View {
                 if state.recent.isEmpty {
                     Text(L10n.tr("stats.empty_history"))
                         .foregroundStyle(.secondary)
+                        .accessibilityLabel(L10n.tr("stats.empty_history"))
                 } else {
                     Text(L10n.tr("stats.history"))
                         .font(.title2.bold())

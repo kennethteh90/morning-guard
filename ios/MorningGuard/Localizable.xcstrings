@@ -1591,7 +1591,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Streaks and highlights sync while cloud sync is enabled."
+            "value": "Streak stats and highlights sync while cloud sync is on. Settings, bypass apps, and notification text stay on this iPhone."
           }
         }
       }

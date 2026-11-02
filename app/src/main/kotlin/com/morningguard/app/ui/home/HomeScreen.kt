@@ -52,7 +52,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -189,7 +190,7 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(Icons.Outlined.Notifications, contentDescription = null)
+                        Icon(Icons.Outlined.Notifications, contentDescription = stringResource(R.string.a11y_home_view_digest))
                         Text(stringResource(R.string.view_digest))
                     }
                 }
@@ -209,7 +210,7 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Icon(Icons.Outlined.Close, contentDescription = null)
+                            Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.a11y_home_peace_end))
                             Text("End")
                         }
                     }
@@ -221,7 +222,7 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Icon(Icons.Outlined.Add, contentDescription = null)
+                            Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.a11y_home_peace_extend))
                             Text("Extend")
                         }
                     }
@@ -234,7 +235,7 @@ fun HomeScreen(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Icon(Icons.Outlined.WbSunny, contentDescription = null)
+                                Icon(Icons.Outlined.WbSunny, contentDescription = stringResource(R.string.a11y_home_start_goal))
                                 Text("Start morning goal")
                             }
                         }
@@ -318,7 +319,7 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Icon(Icons.Outlined.Timer, contentDescription = null)
+                            Icon(Icons.Outlined.Timer, contentDescription = stringResource(R.string.a11y_home_peace_start))
                             Text("Start peace break (1 hour)")
                         }
                     }
@@ -330,7 +331,7 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(Icons.Outlined.AutoStories, contentDescription = null)
+                    Icon(Icons.Outlined.AutoStories, contentDescription = stringResource(R.string.a11y_home_read_bible))
                     Text("Read Bible")
                 }
             }
@@ -399,7 +400,7 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Icon(Icons.Outlined.Key, contentDescription = null)
+                            Icon(Icons.Outlined.Key, contentDescription = stringResource(R.string.a11y_home_emergency))
                             Text("Open emergency bypass")
                         }
                     }
@@ -431,7 +432,11 @@ private fun GateStatusCard(
         else -> "Gate resting" to ""
     }
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                contentDescription = "$title. $subtitle. $heldCount held in digest."
+            },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
@@ -456,6 +461,7 @@ private fun HomeNavRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
+            .semantics { contentDescription = label }
             .padding(horizontal = 16.dp, vertical = 14.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,

@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -141,15 +142,31 @@ fun HighlightsScreen(
             }
             if (state.highlights.isEmpty()) {
                 item {
-                    Text(
-                        when {
-                            state.query.isNotBlank() || state.colorFilter != null ->
-                                "No matches for your filters."
-                            else -> "No highlights saved yet."
-                        },
-                        modifier = Modifier.padding(horizontal = 20.dp),
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(
+                            when {
+                                state.query.isNotBlank() || state.colorFilter != null ->
+                                    "No matches for your filters."
+                                else -> "No highlights saved yet."
+                            },
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center,
+                        )
+                        if (state.query.isBlank() && state.colorFilter == null) {
+                            Text(
+                                "Highlight verses while reading your morning goal or in Read Bible.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
+                    }
                 }
             } else {
                 items(state.highlights, key = { it.id }) { highlight ->
