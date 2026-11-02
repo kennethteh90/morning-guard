@@ -387,8 +387,6 @@ private enum AppAttestBibleProxySessionMinter {
     }
 }
 
-private struct SessionEndpointUnavailable: Error {}
-
 enum BibleProxyError: LocalizedError {
     case notConfigured
     case emptyChapter

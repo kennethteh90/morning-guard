@@ -1,5 +1,7 @@
 import Foundation
 
+struct SessionEndpointUnavailable: Error {}
+
 /// Caches a short-lived licensed Bible proxy session (parity with Android `LicensedSessionCoordinator`).
 actor LicensedSessionCoordinator {
     struct SessionGrant: Sendable {
