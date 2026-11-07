@@ -1,3 +1,4 @@
-On iPhone, the blocked-app screen’s button now sends a notification that opens your goal.
-More reliable Bible highlight sync when you sign in.
-Privacy improvements to error reporting.
+Stronger cloud sync security for reflection-note keys and account history delete.
+More reliable licensed Bible loading with retries and fewer spurious error reports.
+Accessibility polish on Home, Highlights, and account disclosure copy.
+Privacy: filter cancellation and sign-in noise from crash reporting; clearer session-expired sign-in.
