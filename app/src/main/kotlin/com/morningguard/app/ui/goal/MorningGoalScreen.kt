@@ -50,9 +50,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -62,6 +65,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.morningguard.app.platform.AppDebugFlags
+import com.morningguard.app.R
 import com.morningguard.app.ui.components.ConfirmRemoveHighlightDialog
 import com.morningguard.app.ui.components.ScreenContentColumn
 import com.morningguard.app.ui.components.ScreenScaffold
@@ -448,6 +452,7 @@ private fun BibleChapterLoadErrorBanner(
     translationLabel: String,
     onRetry: () -> Unit,
 ) {
+    val retryLabel = stringResource(R.string.a11y_bible_retry)
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
@@ -466,7 +471,12 @@ private fun BibleChapterLoadErrorBanner(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onErrorContainer,
             )
-            OutlinedButton(onClick = onRetry) {
+            OutlinedButton(
+                onClick = onRetry,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics { contentDescription = retryLabel },
+            ) {
                 Text("Retry")
             }
         }

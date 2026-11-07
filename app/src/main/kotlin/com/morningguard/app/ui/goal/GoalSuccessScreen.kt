@@ -17,8 +17,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.morningguard.app.R
 
 @Composable
 fun GoalSuccessScreen(
@@ -35,7 +37,7 @@ fun GoalSuccessScreen(
     ) {
         Icon(
             Icons.Outlined.CheckCircle,
-            contentDescription = null,
+            contentDescription = stringResource(R.string.a11y_goal_complete),
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(bottom = 8.dp),
         )
@@ -58,7 +60,10 @@ fun GoalSuccessScreen(
         if (heldCount > 0) {
             Button(onClick = onViewDigest, modifier = Modifier.fillMaxWidth()) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Icon(Icons.Outlined.Notifications, contentDescription = null)
+                    Icon(
+                        Icons.Outlined.Notifications,
+                        contentDescription = stringResource(R.string.a11y_home_view_digest),
+                    )
                     Text("View digest")
                 }
             }

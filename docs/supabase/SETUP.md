@@ -59,7 +59,7 @@ These match how you created the project (Data API on, auto-expose off, auto RLS 
 
 | Area | Setting |
 |------|---------|
-| **Database → Tables** | `morning_day_records`, `bible_highlights` show **RLS enabled** |
+| **Database → Tables** | `morning_day_records`, `bible_highlights`, and `user_note_crypto` show **RLS enabled** (and **forced** after hardening migrations) |
 | **Authentication → Providers** | Email on for magic link; Google off until you need it |
 | **Authentication → URL configuration** | `morningguard://auth` in Redirect URLs; Site URL = your HTTPS landing page if deployed |
 | **Authentication → Email Templates → Magic link** | Subject/body name **Morning Guard** (see below) |
@@ -67,6 +67,77 @@ These match how you created the project (Data API on, auto-expose off, auto RLS 
 | **API → Data API** | Do **not** enable “automatically expose new tables” |
 | **Project Settings → API keys** | App uses **publishable/anon** only; never ship **secret** / `service_role` in the APK |
 | **Network** | Optional: restrict Database IP if you only use Dashboard + PostgREST (not direct Postgres from home) |
+
+### Production RLS verification (read-only SQL)
+
+Run in **SQL Editor** before or after `db push` (no writes). Expected for Morning Guard user tables:
+
+- `rls_enabled` and `rls_forced` both **true**
+- Policies on each table: **select / insert / update** (and **delete** where the app deletes rows), all scoped with `auth.uid() = user_id` (or equivalent) and role **`authenticated`**
+- **`anon`** should have **no** table privileges on these tables; **`authenticated`** should have only the privileges matching the policies (including **`DELETE`** on `morning_day_records` and `bible_highlights` after migration `20261102143000_harden_user_table_grants.sql`)
+
+**1. RLS flags**
+
+```sql
+select
+    n.nspname as schema_name,
+    c.relname as table_name,
+    c.relrowsecurity as rls_enabled,
+    c.relforcerowsecurity as rls_forced
+from pg_class c
+join pg_namespace n on n.oid = c.relnamespace
+where n.nspname = 'public'
+  and c.relkind = 'r'
+  and c.relname in (
+      'morning_day_records',
+      'bible_highlights',
+      'user_note_crypto'
+  )
+order by c.relname;
+```
+
+**2. Policies**
+
+```sql
+select
+    schemaname,
+    tablename,
+    policyname,
+    permissive,
+    roles,
+    cmd,
+    qual as using_expression,
+    with_check
+from pg_policies
+where schemaname = 'public'
+  and tablename in (
+      'morning_day_records',
+      'bible_highlights',
+      'user_note_crypto'
+  )
+order by tablename, policyname;
+```
+
+**3. Table grants (anon must be empty)**
+
+```sql
+select
+    grantee,
+    table_name,
+    string_agg(privilege_type, ', ' order by privilege_type) as privileges
+from information_schema.role_table_grants
+where table_schema = 'public'
+  and table_name in (
+      'morning_day_records',
+      'bible_highlights',
+      'user_note_crypto'
+  )
+  and grantee in ('anon', 'authenticated', 'public')
+group by grantee, table_name
+order by table_name, grantee;
+```
+
+After applying pending migrations, re-run query **3** and confirm `authenticated` includes **`DELETE`** on `morning_day_records` and full CRUD on `user_note_crypto`, and that **`anon`** has no rows.
 
 ## 4. Branded magic-link email
 
