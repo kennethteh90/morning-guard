@@ -12,7 +12,7 @@ Edge proxy for Bible chapters. The Android app and iOS app call this worker when
 Licensed requests use a one-time challenge, then prefer a short-lived session:
 
 1. Client `POST /v1/challenge` → `{ "nonce": "…" }` (KV TTL 2 minutes).
-2. Client `POST /v1/session` with that nonce plus attestation headers → `{ "sessionToken", "expiresAt" }` (HMAC, ~1 hour). Requires worker secret `BIBLE_PROXY_SESSION_HMAC_SECRET`.
+2. Client `POST /v1/session` with that nonce plus attestation headers → `{ "sessionToken", "expiresAt" }` (HMAC, ~1 hour). Requires worker secret `BIBLE_PROXY_SESSION_HMAC_SECRET`. If Google Play Integrity decode is temporarily unavailable, the worker returns **503** (not 401) so clients can retry with backoff.
 3. Client calls `GET /v1/chapter?translation=niv&…` with `X-Morning-Guard-Session` (re-attest only when the session expires or the worker returns 401).
 4. Fresh attestation on `/v1/chapter` still works (legacy clients / fallback). Worker consumes the nonce on first successful attestation.
 
@@ -149,6 +149,17 @@ No proxy token in the app. Licensed translations require a **physical device** w
 ```bash
 npm test
 ```
+
+## Deploy (operator)
+
+After changing worker code under `workers/bible-cache/src/`, deploy from this directory (requires Cloudflare auth; do not commit secrets):
+
+```bash
+npm install
+npx wrangler deploy --config wrangler.jsonc
+```
+
+Or use `./scripts/wrangler.sh deploy` if your environment wraps Wrangler. No Supabase migration is required for licensed-auth changes in this PR.
 
 ## Verify after deploy
 

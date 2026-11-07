@@ -128,6 +128,34 @@ describe("licensed chapter auth", () => {
     clearLicensedAuthTestHooks();
   });
 
+  it("returns 503 when Play Integrity decode fails on session exchange", async () => {
+    const kv = mockKv();
+    const env: Env = {
+      BIBLE_CACHE: kv,
+      API_BIBLE_KEY: "k",
+      BIBLE_PROXY_LEGACY_TOKEN_DISABLED: "true",
+      BIBLE_PROXY_SESSION_HMAC_SECRET: "test-session-hmac-secret-value",
+    };
+    const { nonce } = await issueChallenge(kv);
+    setLicensedAuthTestHooks({
+      decodeIntegrityToken: async () => {
+        throw new Error("Google internal error");
+      },
+    });
+    const sessionRes = await issueLicensedSessionResponse(
+      new Request("https://example.com/v1/session", {
+        method: "POST",
+        headers: {
+          "X-Morning-Guard-Nonce": nonce,
+          "X-Morning-Guard-Play-Integrity": "token",
+        },
+      }),
+      env,
+    );
+    assert.equal(sessionRes.status, 503);
+    clearLicensedAuthTestHooks();
+  });
+
   it("keeps legacy token behaviour unchanged when session secret is unset", async () => {
     const env: Env = { BIBLE_CACHE: mockKv(), API_BIBLE_KEY: "k", BIBLE_PROXY_TOKEN: "secret" };
     const req = new Request("https://example.com/v1/chapter?translation=niv", {

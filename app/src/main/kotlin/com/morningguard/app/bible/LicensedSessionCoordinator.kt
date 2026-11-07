@@ -16,7 +16,7 @@ class LicensedSessionCoordinator(
     private val isTransientFailure: (Throwable) -> Boolean,
     private val nowEpochMs: () -> Long = { System.currentTimeMillis() },
     private val sleepMs: suspend (Long) -> Unit = { delay(it) },
-    private val maxAttempts: Int = 3,
+    private val maxAttempts: Int = 4,
 ) {
     data class SessionGrant(
         val token: String,
