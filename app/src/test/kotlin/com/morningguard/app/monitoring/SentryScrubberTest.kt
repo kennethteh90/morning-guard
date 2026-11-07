@@ -53,6 +53,19 @@ class SentryScrubberTest {
     }
 
     @Test
+    fun `scrubEvent drops benign cancellation events`() {
+        val event = io.sentry.SentryEvent().apply {
+            exceptions = listOf(
+                SentryException().apply {
+                    type = "kotlinx.coroutines.JobCancellationException"
+                    value = "Job was cancelled"
+                },
+            )
+        }
+        assertTrue(SentryScrubber.scrubEvent(event) == null)
+    }
+
+    @Test
     fun `scrubEvent drops bible licensed auth events without exhausted tag`() {
         val event = io.sentry.SentryEvent().apply {
             setTag("area", "bible_licensed_auth")

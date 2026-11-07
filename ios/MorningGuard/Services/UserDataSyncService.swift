@@ -340,6 +340,7 @@ final class UserDataSyncService {
     }
 
     private func recordFailure(phase: String, error: Error) {
+        guard SentryReportingPolicy.shouldReport(error) else { return }
         errorReporter.reportNonFatal(
             throwable: error,
             tags: ["feature": "supabase_sync", "sync.phase": phase],

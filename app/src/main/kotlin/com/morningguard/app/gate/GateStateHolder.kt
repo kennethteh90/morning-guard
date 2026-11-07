@@ -1,6 +1,7 @@
 package com.morningguard.app.gate
 
 import com.morningguard.data.gate.MorningGateRepository
+import com.morningguard.data.monitoring.ErrorReporter
 import com.morningguard.data.settings.SettingsRepository
 import com.morningguard.domain.gate.GateEvaluation
 import com.morningguard.domain.gate.GateState
@@ -17,6 +18,7 @@ import javax.inject.Singleton
 class GateStateHolder @Inject constructor(
     private val morningGateRepository: MorningGateRepository,
     settingsRepository: SettingsRepository,
+    private val errorReporter: ErrorReporter,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -25,6 +27,8 @@ class GateStateHolder @Inject constructor(
 
     @Volatile
     var latestSettings: UserSettings = UserSettings()
+
+    private var lastBreadcrumbGateState: GateState? = null
 
     init {
         scope.launch {
@@ -37,7 +41,41 @@ class GateStateHolder @Inject constructor(
             }.collect { (evaluation, settings) ->
                 latestEvaluation = evaluation
                 latestSettings = settings
+                maybeBreadcrumbGateTransition(evaluation)
             }
+        }
+    }
+
+    private fun maybeBreadcrumbGateTransition(evaluation: GateEvaluation) {
+        val state = evaluation.state
+        val previous = lastBreadcrumbGateState
+        lastBreadcrumbGateState = state
+        if (previous == state) {
+            return
+        }
+        when (state) {
+            GateState.LOCKED -> {
+                if (previous != GateState.LOCKED) {
+                    errorReporter.breadcrumb(
+                        "morning_gate",
+                        "gate_locked reason=${evaluation.reason}",
+                    )
+                }
+            }
+            GateState.UNLOCKED -> {
+                if (previous == GateState.LOCKED) {
+                    val detail = when (evaluation.reason) {
+                        "goal_complete" -> "goal_completed"
+                        "emergency_bypass" -> "emergency_bypass_active"
+                        else -> "gate_unlocked"
+                    }
+                    errorReporter.breadcrumb(
+                        "morning_gate",
+                        "$detail reason=${evaluation.reason}",
+                    )
+                }
+            }
+            GateState.INACTIVE -> Unit
         }
     }
 

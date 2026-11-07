@@ -23,7 +23,7 @@ object SentryScrubber {
             .replace(EMAIL_LIKE, "[redacted-email]")
 
     fun scrubEvent(event: SentryEvent): SentryEvent? {
-        if (shouldDropLicensedAuthNoise(event)) {
+        if (shouldDropLicensedAuthNoise(event) || SentryReportingPolicy.shouldDropEvent(event)) {
             return null
         }
         event.message = event.message?.let { scrubMessage(it) }

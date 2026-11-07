@@ -133,6 +133,16 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
+      - name: Upload ProGuard mapping to Sentry
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: kenneth-t3
+          SENTRY_PROJECT: morning-guard
+        run: |
+          set -euo pipefail
+          chmod +x ./scripts/upload-sentry-android-mapping.sh
+          ./scripts/upload-sentry-android-mapping.sh
+
       - name: Upload native debug symbols
         uses: actions/upload-artifact@v7
         with:

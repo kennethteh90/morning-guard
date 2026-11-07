@@ -285,6 +285,7 @@ final class AppState {
             trackGoalTime: trackGoalTime
         )
         shieldController.refreshShields()
+        AppMonitoring.errorReporter.breadcrumb(category: "morning_gate", message: "emergency_bypass_active")
         return expires
     }
 

@@ -59,6 +59,11 @@ class SupabaseAuthBackend(
             syncUser()
             Result.success(Unit)
         } catch (e: Exception) {
+            if (SupabaseAuthFailurePolicy.isStaleSessionFailure(e)) {
+                runCatching { client.auth.signOut() }
+                _state.value = AuthState.SignedOut
+                return Result.failure(IllegalStateException(SupabaseAuthFailurePolicy.userFacingMessage(e)))
+            }
             _state.value = AuthState.Error(e.message ?: "Google sign-in failed")
             Result.failure(e)
         }
@@ -109,7 +114,12 @@ class SupabaseAuthBackend(
                 syncUser()
             }
             Result.success(Unit)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            if (SupabaseAuthFailurePolicy.isStaleSessionFailure(e)) {
+                runCatching { client.auth.signOut() }
+                _state.value = AuthState.SignedOut
+                return Result.success(Unit)
+            }
             _state.value = AuthState.SignedOut
             Result.success(Unit)
         }

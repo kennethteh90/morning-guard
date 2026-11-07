@@ -3,6 +3,7 @@ package com.morningguard.app.sync
 import com.morningguard.app.supabase.SupabaseClientProvider
 import com.morningguard.data.bible.BibleHighlightRepository
 import com.morningguard.data.monitoring.ErrorReporter
+import com.morningguard.data.monitoring.MonitoringReportPolicy
 import com.morningguard.data.security.HighlightNoteCipher
 import com.morningguard.data.security.HighlightSyncNotePolicy
 import com.morningguard.data.security.NoteContentCipher
@@ -515,6 +516,9 @@ class UserDataSyncService @Inject constructor(
 
     private fun recordSyncFailure(phase: String, error: Throwable) {
         SyncLog.failure(phase, error)
+        if (!MonitoringReportPolicy.shouldReport(error)) {
+            return
+        }
         errorReporter.reportNonFatal(
             throwable = error,
             tags = mapOf(
