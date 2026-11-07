@@ -21,8 +21,15 @@ internal class LicensedAuthFailureGate(
         cooldownUntilMs.set(nowEpochMs() + cooldownMs)
     }
 
-    fun reportFailure(error: Throwable) {
+    fun reportFailure(error: Throwable, exhausted: Boolean = true) {
         val now = nowEpochMs()
+        if (!exhausted) {
+            errorReporter.breadcrumb(
+                "bible_licensed_auth",
+                error.message ?: BibleProxyLicensedAuthException.USER_FACING_MESSAGE,
+            )
+            return
+        }
         if (now - lastSentryReportMs.get() < cooldownMs) {
             errorReporter.breadcrumb(
                 "bible_licensed_auth",
@@ -33,8 +40,18 @@ internal class LicensedAuthFailureGate(
         lastSentryReportMs.set(now)
         errorReporter.reportNonFatal(
             error,
-            tags = mapOf("area" to "bible_licensed_auth"),
-            extras = mapOf("cause" to (error.cause?.javaClass?.simpleName ?: "none")),
+            tags = mapOf(
+                "area" to "bible_licensed_auth",
+                "licensed_auth_exhausted" to "true",
+            ),
+            extras = mapOf(
+                "cause" to (error.cause?.javaClass?.simpleName ?: "none"),
+                "detail" to (error.message?.take(200) ?: "unknown"),
+            ),
         )
+    }
+
+    fun breadcrumbTransient(message: String) {
+        errorReporter.breadcrumb("bible_licensed_auth", message)
     }
 }

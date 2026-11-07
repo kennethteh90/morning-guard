@@ -12,6 +12,7 @@ import com.morningguard.data.bible.BibleProxyLicensedAuth
 import com.morningguard.data.bible.BibleProxyLicensedAuthException
 import com.morningguard.data.monitoring.ErrorReporter
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -39,7 +40,7 @@ class PlayIntegrityBibleProxyLicensedAuth @Inject constructor(
 
     private val coordinator = LicensedSessionCoordinator(
         mintSession = { mintSessionGrant() },
-        isTransientFailure = ::isTransientIntegrityFailure,
+        isTransientFailure = Companion::isTransientLicensedAuthFailure,
     )
 
     private val failureGate = LicensedAuthFailureGate(errorReporter)
@@ -50,6 +51,7 @@ class PlayIntegrityBibleProxyLicensedAuth @Inject constructor(
             return
         }
         if (failureGate.inCooldown()) {
+            failureGate.breadcrumbTransient("licensed auth in client cooldown")
             throw BibleProxyLicensedAuthException()
         }
         try {
@@ -105,12 +107,12 @@ class PlayIntegrityBibleProxyLicensedAuth @Inject constructor(
                     expiresAtEpochMs = System.currentTimeMillis() + 60_000L,
                 )
             },
-            isTransientFailure = ::isTransientIntegrityFailure,
+            isTransientFailure = Companion::isTransientLicensedAuthFailure,
         )
         return oneShot.sessionToken()
     }
 
-    private suspend fun fetchChallengeNonce(): String {
+    private suspend fun fetchChallengeNonce(): String = withLicensedHttpRetry {
         val url = config.baseUrl.trimEnd('/') + "/v1/challenge"
         val request = Request.Builder()
             .url(url)
@@ -125,14 +127,14 @@ class PlayIntegrityBibleProxyLicensedAuth @Inject constructor(
             val body = response.body?.string() ?: throw BibleProxyLicensedAuthException(
                 "Empty challenge response",
             )
-            return JSONObject(body).getString("nonce")
+            JSONObject(body).getString("nonce")
         }
     }
 
     private suspend fun exchangeSession(
         nonce: String,
         integrityToken: String,
-    ): LicensedSessionCoordinator.SessionGrant {
+    ): LicensedSessionCoordinator.SessionGrant = withLicensedHttpRetry {
         val url = config.baseUrl.trimEnd('/') + "/v1/session"
         val request = Request.Builder()
             .url(url)
@@ -142,7 +144,10 @@ class PlayIntegrityBibleProxyLicensedAuth @Inject constructor(
             .build()
         httpClient.newCall(request).execute().use { response ->
             val bodyText = response.body?.string().orEmpty()
-            if (response.code == 503 || response.code == 404) {
+            if (response.code == 503 && bodyText.contains("Session tokens are not configured")) {
+                throw SessionEndpointUnavailable(response.code)
+            }
+            if (response.code == 404) {
                 throw SessionEndpointUnavailable(response.code)
             }
             if (!response.isSuccessful) {
@@ -158,11 +163,27 @@ class PlayIntegrityBibleProxyLicensedAuth @Inject constructor(
                 expiresAtSec > 1_000_000_000L -> expiresAtSec * 1000L
                 else -> System.currentTimeMillis() + expiresIn.coerceAtLeast(60L) * 1000L
             }
-            return LicensedSessionCoordinator.SessionGrant(
+            LicensedSessionCoordinator.SessionGrant(
                 token = token,
                 expiresAtEpochMs = expiresAtMs,
             )
         }
+    }
+
+    private suspend fun <T> withLicensedHttpRetry(block: suspend () -> T): T {
+        var lastError: Throwable? = null
+        repeat(LICENSED_HTTP_ATTEMPTS) { attempt ->
+            try {
+                return block()
+            } catch (e: Throwable) {
+                lastError = e
+                if (!isTransientLicensedAuthFailure(e) || attempt == LICENSED_HTTP_ATTEMPTS - 1) {
+                    throw e
+                }
+                delay(LicensedSessionCoordinator.backoffMs(attempt))
+            }
+        }
+        throw lastError ?: BibleProxyLicensedAuthException()
     }
 
     private suspend fun requestIntegrityToken(nonce: String): String = suspendCoroutine { cont ->
@@ -203,7 +224,19 @@ class PlayIntegrityBibleProxyLicensedAuth @Inject constructor(
             val code = (error as? IntegrityServiceException)?.errorCode ?: return false
             return code == IntegrityErrorCode.TOO_MANY_REQUESTS ||
                 code == IntegrityErrorCode.CANNOT_BIND_TO_SERVICE ||
-                code == IntegrityErrorCode.GOOGLE_SERVER_UNAVAILABLE
+                code == IntegrityErrorCode.GOOGLE_SERVER_UNAVAILABLE ||
+                code == IntegrityErrorCode.INTERNAL_ERROR
         }
+
+        fun isTransientLicensedAuthFailure(error: Throwable): Boolean {
+            if (error is SessionEndpointUnavailable) return false
+            if (isTransientIntegrityFailure(error)) return true
+            if (error !is BibleProxyLicensedAuthException) return false
+            val message = error.message ?: return false
+            return TRANSIENT_HTTP_STATUS.any { message.contains("($it)") }
+        }
+
+        private val TRANSIENT_HTTP_STATUS = intArrayOf(401, 502, 503, 504)
+        private const val LICENSED_HTTP_ATTEMPTS = 3
     }
 }

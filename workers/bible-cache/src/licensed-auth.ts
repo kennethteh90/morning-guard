@@ -54,27 +54,42 @@ function legacyTokenMatches(request: Request, env: Env): boolean {
   return tokensMatch(expected, provided);
 }
 
+type PlayIntegrityCheck =
+  | { status: "ok"; verdict: PlayIntegrityVerdict }
+  | { status: "decode_failed" }
+  | { status: "absent" }
+  | { status: "invalid" };
+
 async function verifyPlayIntegrity(
   request: Request,
   nonce: string,
   env: Env,
-): Promise<PlayIntegrityVerdict | null> {
+): Promise<PlayIntegrityCheck> {
   const token = request.headers.get(INTEGRITY_HEADER)?.trim() ?? "";
-  if (!token) return null;
+  if (!token) return { status: "absent" };
   const decode = testHooks.decodeIntegrityToken ?? decodeIntegrityTokenWithGoogle;
   try {
     const verdict = await decode(token, env);
-    if (!playIntegrityPasses(verdict, nonce, env)) return null;
-    return verdict;
+    if (!playIntegrityPasses(verdict, nonce, env)) return { status: "invalid" };
+    return { status: "ok", verdict };
   } catch (e) {
     console.warn("play_integrity_decode_failed", { message: String(e).slice(0, 300) });
-    return null;
+    return { status: "decode_failed" };
   }
 }
 
+type AttestationFailureReason = "missing" | "invalid" | "upstream";
+
 type AttestationResult =
   | { ok: true; pkg: string; plat: "android" | "ios" }
-  | { ok: false };
+  | { ok: false; reason: AttestationFailureReason };
+
+function attestationErrorResponse(reason: AttestationFailureReason): Response {
+  if (reason === "upstream") {
+    return json({ error: "Licensed attestation temporarily unavailable" }, 503);
+  }
+  return json({ error: "Unauthorized" }, 401);
+}
 
 /**
  * Verify one-time challenge + Play Integrity or App Attest, and consume the nonce.
@@ -84,25 +99,32 @@ async function verifyFreshAttestation(
   env: Env,
 ): Promise<AttestationResult> {
   const nonce = request.headers.get(NONCE_HEADER)?.trim() ?? "";
-  if (!nonce) return { ok: false };
+  if (!nonce) return { ok: false, reason: "missing" };
 
-  const playVerdict = await verifyPlayIntegrity(request, nonce, env);
-  if (playVerdict) {
+  const playCheck = await verifyPlayIntegrity(request, nonce, env);
+  if (playCheck.status === "decode_failed") {
+    return { ok: false, reason: "upstream" };
+  }
+  if (playCheck.status === "ok") {
     const consumed = await consumeChallenge(env.BIBLE_CACHE, nonce);
-    if (!consumed) return { ok: false };
+    if (!consumed) return { ok: false, reason: "invalid" };
     const pkg =
-      playVerdict.requestPackageName ||
+      playCheck.verdict.requestPackageName ||
       env.PLAY_INTEGRITY_PACKAGE_NAME?.trim() ||
       "com.morningguard.app";
     return { ok: true, pkg, plat: "android" };
   }
 
+  if (playCheck.status === "invalid") {
+    return { ok: false, reason: "invalid" };
+  }
+
   const appAttestFn = testHooks.verifyAppAttest ?? verifyAppAttestLicensedRequest;
   const iosOk = await appAttestFn(request, nonce, env);
-  if (!iosOk) return { ok: false };
+  if (!iosOk) return { ok: false, reason: "invalid" };
 
   const consumed = await consumeChallenge(env.BIBLE_CACHE, nonce);
-  if (!consumed) return { ok: false };
+  if (!consumed) return { ok: false, reason: "invalid" };
   const pkg = env.APPLE_APP_ATTEST_BUNDLE_ID?.trim() || "com.morningguard.app";
   return { ok: true, pkg, plat: "ios" };
 }
@@ -132,7 +154,7 @@ export async function authorizeLicensedChapterRequest(
 
   const attested = await verifyFreshAttestation(request, env);
   if (!attested.ok) {
-    return json({ error: "Unauthorized" }, 401);
+    return attestationErrorResponse(attested.reason);
   }
   return null;
 }
@@ -150,7 +172,7 @@ export async function issueLicensedSessionResponse(
 
   const attested = await verifyFreshAttestation(request, env);
   if (!attested.ok) {
-    return json({ error: "Unauthorized" }, 401);
+    return attestationErrorResponse(attested.reason);
   }
 
   const issued = await issueSessionToken(env, { pkg: attested.pkg, plat: attested.plat });

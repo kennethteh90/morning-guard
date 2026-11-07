@@ -66,4 +66,13 @@ class AuthCallbackUriTest {
             ),
         )
     }
+
+    @Test
+    fun `rejects https landing on non-root path even with code`() {
+        assertFalse(
+            AuthCallbackUri.isAuthCallback(
+                Uri.parse("https://morning-guard.codingagents.cc/privacy/?code=abc"),
+            ),
+        )
+    }
 }

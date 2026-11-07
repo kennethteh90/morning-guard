@@ -17,17 +17,24 @@ class BibleProxyAuthInterceptor @Inject constructor(
             return chain.proceed(request)
         }
 
-        val authorized = authorize(request)
-        val response = chain.proceed(authorized)
-        if (response.code != 401) {
-            return response
+        var authorized = authorize(request)
+        repeat(LICENSED_RESPONSE_RETRIES) { attempt ->
+            val response = chain.proceed(authorized)
+            if (!shouldRetryLicensedResponse(response.code) || attempt == LICENSED_RESPONSE_RETRIES - 1) {
+                return response
+            }
+            response.close()
+            licensedAuth.invalidateSession()
+            authorized = authorize(request)
         }
+        return chain.proceed(authorized)
+    }
 
-        // Session may have expired server-side; clear and re-attest once.
-        response.close()
-        licensedAuth.invalidateSession()
-        val retried = authorize(request)
-        return chain.proceed(retried)
+    private fun shouldRetryLicensedResponse(code: Int): Boolean =
+        code == 401 || code == 502 || code == 503 || code == 504
+
+    companion object {
+        private const val LICENSED_RESPONSE_RETRIES = 2
     }
 
     private fun authorize(request: okhttp3.Request): okhttp3.Request {

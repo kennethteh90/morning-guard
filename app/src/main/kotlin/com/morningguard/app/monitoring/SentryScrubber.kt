@@ -23,7 +23,7 @@ object SentryScrubber {
             .replace(EMAIL_LIKE, "[redacted-email]")
 
     fun scrubEvent(event: SentryEvent): SentryEvent? {
-        if (SentryReportingPolicy.shouldDropEvent(event)) {
+        if (shouldDropLicensedAuthNoise(event) || SentryReportingPolicy.shouldDropEvent(event)) {
             return null
         }
         event.message = event.message?.let { scrubMessage(it) }
@@ -46,6 +46,12 @@ object SentryScrubber {
             }
         }
         return event
+    }
+
+    private fun shouldDropLicensedAuthNoise(event: SentryEvent): Boolean {
+        val tags = event.tags ?: return false
+        if (tags["area"] != "bible_licensed_auth") return false
+        return tags["licensed_auth_exhausted"] != "true"
     }
 
     private fun scrubMessage(message: Message): Message {

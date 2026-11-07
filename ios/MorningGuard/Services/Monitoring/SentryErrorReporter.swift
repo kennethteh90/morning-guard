@@ -46,6 +46,10 @@ enum SentryBootstrap {
                 if SentryReportingPolicy.shouldDrop(event) {
                     return nil
                 }
+                if event.tags?["area"] == "bible_licensed_auth",
+                   event.tags?["licensed_auth_exhausted"] != "true" {
+                    return nil
+                }
                 event.request?.headers?.removeValue(forKey: "Authorization")
                 event.request?.headers?.removeValue(forKey: "apikey")
                 if let message = event.message?.message {

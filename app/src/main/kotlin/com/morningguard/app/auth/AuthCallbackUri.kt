@@ -12,7 +12,11 @@ object AuthCallbackUri {
         val code = uri.getQueryParameter("code")
         if (code.isNullOrBlank()) return false
         val custom = uri.scheme == "morningguard" && uri.host == "auth"
-        val appLink = uri.scheme == "https" && uri.host == AUTH_LANDING_HOST
+        val path = uri.path.orEmpty()
+        val landingPathOk = path.isEmpty() || path == "/"
+        val appLink = uri.scheme == "https" &&
+            uri.host == AUTH_LANDING_HOST &&
+            landingPathOk
         return custom || appLink
     }
 }

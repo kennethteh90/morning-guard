@@ -1,6 +1,11 @@
 package com.morningguard.app.ui.home
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
@@ -52,6 +57,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -61,6 +68,7 @@ import com.morningguard.app.demo.DemoSession
 import com.morningguard.app.platform.PresenterMode
 import com.morningguard.data.auth.AuthState
 import com.morningguard.domain.gate.GateDigestPolicy
+import com.morningguard.domain.gate.GateEvaluation
 import com.morningguard.domain.gate.GateState
 import com.morningguard.domain.gate.PeaceBreakPolicy
 
@@ -145,8 +153,7 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             GateStatusCard(
-                gateState = state.gate?.state,
-                reason = state.gate?.reason.orEmpty(),
+                gate = state.gate,
                 heldCount = state.digest.count,
                 peaceSessionUntilEpochMs = state.peaceSessionUntilEpochMs,
             )
@@ -189,7 +196,7 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Icon(Icons.Outlined.Notifications, contentDescription = null)
+                        Icon(Icons.Outlined.Notifications, contentDescription = stringResource(R.string.a11y_home_view_digest))
                         Text(stringResource(R.string.view_digest))
                     }
                 }
@@ -209,7 +216,7 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Icon(Icons.Outlined.Close, contentDescription = null)
+                            Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.a11y_home_peace_end))
                             Text("End")
                         }
                     }
@@ -221,7 +228,7 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Icon(Icons.Outlined.Add, contentDescription = null)
+                            Icon(Icons.Outlined.Add, contentDescription = stringResource(R.string.a11y_home_peace_extend))
                             Text("Extend")
                         }
                     }
@@ -234,7 +241,7 @@ fun HomeScreen(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Icon(Icons.Outlined.WbSunny, contentDescription = null)
+                                Icon(Icons.Outlined.WbSunny, contentDescription = stringResource(R.string.a11y_home_start_goal))
                                 Text("Start morning goal")
                             }
                         }
@@ -318,7 +325,7 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Icon(Icons.Outlined.Timer, contentDescription = null)
+                            Icon(Icons.Outlined.Timer, contentDescription = stringResource(R.string.a11y_home_peace_start))
                             Text("Start peace break (1 hour)")
                         }
                     }
@@ -330,7 +337,7 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(Icons.Outlined.AutoStories, contentDescription = null)
+                    Icon(Icons.Outlined.AutoStories, contentDescription = stringResource(R.string.a11y_home_read_bible))
                     Text("Read Bible")
                 }
             }
@@ -399,7 +406,7 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Icon(Icons.Outlined.Key, contentDescription = null)
+                            Icon(Icons.Outlined.Key, contentDescription = stringResource(R.string.a11y_home_emergency))
                             Text("Open emergency bypass")
                         }
                     }
@@ -412,11 +419,16 @@ fun HomeScreen(
 
 @Composable
 private fun GateStatusCard(
-    gateState: GateState?,
-    reason: String,
+    gate: GateEvaluation?,
     heldCount: Int,
     peaceSessionUntilEpochMs: Long?,
 ) {
+    if (gate == null) {
+        GateStatusLoadingCard()
+        return
+    }
+    val gateState = gate.state
+    val reason = gate.reason
     val peaceActive = peaceSessionUntilEpochMs != null
     val (title, subtitle) = when {
         peaceActive ->
@@ -427,11 +439,14 @@ private fun GateStatusCard(
             "Gate open" to friendlyReason(reason)
         gateState == GateState.INACTIVE ->
             "Gate resting" to "Outside your morning window."
-        gateState == null -> "Loading…" to ""
         else -> "Gate resting" to ""
     }
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                contentDescription = "$title. $subtitle. $heldCount held in digest."
+            },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
@@ -447,6 +462,54 @@ private fun GateStatusCard(
 }
 
 @Composable
+private fun GateStatusLoadingCard() {
+    val placeholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+    val shape = RoundedCornerShape(6.dp)
+    val loadingLabel = stringResource(R.string.a11y_gate_loading)
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics { contentDescription = loadingLabel },
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .height(14.dp)
+                    .fillMaxWidth(0.18f)
+                    .clip(shape)
+                    .background(placeholderColor),
+            )
+            Box(
+                modifier = Modifier
+                    .height(28.dp)
+                    .fillMaxWidth(0.72f)
+                    .clip(shape)
+                    .background(placeholderColor),
+            )
+            Box(
+                modifier = Modifier
+                    .height(16.dp)
+                    .fillMaxWidth(0.92f)
+                    .clip(shape)
+                    .background(placeholderColor),
+            )
+            Box(
+                modifier = Modifier
+                    .height(18.dp)
+                    .fillMaxWidth(0.45f)
+                    .clip(shape)
+                    .background(placeholderColor),
+            )
+        }
+    }
+}
+
+@Composable
 private fun HomeNavRow(
     icon: ImageVector,
     label: String,
@@ -456,6 +519,7 @@ private fun HomeNavRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
+            .semantics { contentDescription = label }
             .padding(horizontal = 16.dp, vertical = 14.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
