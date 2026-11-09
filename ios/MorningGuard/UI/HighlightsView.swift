@@ -32,7 +32,15 @@ struct HighlightsView: View {
                             ? L10n.tr("highlights.empty.detail")
                             : L10n.tr("highlights.no_matches.detail")
                     )
-                )
+                ) {
+                    if search.isEmpty {
+                        Button(L10n.tr("highlights.read_bible")) {
+                            openReader = true
+                        }
+                        .accessibilityLabel(L10n.tr("a11y.highlights.read_bible"))
+                        .accessibilityHint(L10n.tr("a11y.home.read_bible.hint"))
+                    }
+                }
             } else {
                 ForEach(filtered) { highlight in
                     HighlightRow(

@@ -98,6 +98,8 @@
   "highlights.search_prompt": "Search highlights",
   "highlights.empty": "No highlights yet",
   "highlights.empty.detail": "Highlight verses while reading your morning chapter or in Read Bible.",
+  "highlights.read_bible": "Read Bible",
+  "a11y.highlights.read_bible": "Read Bible",
   "highlights.no_matches": "No matches",
   "highlights.no_matches.detail": "Try a different search.",
   "highlights.delete": "Delete",

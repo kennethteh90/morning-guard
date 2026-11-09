@@ -6,10 +6,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.NotificationsNone
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -20,6 +24,9 @@ import androidx.compose.runtime.getValue
 import android.view.WindowManager
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import android.content.ContextWrapper
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -100,11 +107,7 @@ fun DigestScreen(
             }
             if (state.notifications.isEmpty()) {
                 item {
-                    Text(
-                        "Nothing held yet today.",
-                        modifier = Modifier.padding(horizontal = 20.dp),
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
+                    DigestEmptyState()
                 }
             } else {
                 state.groups.forEach { group ->
@@ -148,6 +151,36 @@ fun DigestScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun DigestEmptyState() {
+    val title = stringResource(R.string.digest_empty_title)
+    val detail = stringResource(R.string.digest_empty_detail)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 32.dp)
+            .semantics(mergeDescendants = true) {
+                contentDescription = "$title. $detail"
+            },
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Icon(
+            Icons.Outlined.NotificationsNone,
+            contentDescription = null,
+            modifier = Modifier.size(48.dp),
+            tint = MaterialTheme.colorScheme.primary,
+        )
+        Text(title, style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
+        Text(
+            detail,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 

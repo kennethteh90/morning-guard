@@ -159,9 +159,16 @@ fun HomeScreen(
             )
 
             if (!state.notificationAccessGranted) {
+                val accessTitle = stringResource(R.string.a11y_notification_access_title)
+                val accessBody = stringResource(R.string.a11y_notification_access_body)
+                val accessFix = stringResource(R.string.a11y_notification_access_fix)
                 Card(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics(mergeDescendants = true) {
+                            contentDescription = "$accessTitle. $accessBody"
+                        },
                 ) {
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("Notification access needed", style = MaterialTheme.typography.titleLarge)
@@ -169,7 +176,10 @@ fun HomeScreen(
                             "Morning Guard can't hold notifications until listener access is on.",
                             style = MaterialTheme.typography.bodyMedium,
                         )
-                        Button(onClick = { viewModel.openNotificationAccess(context) }) {
+                        Button(
+                            onClick = { viewModel.openNotificationAccess(context) },
+                            modifier = Modifier.semantics { contentDescription = accessFix },
+                        ) {
                             Text("Fix in settings")
                         }
                     }

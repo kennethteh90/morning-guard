@@ -32,6 +32,11 @@
     <string name="a11y_bible_retry">Retry loading Bible chapter</string>
     <string name="a11y_gate_status">Morning gate status</string>
     <string name="a11y_gate_loading">Loading morning gate status</string>
+    <string name="a11y_notification_access_title">Notification access needed for the morning digest</string>
+    <string name="a11y_notification_access_body">Morning Guard cannot hold notifications until notification listener access is on</string>
+    <string name="a11y_notification_access_fix">Open system settings to allow notification access</string>
+    <string name="digest_empty_title">Nothing held yet today</string>
+    <string name="digest_empty_detail">Notifications you intercept during the morning gate or peace break will appear here.</string>
     <string name="highlights_empty_title">No highlights yet</string>
     <string name="highlights_empty_detail">Highlight verses while reading your morning chapter or in Read Bible.</string>
     <string name="highlights_no_matches">No matches for your filters.</string>
