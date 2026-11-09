@@ -15,6 +15,8 @@
 		0FDD4B9F6D247D1CE0E74B7D /* OnboardingComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14F28F0D74625C1EB06C5D5 /* OnboardingComponents.swift */; };
 		16618503AB0C5AA51FEDC877 /* FamilyControls.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AF6E1B1BFE23A7F394439DF /* FamilyControls.framework */; };
 		19B8F5862FF1840CF64C3114 /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E50DC86C7F1E9546E9949CBD /* ManagedSettings.framework */; };
+		1F6E8D4C2B9A7035E4C1D892 /* MorningGuardCore in Frameworks */ = {isa = PBXBuildFile; productRef = BF7C2A9A3017246CB2A2D276 /* MorningGuardCore */; };
+		2A8F1D3E5C7B9046D8E0F1A3 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C4D5E6F708192A3B4C5D6E7 /* UserNotifications.framework */; };
 		1E0D4054AB11699D106B67D8 /* AuthCallbackURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 524B571C131B9ED4A5F38ABD /* AuthCallbackURL.swift */; };
 		1E0F1270747C78ED0AF49303 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0251160E737CA417B642CB04 /* HomeView.swift */; };
 		21A929648BFF43C53BEA173C /* MGHaptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6177EA375C190E65BFC9E184 /* MGHaptics.swift */; };
@@ -151,6 +153,7 @@
 		20270B3D7E5FF2F9935AD9E7 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		22FAB501E558C2E954BFB647 /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
 		26F7B8A214D92CED4400BBB7 /* DeviceActivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DeviceActivity.framework; path = System/Library/Frameworks/DeviceActivity.framework; sourceTree = SDKROOT; };
+		3C4D5E6F708192A3B4C5D6E7 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		2932091C446ADB93A011071F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		29A7CEEEF8F8D24C4A71AE25 /* BiblePassageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiblePassageView.swift; sourceTree = "<group>"; };
 		29FB39C52848C828709960F4 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
@@ -249,7 +252,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1F6E8D4C2B9A7035E4C1D892 /* MorningGuardCore in Frameworks */,
 				19B8F5862FF1840CF64C3114 /* ManagedSettings.framework in Frameworks */,
+				2A8F1D3E5C7B9046D8E0F1A3 /* UserNotifications.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -427,6 +432,7 @@
 				8AF6E1B1BFE23A7F394439DF /* FamilyControls.framework */,
 				E50DC86C7F1E9546E9949CBD /* ManagedSettings.framework */,
 				7B8A456134914D12B205E142 /* ManagedSettingsUI.framework */,
+				3C4D5E6F708192A3B4C5D6E7 /* UserNotifications.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -576,6 +582,7 @@
 			);
 			name = MorningGuardShieldAction;
 			packageProductDependencies = (
+				BF7C2A9A3017246CB2A2D276 /* MorningGuardCore */,
 			);
 			productName = MorningGuardShieldAction;
 			productReference = 5C1541EC4FCF1EBB7468EFFE /* MorningGuardShieldAction.appex */;
@@ -1151,6 +1158,11 @@
 		};
 		FA7A96B39784BEDEE3F9FB3E /* MorningGuardCore */ = {
 			isa = XCSwiftPackageProductDependency;
+			productName = MorningGuardCore;
+		};
+		BF7C2A9A3017246CB2A2D276 /* MorningGuardCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B503D95565CEA33883E7784A /* XCLocalSwiftPackageReference "MorningGuardCore" */;
 			productName = MorningGuardCore;
 		};
 /* End XCSwiftPackageProductDependency section */
