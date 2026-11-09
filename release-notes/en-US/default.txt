@@ -1,4 +1,4 @@
-Stronger cloud sync security for reflection-note keys and account history delete.
-More reliable licensed Bible loading with retries and fewer spurious error reports.
-Accessibility polish on Home, Highlights, and account disclosure copy.
-Privacy: filter cancellation and sign-in noise from crash reporting; clearer session-expired sign-in.
+Read Bible shortcut when you have no highlights yet.
+Clearer empty digest screen and better screen reader support for the notification access card on Android.
+Safer handling of sign-in links on iPhone.
+iOS build reliability fix.
