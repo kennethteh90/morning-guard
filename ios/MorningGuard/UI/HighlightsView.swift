@@ -24,24 +24,26 @@ struct HighlightsView: View {
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
             if filtered.isEmpty {
-                ContentUnavailableView(
-                    search.isEmpty ? L10n.tr("highlights.empty") : L10n.tr("highlights.no_matches"),
-                    systemImage: "bookmark",
-                    description: Text(
-                        search.isEmpty
-                            ? L10n.tr("highlights.empty.detail")
-                            : L10n.tr("highlights.no_matches.detail")
-                    ),
-                    actions: {
-                        if search.isEmpty {
-                            Button(L10n.tr("highlights.read_bible")) {
-                                openReader = true
-                            }
-                            .accessibilityLabel(L10n.tr("a11y.highlights.read_bible"))
-                            .accessibilityHint(L10n.tr("a11y.home.read_bible.hint"))
+                Section {
+                    ContentUnavailableView(
+                        search.isEmpty ? L10n.tr("highlights.empty") : L10n.tr("highlights.no_matches"),
+                        systemImage: "bookmark",
+                        description: Text(
+                            search.isEmpty
+                                ? L10n.tr("highlights.empty.detail")
+                                : L10n.tr("highlights.no_matches.detail")
+                        )
+                    )
+                    if search.isEmpty {
+                        Button(L10n.tr("highlights.read_bible")) {
+                            openReader = true
                         }
+                        .frame(maxWidth: .infinity)
+                        .accessibilityLabel(L10n.tr("a11y.highlights.read_bible"))
+                        .accessibilityHint(L10n.tr("a11y.home.read_bible.hint"))
                     }
-                )
+                }
+                .listRowBackground(Color.clear)
             } else {
                 ForEach(filtered) { highlight in
                     HighlightRow(
