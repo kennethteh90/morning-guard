@@ -531,7 +531,7 @@ class UserDataSyncService @Inject constructor(
 
     private fun finishSyncRun(label: String, report: UserDataSyncReport) {
         SyncLog.reportCompleted(label, report)
-        errorReporter.breadcrumb("supabase_sync", "$label — ${report.summary()}")
+        errorReporter.breadcrumb("supabase_sync", "$label — ${report.sentrySummary()}")
     }
 
     private fun preconditionFailure(cause: SyncPreconditionFailure): Result<UserDataSyncReport> {

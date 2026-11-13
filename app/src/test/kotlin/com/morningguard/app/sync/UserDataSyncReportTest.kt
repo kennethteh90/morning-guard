@@ -27,4 +27,14 @@ class UserDataSyncReportTest {
         )
         assertFalse(report.hasFailures)
     }
+
+    @Test
+    fun sentrySummary_omitsFreeFormErrorMessages() {
+        val report = UserDataSyncReport(
+            listOf(SyncPhaseOutcome.Failed("pull", IllegalStateException("sensitive@example.com"))),
+        )
+        val sentry = report.sentrySummary()
+        assertTrue(sentry.contains("IllegalStateException"))
+        assertFalse(sentry.contains("sensitive@example.com"))
+    }
 }
