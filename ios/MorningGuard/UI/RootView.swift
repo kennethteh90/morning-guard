@@ -52,14 +52,25 @@ struct RootView: View {
         }
         }
         .onChange(of: appState.deepLinkGoalPending) { _, pending in
-            if pending, appState.settingsStore.userSettings.onboardingCompleted {
-                showGoal = true
-                appState.deepLinkGoalPending = false
+            presentGoalIfEligible(pending: pending)
+        }
+        .onChange(of: appState.settingsStore.userSettings.onboardingCompleted) { _, completed in
+            if completed {
+                presentGoalIfEligible(pending: appState.deepLinkGoalPending)
             }
+        }
+        .onAppear {
+            presentGoalIfEligible(pending: appState.deepLinkGoalPending)
         }
         .task {
             await applyScreenshotGuideSceneIfNeeded()
         }
+    }
+
+    private func presentGoalIfEligible(pending: Bool) {
+        guard pending, appState.settingsStore.userSettings.onboardingCompleted else { return }
+        showGoal = true
+        appState.deepLinkGoalPending = false
     }
 
     private func applyScreenshotGuideSceneIfNeeded() async {

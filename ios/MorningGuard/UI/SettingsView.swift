@@ -29,6 +29,7 @@ struct SettingsView: View {
     #if canImport(FamilyControls)
     @State private var shieldActivitySelection = FamilyActivitySelection()
     #endif
+    @State private var shieldNotificationsDenied = false
 
     var body: some View {
         Form {
@@ -146,6 +147,10 @@ struct SettingsView: View {
             loadFromStore()
             syncShieldSelectionFromController()
         }
+        .task {
+            let enabled = await ShieldGoalLaunchRouter.shared.shieldNotificationsEnabled()
+            shieldNotificationsDenied = !enabled
+        }
         .sheet(item: $backupPasswordMode) { mode in
             LocalBackupPasswordSheet(mode: mode) { password in
                 switch mode {
@@ -241,6 +246,18 @@ struct SettingsView: View {
             Text(L10n.tr("settings.shields.help"))
                 .font(.caption)
                 .foregroundStyle(.secondary)
+            if shieldNotificationsDenied {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(L10n.tr("shield.notifications.body"))
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                    Button(L10n.tr("shield.notifications.enable")) {
+                        ShieldGoalLaunchRouter.shared.openAppNotificationSettings()
+                    }
+                    .font(.caption.weight(.semibold))
+                    .accessibilityLabel(L10n.tr("a11y.shield.notifications.enable"))
+                }
+            }
             if appState.gateService.evaluation.state != .locked {
                 Button(L10n.tr("settings.shields.clear")) {
                     appState.shieldController.revokeShieldsImmediately()

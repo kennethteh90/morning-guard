@@ -1343,6 +1343,17 @@
         }
       }
     },
+    "a11y.shield.notifications.enable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open iOS Notification Settings for Morning Guard"
+          }
+        }
+      }
+    },
     "a11y.stats.history_row": {
       "extractionState": "manual",
       "localizations": {
@@ -5024,6 +5035,39 @@
           "stringUnit": {
             "state": "translated",
             "value": "Settings"
+          }
+        }
+      }
+    },
+    "shield.notifications.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When you tap Continue on a Screen Time shield, Morning Guard sends a notification so you can open your morning goal. Without notifications, that handoff does not work."
+          }
+        }
+      }
+    },
+    "shield.notifications.enable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Notification Settings"
+          }
+        }
+      }
+    },
+    "shield.notifications.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow goal notifications"
           }
         }
       }
