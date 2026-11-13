@@ -46,6 +46,8 @@ struct BibleReadingScreen: View {
     @State private var passage: BibleChapterPassage?
     @State private var loading = false
     @State private var errorMessage: String?
+    @State private var lastLoadHttpStatus: Int?
+    @State private var showLicensedOpenFallbackActions = false
     @State private var highlightBarState: VerseHighlightBarState?
     @State private var translationSheet = false
     @State private var bookChapterSheet = false
@@ -78,7 +80,7 @@ struct BibleReadingScreen: View {
                 scrollTopMarker
 
                 if let errorMessage, !loading {
-                    bibleLoadErrorBanner(errorMessage)
+                    bibleLoadErrorBanner(errorMessage, showOpenFallback: showLicensedOpenFallbackActions)
                 }
                 if showsGoalProgress {
                     ProgressView(value: min(1, Double(elapsedSeconds) / Double(requiredSeconds)))
@@ -241,7 +243,7 @@ struct BibleReadingScreen: View {
         "\(config.bibleTranslation)|\(config.bibleBook)|\(config.bibleChapter)"
     }
 
-    private func bibleLoadErrorBanner(_ message: String) -> some View {
+    private func bibleLoadErrorBanner(_ message: String, showOpenFallback: Bool) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(
                 L10n.tr(
@@ -257,6 +259,26 @@ struct BibleReadingScreen: View {
             Button(L10n.tr("bible.retry")) { Task { await loadChapter(forceRefresh: true) } }
                 .buttonStyle(.bordered)
                 .accessibilityLabel(L10n.tr("a11y.bible.retry"))
+            if showOpenFallback {
+                Text(L10n.tr("bible.licensed_fallback.hint"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                HStack(spacing: 10) {
+                    ForEach(BibleLicensedLoadRecovery.openFallbackTranslationIds, id: \.self) { fallbackId in
+                        Button(L10n.tr("bible.licensed_fallback.format", BibleTranslations.chipLabel(id: fallbackId))) {
+                            switchToFallbackTranslation(fallbackId)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(MGTheme.accent)
+                        .accessibilityLabel(
+                            L10n.tr(
+                                "a11y.bible.licensed_fallback",
+                                BibleTranslations.chipLabel(id: fallbackId)
+                            )
+                        )
+                    }
+                }
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(12)
@@ -264,6 +286,18 @@ struct BibleReadingScreen: View {
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .accessibilityElement(children: .combine)
         .accessibilityLabel(L10n.tr("a11y.bible.load_error"))
+    }
+
+    private func switchToFallbackTranslation(_ translationId: String) {
+        appState.setBibleTranslation(translationId)
+        errorMessage = nil
+        showLicensedOpenFallbackActions = false
+        lastLoadHttpStatus = nil
+        MGBanner.present(
+            .message(L10n.tr("bible.licensed_fallback.switched_format", BibleTranslations.chipLabel(id: translationId))),
+            binding: $banner
+        )
+        Task { await loadChapter(forceRefresh: true) }
     }
 
     private var chapterNavBar: some View {
@@ -339,6 +373,8 @@ struct BibleReadingScreen: View {
         let chapterChanged = key != loadedChapterKey
         loading = true
         errorMessage = nil
+        lastLoadHttpStatus = nil
+        showLicensedOpenFallbackActions = false
         if chapterChanged {
             passage = nil
             withAnimation(.spring(duration: 0.35)) {
@@ -355,12 +391,20 @@ struct BibleReadingScreen: View {
             )
             loadedChapterKey = key
             passage = loaded
+            showLicensedOpenFallbackActions = false
             prefetchAdjacentChapters()
         } catch {
             if chapterChanged {
                 passage = nil
             }
-            errorMessage = friendlyBibleError(error.localizedDescription)
+            let description = error.localizedDescription
+            lastLoadHttpStatus = (error as? BibleProxyError)?.httpStatus
+            errorMessage = friendlyBibleError(description)
+            showLicensedOpenFallbackActions = BibleLicensedLoadRecovery.shouldOfferOpenBibleFallback(
+                translationId: config.bibleTranslation,
+                httpStatus: lastLoadHttpStatus,
+                errorDescription: description
+            )
         }
     }
 
