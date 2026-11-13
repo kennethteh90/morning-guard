@@ -32,6 +32,9 @@ jobs:
       - name: Generate Xcode project
         run: ./scripts/generate-xcodeproj.sh
 
+      - name: Verify committed xcodeproj matches XcodeGen
+        run: ./scripts/verify-committed-xcodeproj.sh
+
       - name: Test MorningGuardCore
         working-directory: ios/MorningGuardCore
         run: swift test
@@ -41,7 +44,7 @@ jobs:
           xcodebuild \
             -project MorningGuard.xcodeproj \
             -scheme MorningGuard \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination 'generic/platform=iOS Simulator' \
             -sdk iphonesimulator \
             CODE_SIGNING_ALLOWED=NO \
             build
