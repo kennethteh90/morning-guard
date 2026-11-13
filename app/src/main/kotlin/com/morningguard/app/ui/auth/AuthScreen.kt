@@ -104,7 +104,12 @@ fun AuthScreen(onBack: () -> Unit, viewModel: AuthViewModel = hiltViewModel()) {
                             containerColor = MaterialTheme.colorScheme.primaryContainer,
                         ),
                     ) {
-                        Text(it, modifier = Modifier.padding(16.dp))
+                        Text(
+                            it,
+                            modifier = Modifier.padding(16.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
                     }
                 }
             }
@@ -117,6 +122,7 @@ fun AuthScreen(onBack: () -> Unit, viewModel: AuthViewModel = hiltViewModel()) {
                     Text(
                         it,
                         modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onErrorContainer,
                     )
                 }
