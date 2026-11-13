@@ -5,7 +5,7 @@ import {
 } from "./licensed-auth";
 import { cacheControlHeader, LICENSED_KV_TTL_SEC } from "./cache-policy";
 import { LicensedTranslationBlockedError, licensedContentAllowed } from "./licensed";
-import { isRateLimited } from "./rate-limit";
+import { isRateLimited, isRateLimitedForBucket } from "./rate-limit";
 import { SESSION_HEADER } from "./session-token";
 import { isLicensedApiBibleTranslation } from "./translations";
 import { bookKeySegment } from "./usfm";
@@ -27,11 +27,17 @@ export default {
     }
 
     if (url.pathname === "/v1/challenge" && request.method === "POST") {
+      if (await isRateLimitedForBucket(request, env, "challenge")) {
+        return cors(json({ error: "Rate limit exceeded" }, 429));
+      }
       const { nonce } = await issueChallenge(env.BIBLE_CACHE);
       return cors(json({ nonce }));
     }
 
     if (url.pathname === "/v1/session" && request.method === "POST") {
+      if (await isRateLimitedForBucket(request, env, "session")) {
+        return cors(json({ error: "Rate limit exceeded" }, 429));
+      }
       return cors(await issueLicensedSessionResponse(request, env));
     }
 
