@@ -18,6 +18,7 @@ import javax.inject.Inject
 data class EmergencyUiState(
     val message: String? = null,
     val error: String? = null,
+    val isActivating: Boolean = false,
 )
 
 @HiltViewModel
@@ -35,14 +36,22 @@ class EmergencyBypassViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     fun attemptBypass(passphrase: String) {
+        if (_state.value.isActivating) return
         viewModelScope.launch {
-            emergencyBypassRepository.attemptBypass(passphrase)
-                .onSuccess {
-                    userDataSyncService.syncMorningHistoryIfSignedIn()
-                        .onFailure { /* logged in UserDataSyncService */ }
-                    _state.value = EmergencyUiState(message = "Bypass active for 1 hour")
-                }
-                .onFailure { _state.value = EmergencyUiState(error = it.message) }
+            _state.value = _state.value.copy(isActivating = true, error = null)
+            try {
+                emergencyBypassRepository.attemptBypass(passphrase)
+                    .onSuccess {
+                        userDataSyncService.syncMorningHistoryIfSignedIn()
+                            .onFailure { /* logged in UserDataSyncService */ }
+                        _state.value = EmergencyUiState(message = "Bypass active for 1 hour")
+                    }
+                    .onFailure {
+                        _state.value = EmergencyUiState(error = it.message)
+                    }
+            } finally {
+                _state.value = _state.value.copy(isActivating = false)
+            }
         }
     }
 }

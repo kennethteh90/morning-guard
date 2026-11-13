@@ -15,6 +15,9 @@ object MonitoringReportPolicy {
         if (isBenignKeystoreIvMisconfiguration(throwable)) {
             return false
         }
+        if (isBenignCredentialException(throwable)) {
+            return false
+        }
         return true
     }
 
@@ -30,6 +33,20 @@ object MonitoringReportPolicy {
             }
             val message = current.message.orEmpty()
             if (message.contains("Job was cancelled", ignoreCase = true)) {
+                return true
+            }
+            current = current.cause
+        }
+        return false
+    }
+
+    fun isBenignCredentialException(throwable: Throwable): Boolean {
+        var current: Throwable? = throwable
+        while (current != null) {
+            val name = current.javaClass.name
+            if (name.endsWith("NoCredentialException") ||
+                name.endsWith("GetCredentialCancellationException")
+            ) {
                 return true
             }
             current = current.cause

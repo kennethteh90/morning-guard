@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.morningguard.app.BuildConfig
 import com.morningguard.app.R
 import com.morningguard.app.auth.GoogleSignInHelper
+import com.morningguard.app.auth.GoogleSignInNoCredentialException
 import com.morningguard.app.auth.GoogleSignInUserCancelledException
 import com.morningguard.app.auth.SupabaseAuthFailurePolicy
 import com.morningguard.data.auth.AuthRepository
@@ -111,6 +112,7 @@ class AuthViewModel @Inject constructor(
     }
 
     private fun requestMagicLink(normalized: String) {
+        if (_local.value.isSendingMagicLink) return
         viewModelScope.launch {
             _local.value = _local.value.copy(
                 isSendingMagicLink = true,
@@ -194,6 +196,12 @@ class AuthViewModel @Inject constructor(
 
     private fun handleGoogleSignInFailure(error: Throwable) {
         if (error is GoogleSignInUserCancelledException) {
+            return
+        }
+        if (error is GoogleSignInNoCredentialException) {
+            _local.value = _local.value.copy(
+                error = appContext.getString(R.string.auth_google_no_account),
+            )
             return
         }
         if (SupabaseAuthFailurePolicy.isStaleSessionFailure(error)) {

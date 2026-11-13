@@ -250,6 +250,7 @@ fun MorningGoalScreen(
                     loading = state.loadingBible,
                     loadError = state.bibleLoadError,
                     onRetryLoad = viewModel::retryBibleChapterLoad,
+                    onSwitchToOpenTranslation = viewModel::switchToOpenBibleTranslation,
                     passage = state.biblePassage,
                     chapterHighlights = state.bibleChapterHighlights,
                     elapsedSec = elapsedSec,
@@ -279,18 +280,27 @@ fun MorningGoalScreen(
 
             state.error?.let {
                 Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
-                    Text(it, modifier = Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onErrorContainer)
+                    Text(
+                        it,
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                    )
                 }
             }
 
             if (!browseOnly) {
                 Button(
                     onClick = { viewModel.completeGoal() },
-                    enabled = state.canComplete,
+                    enabled = state.canComplete && !state.isCompletingGoal,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Outlined.CheckCircle, contentDescription = null)
+                        if (state.isCompletingGoal) {
+                            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                        } else {
+                            Icon(Icons.Outlined.CheckCircle, contentDescription = null)
+                        }
                         Text("Complete morning goal")
                     }
                 }
@@ -350,6 +360,7 @@ private fun BibleGoalBody(
     loading: Boolean,
     loadError: String?,
     onRetryLoad: () -> Unit,
+    onSwitchToOpenTranslation: () -> Unit,
     passage: List<com.morningguard.domain.bible.BiblePassageBlock>,
     chapterHighlights: List<com.morningguard.domain.bible.BibleHighlight>,
     elapsedSec: Long,
@@ -402,6 +413,8 @@ private fun BibleGoalBody(
                     chapter = chapter,
                     translationLabel = translationLabel,
                     onRetry = onRetryLoad,
+                    onSwitchToOpenTranslation = onSwitchToOpenTranslation,
+                    loading = loading,
                 )
             }
             if (!browseOnly) {
@@ -451,8 +464,12 @@ private fun BibleChapterLoadErrorBanner(
     chapter: Int,
     translationLabel: String,
     onRetry: () -> Unit,
+    onSwitchToOpenTranslation: () -> Unit,
+    loading: Boolean,
 ) {
     val retryLabel = stringResource(R.string.a11y_bible_retry)
+    val offerOpenTranslation = message.contains("licensed", ignoreCase = true) ||
+        message.contains("WEB or KJV", ignoreCase = false)
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
@@ -473,11 +490,21 @@ private fun BibleChapterLoadErrorBanner(
             )
             OutlinedButton(
                 onClick = onRetry,
+                enabled = !loading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .semantics { contentDescription = retryLabel },
             ) {
                 Text("Retry")
+            }
+            if (offerOpenTranslation) {
+                OutlinedButton(
+                    onClick = onSwitchToOpenTranslation,
+                    enabled = !loading,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.bible_use_web_translation))
+                }
             }
         }
     }

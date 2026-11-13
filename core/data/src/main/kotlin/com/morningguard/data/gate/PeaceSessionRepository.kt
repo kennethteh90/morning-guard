@@ -2,6 +2,8 @@ package com.morningguard.data.gate
 
 import com.morningguard.data.settings.SettingsRepository
 import com.morningguard.domain.gate.PeaceBreakPolicy
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -10,13 +12,14 @@ class PeaceSessionRepository @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val morningGateRepository: MorningGateRepository,
 ) {
+    private val sessionMutex = Mutex()
     suspend fun peaceSessionActiveUntil(nowMs: Long = System.currentTimeMillis()): Long? {
         reconcileStoredPeaceSession(nowMs)
         val until = settingsRepository.currentGoalStore().peaceSessionUntilEpochMs ?: return null
         return if (nowMs < until) until else null
     }
 
-    suspend fun startOrExtendOneHour(nowMs: Long = System.currentTimeMillis()): Long {
+    suspend fun startOrExtendOneHour(nowMs: Long = System.currentTimeMillis()): Long = sessionMutex.withLock {
         reconcileStoredPeaceSession(nowMs)
         val store = settingsRepository.currentGoalStore()
         val peaceActive = store.peaceSessionUntilEpochMs?.let { it > nowMs } == true
@@ -30,7 +33,7 @@ class PeaceSessionRepository @Inject constructor(
         return until
     }
 
-    suspend fun endPeaceSession() {
+    suspend fun endPeaceSession() = sessionMutex.withLock {
         settingsRepository.updateGoalProgress { it.copy(peaceSessionUntilEpochMs = null) }
     }
 

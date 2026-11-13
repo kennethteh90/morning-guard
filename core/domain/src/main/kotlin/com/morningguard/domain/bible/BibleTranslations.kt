@@ -61,6 +61,9 @@ object BibleTranslations {
 
     const val defaultId: String = "niv"
 
+    /** Open-Bible fallback when licensed proxy auth fails (no attestation required). */
+    const val openFallbackId: String = "web"
+
     fun find(id: String): BibleTranslationOption? =
         supported.firstOrNull { it.id.equals(id, ignoreCase = true) }
 

@@ -2,6 +2,7 @@ package com.morningguard.app.monitoring
 
 import io.sentry.SentryEvent
 import io.sentry.protocol.SentryException
+import androidx.credentials.exceptions.NoCredentialException
 import kotlinx.coroutines.CancellationException
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -12,6 +13,11 @@ class SentryReportingPolicyTest {
     @Test
     fun `shouldReport skips cancellation`() {
         assertFalse(SentryReportingPolicy.shouldReport(CancellationException()))
+    }
+
+    @Test
+    fun `shouldReport skips no credential`() {
+        assertFalse(SentryReportingPolicy.shouldReport(NoCredentialException()))
     }
 
     @Test

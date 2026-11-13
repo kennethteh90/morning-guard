@@ -3,6 +3,8 @@ package com.morningguard.app.ui.digest
 import android.content.Context
 import android.content.Intent
 import androidx.lifecycle.ViewModel
+import com.morningguard.app.R
+import dagger.hilt.android.qualifiers.ApplicationContext
 import androidx.lifecycle.viewModelScope
 import com.morningguard.app.platform.PresenterMode
 import com.morningguard.app.notification.DigestNotificationManager
@@ -12,8 +14,11 @@ import com.morningguard.data.notification.NotificationCaptureRepository
 import com.morningguard.domain.gate.GateDigestPolicy
 import com.morningguard.domain.model.CapturedNotification
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -35,11 +40,15 @@ data class DigestUiState(
 
 @HiltViewModel
 class DigestViewModel @Inject constructor(
+    @ApplicationContext private val appContext: Context,
     private val notificationCaptureRepository: NotificationCaptureRepository,
     private val digestNotificationManager: DigestNotificationManager,
     private val morningGateRepository: MorningGateRepository,
     private val appDisplayNameResolver: AppDisplayNameResolver,
 ) : ViewModel() {
+
+    private val _userMessage = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val userMessage: SharedFlow<String> = _userMessage.asSharedFlow()
 
     val uiState: StateFlow<DigestUiState> = kotlinx.coroutines.flow.combine(
         notificationCaptureRepository.notifications,
@@ -87,7 +96,12 @@ class DigestViewModel @Inject constructor(
                 setPackage(notification.packageName)
             }
         launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        if (launchIntent.resolveActivity(pm) == null) return false
+        if (launchIntent.resolveActivity(pm) == null) {
+            viewModelScope.launch {
+                _userMessage.emit(appContext.getString(R.string.digest_open_app_failed))
+            }
+            return false
+        }
         context.startActivity(launchIntent)
         viewModelScope.launch {
             notificationCaptureRepository.remove(notification.id)

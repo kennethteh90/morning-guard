@@ -30,6 +30,13 @@
     <string name="a11y_home_emergency">Open emergency bypass</string>
     <string name="a11y_goal_complete">Morning goal complete</string>
     <string name="a11y_bible_retry">Retry loading Bible chapter</string>
+    <string name="a11y_highlight_color_yellow">Yellow</string>
+    <string name="a11y_highlight_color_green">Green</string>
+    <string name="a11y_highlight_color_blue">Blue</string>
+    <string name="a11y_highlight_color_pink">Pink</string>
+    <string name="a11y_highlight_color_purple">Purple</string>
+    <string name="a11y_highlight_color_selected">%1$s highlight color, selected</string>
+    <string name="a11y_digest_open_app">Open %1$s</string>
     <string name="a11y_gate_status">Morning gate status</string>
     <string name="a11y_gate_loading">Loading morning gate status</string>
     <string name="a11y_notification_access_title">Notification access needed for the morning digest</string>
@@ -51,6 +58,9 @@
     <string name="auth_sign_in_or">or</string>
     <string name="auth_sign_in_with_google">Sign in with Google</string>
     <string name="auth_google_sign_in_failed">Could not sign in with Google. Try again.</string>
+    <string name="auth_google_no_account">No Google account on this device. Add one in Settings, or use email sign-in.</string>
+    <string name="bible_use_web_translation">Use WEB translation</string>
+    <string name="digest_open_app_failed">Couldn\'t open that app. It may have been uninstalled.</string>
 
     <plurals name="digest_held_count">
         <item quantity="one">1 notification held from %2$s</item>

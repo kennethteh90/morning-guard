@@ -188,6 +188,7 @@ fun SettingsScreen(
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 missingAlarmPermissions = AlarmPermissions.missing(context)
+                viewModel.refreshStepSensorAvailability()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)

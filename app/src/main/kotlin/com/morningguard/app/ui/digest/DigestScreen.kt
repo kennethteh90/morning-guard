@@ -1,6 +1,5 @@
 package com.morningguard.app.ui.digest
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,13 +17,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import android.view.WindowManager
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import android.content.ContextWrapper
@@ -49,6 +55,12 @@ fun DigestScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(viewModel) {
+        viewModel.userMessage.collect { message ->
+            snackbarHostState.showSnackbar(message)
+        }
+    }
     DisposableEffect(context) {
         val window = context.findActivity()?.window
         if (!AppDebugFlags.screenshotMode) {
@@ -61,7 +73,11 @@ fun DigestScreen(
         }
     }
 
-    ScreenScaffold(title = "Morning digest", onBack = onBack) { padding ->
+    ScreenScaffold(
+        title = "Morning digest",
+        onBack = onBack,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { padding ->
         if (!state.canViewDigest) {
             Column(
                 modifier = Modifier.padding(padding).padding(20.dp),
@@ -193,11 +209,30 @@ private fun DigestItemCard(
     val time = DateTimeFormatter.ofPattern("h:mm a").format(
         Instant.ofEpochMilli(item.postedAtEpochMs).atZone(ZoneId.systemDefault()),
     )
+    val openLabel = stringResource(R.string.a11y_digest_open_app, appLabel)
+    val bodySummary = buildString {
+        append(appLabel)
+        append(". ")
+        append(item.title)
+        if (item.text.isNotBlank()) {
+            append(". ")
+            append(item.text)
+        }
+        append(". ")
+        append(time)
+    }
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
-            .clickable(onClick = onOpen),
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+                contentDescription = bodySummary
+                onClick(label = openLabel) {
+                    onOpen()
+                    true
+                }
+            },
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(appLabel, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)

@@ -241,27 +241,15 @@ fun VerseHighlightBottomBar(
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        val ringColor = MaterialTheme.colorScheme.primary
                         Row(
                             modifier = Modifier.weight(1f),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
                         ) {
                             BibleHighlightColors.keys.forEach { key ->
-                                val color = highlightColorForKey(key)
-                                Box(
-                                    modifier = Modifier
-                                        .size(28.dp)
-                                        .clip(CircleShape)
-                                        .then(
-                                            if (key == state.colorKey) {
-                                                Modifier.border(2.dp, ringColor, CircleShape)
-                                            } else {
-                                                Modifier
-                                            },
-                                        )
-                                        .padding(2.dp)
-                                        .background(color, CircleShape)
-                                        .clickable { onColorSelected(key) },
+                                HighlightColorPickerChip(
+                                    colorKey = key,
+                                    selected = key == state.colorKey,
+                                    onClick = { onColorSelected(key) },
                                 )
                             }
                         }

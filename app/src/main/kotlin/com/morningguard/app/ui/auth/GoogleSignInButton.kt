@@ -1,7 +1,6 @@
 package com.morningguard.app.ui.auth
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,16 +32,15 @@ fun GoogleSignInButton(
     isLoading: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val darkTheme = isSystemInDarkTheme()
-    val containerColor = if (darkTheme) Color(0xFF131314) else Color.White
-    val contentColor = if (darkTheme) Color(0xFFE3E3E3) else Color(0xFF1F1F1F)
-    val borderColor = if (darkTheme) Color(0xFF8E918F) else Color(0xFF747775)
+    val containerColor = MaterialTheme.colorScheme.surface
+    val contentColor = MaterialTheme.colorScheme.onSurface
+    val borderColor = MaterialTheme.colorScheme.outline
 
     OutlinedButton(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
-            .height(40.dp),
+            .height(48.dp),
         enabled = enabled && !isLoading,
         shape = RoundedCornerShape(20.dp),
         colors = ButtonDefaults.outlinedButtonColors(

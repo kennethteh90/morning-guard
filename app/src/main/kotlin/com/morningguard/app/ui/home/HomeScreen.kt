@@ -196,18 +196,36 @@ fun HomeScreen(
             if (peaceActive) {
                 val remainingMin = ((state.peaceSessionUntilEpochMs!! - System.currentTimeMillis()) / 60_000)
                     .coerceAtLeast(1)
+                val peaceStatus = when {
+                    !state.notificationAccessGranted ->
+                        "Peace break · about $remainingMin min left. Turn on notification access above to hold alerts."
+                    digestCount > 0 ->
+                        "Peace break · about $remainingMin min left. $digestCount notification(s) in your digest."
+                    else ->
+                        "Peace break · about $remainingMin min left. Notifications are collected into your digest."
+                }
                 Text(
-                    "Peace break · about $remainingMin min left. Notifications are collected into your digest.",
+                    peaceStatus,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Button(onClick = onOpenDigest, modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = onOpenDigest,
+                    enabled = state.notificationAccessGranted,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(Icons.Outlined.Notifications, contentDescription = stringResource(R.string.a11y_home_view_digest))
-                        Text(stringResource(R.string.view_digest))
+                        Text(
+                            if (digestCount > 0) {
+                                "${stringResource(R.string.view_digest)} ($digestCount)"
+                            } else {
+                                stringResource(R.string.view_digest)
+                            },
+                        )
                     }
                 }
                 Row(

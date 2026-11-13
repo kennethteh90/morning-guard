@@ -59,6 +59,7 @@ data class MorningGoalUiState(
     val stepDebug: StepGoalDebugInfo? = null,
     val healthConnectNeedsPermission: Boolean = false,
     val canComplete: Boolean = false,
+    val isCompletingGoal: Boolean = false,
     val bibleChapterHighlights: List<BibleHighlight> = emptyList(),
     val lastHighlightColorKey: String = BibleHighlightColors.DEFAULT_KEY,
 )
@@ -95,6 +96,8 @@ class MorningGoalViewModel @Inject constructor(
     private val healthConnectNeedsPermission = MutableStateFlow(false)
     private var loadedBibleChapterKey: String? = null
     private var biblePrefetchJob: Job? = null
+    private var bibleLoadJob: Job? = null
+    private val completingGoal = MutableStateFlow(false)
 
     val uiState: StateFlow<MorningGoalUiState> = combine(
         combine(
@@ -112,7 +115,8 @@ class MorningGoalViewModel @Inject constructor(
         },
         bibleHighlightColorStore.colorKey,
         error,
-    ) { combined, lastColorKey, goalError ->
+        completingGoal,
+    ) { combined, lastColorKey, goalError, completing ->
         val settings = combined.settings
         val store = combined.store
         val passageQuad = combined.passageQuad
@@ -146,11 +150,12 @@ class MorningGoalViewModel @Inject constructor(
             } else {
                 null
             },
-            canComplete = !browsing && morningGateRepository.canComplete(
+            canComplete = !browsing && !completing && morningGateRepository.canComplete(
                 settings.morningGoal,
                 progress,
                 quad.steps,
             ),
+            isCompletingGoal = completing,
             bibleChapterHighlights = chapterHighlights,
             lastHighlightColorKey = lastColorKey,
         )
@@ -238,6 +243,12 @@ class MorningGoalViewModel @Inject constructor(
             refreshHealthConnectAccess()
             viewModelScope.launch {
                 morningGateRepository.startGoalIfNeeded()
+                if (bibleLoadError.value != null || biblePassage.value.isEmpty()) {
+                    val settings = settingsRepository.currentSettings()
+                    if (browseOnly.value || settings.morningGoal.type == GoalType.BIBLE_CHAPTER) {
+                        loadBibleIfNeeded()
+                    }
+                }
             }
             startStepGoalTracking()
         } else {
@@ -520,8 +531,16 @@ class MorningGoalViewModel @Inject constructor(
         loadBibleIfNeeded(forceRefresh = true)
     }
 
-    fun loadBibleIfNeeded(forceRefresh: Boolean = false) {
+    fun switchToOpenBibleTranslation() {
         viewModelScope.launch {
+            settingsRepository.setBibleTranslation(BibleTranslations.openFallbackId)
+            loadBibleIfNeeded(forceRefresh = true)
+        }
+    }
+
+    fun loadBibleIfNeeded(forceRefresh: Boolean = false) {
+        if (bibleLoadJob?.isActive == true && !forceRefresh) return
+        bibleLoadJob = viewModelScope.launch {
             val settings = settingsRepository.currentSettings()
             if (!browseOnly.value && settings.morningGoal.type != GoalType.BIBLE_CHAPTER) return@launch
             val goal = settings.morningGoal
@@ -573,19 +592,25 @@ class MorningGoalViewModel @Inject constructor(
     }
 
     fun completeGoal() {
+        if (completingGoal.value) return
         viewModelScope.launch {
-            val result = morningGateRepository.completeGoal(currentSteps.value)
-            result.onSuccess {
-                val held = notificationCaptureRepository.snapshotDigestSummary().count
-                _goalCompleted.emit(held)
-                applicationScope.launch {
-                    analyticsTracker.track("goal_completed")
-                    userDataSyncService.syncMorningHistoryIfSignedIn()
-                        .onFailure { /* logged in UserDataSyncService */ }
+            completingGoal.value = true
+            try {
+                val result = morningGateRepository.completeGoal(currentSteps.value)
+                result.onSuccess {
+                    val held = notificationCaptureRepository.snapshotDigestSummary().count
+                    _goalCompleted.emit(held)
+                    applicationScope.launch {
+                        analyticsTracker.track("goal_completed")
+                        userDataSyncService.syncMorningHistoryIfSignedIn()
+                            .onFailure { /* logged in UserDataSyncService */ }
+                    }
+                    loadBibleIfNeeded()
+                }.onFailure {
+                    error.value = it.message
                 }
-                loadBibleIfNeeded()
-            }.onFailure {
-                error.value = it.message
+            } finally {
+                completingGoal.value = false
             }
         }
     }

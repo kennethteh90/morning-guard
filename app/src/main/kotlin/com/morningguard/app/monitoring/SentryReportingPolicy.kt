@@ -1,6 +1,7 @@
 package com.morningguard.app.monitoring
 
 import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.NoCredentialException
 import com.morningguard.data.monitoring.MonitoringReportPolicy
 import io.sentry.SentryEvent
 import io.sentry.protocol.SentryException
@@ -15,7 +16,13 @@ object SentryReportingPolicy {
         if (throwable is GetCredentialCancellationException) {
             return false
         }
+        if (throwable is NoCredentialException) {
+            return false
+        }
         if (isCredentialCancellationByName(throwable)) {
+            return false
+        }
+        if (isBenignCredentialExceptionByName(throwable)) {
             return false
         }
         return true
@@ -32,7 +39,8 @@ object SentryReportingPolicy {
     private fun isBenignExceptionEntry(entry: SentryException): Boolean {
         val type = entry.type.orEmpty()
         if (type.endsWith("CancellationException") ||
-            type.endsWith("GetCredentialCancellationException")
+            type.endsWith("GetCredentialCancellationException") ||
+            type.endsWith("NoCredentialException")
         ) {
             return true
         }
@@ -63,10 +71,25 @@ object SentryReportingPolicy {
         return false
     }
 
+    private fun isBenignCredentialExceptionByName(throwable: Throwable): Boolean {
+        var current: Throwable? = throwable
+        while (current != null) {
+            if (current is NoCredentialException) {
+                return true
+            }
+            if (current.javaClass.name.endsWith("NoCredentialException")) {
+                return true
+            }
+            current = current.cause
+        }
+        return false
+    }
+
     /** Types registered with Sentry so uncaught handler drops them before upload. */
     fun ignoredExceptionTypesForInit(): Array<Class<out Throwable>> =
         arrayOf(
             CancellationException::class.java,
             GetCredentialCancellationException::class.java,
+            NoCredentialException::class.java,
         )
 }
