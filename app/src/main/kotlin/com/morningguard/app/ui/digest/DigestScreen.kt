@@ -18,9 +18,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import android.view.WindowManager
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,6 +53,12 @@ fun DigestScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(viewModel) {
+        viewModel.userMessage.collect { message ->
+            snackbarHostState.showSnackbar(message)
+        }
+    }
     DisposableEffect(context) {
         val window = context.findActivity()?.window
         if (!AppDebugFlags.screenshotMode) {
@@ -61,7 +71,11 @@ fun DigestScreen(
         }
     }
 
-    ScreenScaffold(title = "Morning digest", onBack = onBack) { padding ->
+    ScreenScaffold(
+        title = "Morning digest",
+        onBack = onBack,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+    ) { padding ->
         if (!state.canViewDigest) {
             Column(
                 modifier = Modifier.padding(padding).padding(20.dp),

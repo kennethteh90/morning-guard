@@ -5,16 +5,16 @@ import com.morningguard.app.gate.GateStateHolder
 import com.morningguard.app.notification.DigestNotificationManager
 import com.morningguard.app.notification.NotificationExtrasReader
 import com.morningguard.data.analytics.AnalyticsTracker
+import com.morningguard.data.monitoring.ErrorReporter
 import com.morningguard.data.notification.NotificationCaptureRepository
 import com.morningguard.domain.model.CapturedNotification
 import com.morningguard.domain.notification.KnownAppLabels
-import com.morningguard.domain.notification.NotificationPolicy
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 class MorningNotificationListenerService : android.service.notification.NotificationListenerService() {
 
@@ -22,8 +22,10 @@ class MorningNotificationListenerService : android.service.notification.Notifica
     private lateinit var digestNotificationManager: DigestNotificationManager
     private lateinit var gateStateHolder: GateStateHolder
     private lateinit var analyticsTracker: AnalyticsTracker
+    private lateinit var errorReporter: ErrorReporter
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var digestCollectJob: Job? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -35,12 +37,14 @@ class MorningNotificationListenerService : android.service.notification.Notifica
         digestNotificationManager = entryPoint.digestNotificationManager()
         gateStateHolder = entryPoint.gateStateHolder()
         analyticsTracker = entryPoint.analyticsTracker()
+        errorReporter = entryPoint.errorReporter()
         scope.launch { gateStateHolder.refreshNow() }
     }
 
     override fun onListenerConnected() {
         super.onListenerConnected()
-        scope.launch {
+        digestCollectJob?.cancel()
+        digestCollectJob = scope.launch {
             gateStateHolder.refreshNow()
             captureRepository.snapshotDigestSummary().let { digestNotificationManager.showDigest(it) }
             captureRepository.digestSummary.collect { summary ->
@@ -49,11 +53,20 @@ class MorningNotificationListenerService : android.service.notification.Notifica
         }
     }
 
-    override fun onNotificationPosted(sbn: StatusBarNotification) {
-        runBlocking(Dispatchers.IO) {
-            gateStateHolder.refreshNow()
-        }
+    override fun onListenerDisconnected() {
+        digestCollectJob?.cancel()
+        digestCollectJob = null
+        super.onListenerDisconnected()
+    }
 
+    override fun onNotificationPosted(sbn: StatusBarNotification) {
+        scope.launch {
+            handleNotificationPosted(sbn)
+        }
+    }
+
+    private suspend fun handleNotificationPosted(sbn: StatusBarNotification) {
+        gateStateHolder.refreshNow()
         val evaluation = gateStateHolder.latestEvaluation
         val settings = gateStateHolder.latestSettings
         val extras = sbn.notification.extras
@@ -61,36 +74,49 @@ class MorningNotificationListenerService : android.service.notification.Notifica
         val title = normalizeCaptureTitle(sbn.packageName, rawTitle, text)
         val category = sbn.notification.category
 
-        val shouldIntercept = NotificationPolicy.shouldIntercept(
+        val action = NotificationListenerPostHandler.evaluatePost(
             packageName = sbn.packageName,
             category = category,
-            bypassPackages = settings.bypassPackageNames,
-            gateState = evaluation.state,
-            digestOnlyDuringMorningGate = settings.digestOnlyDuringMorningGate,
+            settings = settings,
+            evaluation = evaluation,
             appPackageName = packageName,
         )
 
-        if (!shouldIntercept) return
+        if (!action.shouldIntercept) {
+            if (sbn.packageName == "com.whatsapp" || sbn.packageName == "com.whatsapp.w4b") {
+                errorReporter.breadcrumb(
+                    "notification_listener",
+                    "skip_whatsapp reason=${action.skipReason} gate=${evaluation.state} " +
+                        "digestReason=${evaluation.reason}",
+                )
+            }
+            return
+        }
 
-        scope.launch {
-            captureRepository.capture(
-                CapturedNotification(
-                    packageName = sbn.packageName,
-                    title = title,
-                    text = text,
-                    postedAtEpochMs = sbn.postTime,
-                    category = category,
-                    notificationKey = sbn.key,
-                ),
-            )
+        val rowId = captureRepository.capture(
+            CapturedNotification(
+                packageName = sbn.packageName,
+                title = title,
+                text = text,
+                postedAtEpochMs = sbn.postTime,
+                category = category,
+                notificationKey = sbn.key,
+            ),
+        )
+        if (NotificationListenerPostHandler.shouldCancelAfterCapture(rowId)) {
+            cancelNotification(sbn.key)
             analyticsTracker.track(
                 "notification_captured",
                 mapOf("package" to sbn.packageName),
             )
-            digestNotificationManager.showDigest(captureRepository.snapshotDigestSummary())
+        } else {
+            errorReporter.breadcrumb(
+                "notification_listener",
+                "intercept_not_persisted package=${sbn.packageName} title_len=${title.length} " +
+                    "text_len=${text.length} gate=${evaluation.state} reason=${evaluation.reason}",
+            )
         }
-
-        cancelNotification(sbn.key)
+        digestNotificationManager.showDigest(captureRepository.snapshotDigestSummary())
     }
 
     private fun normalizeCaptureTitle(packageName: String, title: String, text: String): String {

@@ -30,11 +30,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.morningguard.app.ui.components.ScreenScaffold
 
 @Composable
 fun BypassAppsScreen(onBack: () -> Unit, viewModel: BypassAppsViewModel = hiltViewModel()) {
+    LifecycleResumeEffect(Unit) {
+        viewModel.refreshNotifyingPackages()
+        onPauseOrDispose { }
+    }
     val bypass by viewModel.bypassPackages.collectAsStateWithLifecycle()
     val allApps by viewModel.installedApps.collectAsStateWithLifecycle()
     var query by rememberSaveable { mutableStateOf("") }

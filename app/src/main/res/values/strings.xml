@@ -51,6 +51,9 @@
     <string name="auth_sign_in_or">or</string>
     <string name="auth_sign_in_with_google">Sign in with Google</string>
     <string name="auth_google_sign_in_failed">Could not sign in with Google. Try again.</string>
+    <string name="auth_google_no_account">No Google account on this device. Add one in Settings, or use email sign-in.</string>
+    <string name="bible_use_web_translation">Use WEB translation</string>
+    <string name="digest_open_app_failed">Couldn\'t open that app. It may have been uninstalled.</string>
 
     <plurals name="digest_held_count">
         <item quantity="one">1 notification held from %2$s</item>

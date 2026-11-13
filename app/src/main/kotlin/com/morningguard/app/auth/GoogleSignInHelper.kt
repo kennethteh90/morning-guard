@@ -5,6 +5,7 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.NoCredentialException
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.morningguard.app.BuildConfig
@@ -44,6 +45,8 @@ class GoogleSignInHelper @Inject constructor(
             throw e
         } catch (_: GetCredentialCancellationException) {
             Result.failure(GoogleSignInUserCancelledException())
+        } catch (_: NoCredentialException) {
+            Result.failure(GoogleSignInNoCredentialException())
         } catch (e: Exception) {
             Result.failure(e)
         }

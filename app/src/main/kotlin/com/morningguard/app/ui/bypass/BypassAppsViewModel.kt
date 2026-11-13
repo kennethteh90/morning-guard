@@ -40,6 +40,10 @@ class BypassAppsViewModel @Inject constructor(
     val installedApps: StateFlow<List<InstalledApp>> = _installedApps.asStateFlow()
 
     init {
+        refreshNotifyingPackages()
+    }
+
+    fun refreshNotifyingPackages() {
         viewModelScope.launch {
             val notifying = notificationCaptureRepository.distinctNotifyingPackageNames().toSet()
             _installedApps.value = buildInstalledApps(notifying)
