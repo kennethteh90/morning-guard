@@ -44,7 +44,7 @@ jobs:
           xcodebuild \
             -project MorningGuard.xcodeproj \
             -scheme MorningGuard \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination 'generic/platform=iOS Simulator' \
             -sdk iphonesimulator \
             CODE_SIGNING_ALLOWED=NO \
             build
