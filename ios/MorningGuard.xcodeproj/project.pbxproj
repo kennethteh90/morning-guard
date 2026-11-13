@@ -15,8 +15,6 @@
 		0FDD4B9F6D247D1CE0E74B7D /* OnboardingComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E14F28F0D74625C1EB06C5D5 /* OnboardingComponents.swift */; };
 		16618503AB0C5AA51FEDC877 /* FamilyControls.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8AF6E1B1BFE23A7F394439DF /* FamilyControls.framework */; };
 		19B8F5862FF1840CF64C3114 /* ManagedSettings.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E50DC86C7F1E9546E9949CBD /* ManagedSettings.framework */; };
-		1F6E8D4C2B9A7035E4C1D892 /* MorningGuardCore in Frameworks */ = {isa = PBXBuildFile; productRef = BF7C2A9A3017246CB2A2D276 /* MorningGuardCore */; };
-		2A8F1D3E5C7B9046D8E0F1A3 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3C4D5E6F708192A3B4C5D6E7 /* UserNotifications.framework */; };
 		1E0D4054AB11699D106B67D8 /* AuthCallbackURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 524B571C131B9ED4A5F38ABD /* AuthCallbackURL.swift */; };
 		1E0F1270747C78ED0AF49303 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0251160E737CA417B642CB04 /* HomeView.swift */; };
 		21A929648BFF43C53BEA173C /* MGHaptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6177EA375C190E65BFC9E184 /* MGHaptics.swift */; };
@@ -32,6 +30,7 @@
 		4274072E4EEA4C8CB0267C16 /* BibleProxyConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 499E1D244A1C8245C9D8FA41 /* BibleProxyConfig.swift */; };
 		44C49BFEE23F4D2CF5C18866 /* RecoveryPasswordHostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1BCC9FF14F8C4AF6FE0469C /* RecoveryPasswordHostView.swift */; };
 		46E5ECE9B76FA42E62FD696E /* MorningGuardMonitor.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D765CFC306C93F455D0349DF /* MorningGuardMonitor.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		473146BDA3C4C8DAFF9765F6 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BE5E14178FABF9124384677 /* UserNotifications.framework */; };
 		49EA12DD1BA0510ED324B6BC /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 58F8D3285385626C6BAF84B7 /* PrivacyInfo.xcprivacy */; };
 		4E1D054FF90DB7B377380E2D /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 8243429593727ED2FACFBFEB /* Localizable.xcstrings */; };
 		50165CAA5DDB5B6C7159CAFC /* BiblePassageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29A7CEEEF8F8D24C4A71AE25 /* BiblePassageView.swift */; };
@@ -76,11 +75,13 @@
 		AD070CF2759D4499AE24035F /* SentryConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AF12FA7596EFAD759B7CC84 /* SentryConfig.swift */; };
 		B07B0E1CE114B1E02C8682C0 /* BibleHighlightStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 457782675C4399E0F89F2078 /* BibleHighlightStore.swift */; };
 		B2C361CEFF623480B45CB8AF /* ScreenshotDemoSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCA7DF23AC0B033C91BBE43B /* ScreenshotDemoSeeder.swift */; };
+		B7F41C583D97D560AFDDB069 /* SentryReportingPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = F92B8A930F79425438906106 /* SentryReportingPolicy.swift */; };
 		BFAD4DA7B384C90B712C8306 /* DeviceActivityScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40C5B7077965A3EEACF68ACA /* DeviceActivityScheduler.swift */; };
 		C3109A463BD4BE961F0527B4 /* SharedShieldSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E21AC5482DB20B3A769B3D /* SharedShieldSupport.swift */; };
 		C4D39A2D628D0D03B72A63DF /* DeviceActivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 26F7B8A214D92CED4400BBB7 /* DeviceActivity.framework */; };
 		C61AD7204063E9AE42E4B6C8 /* MorningHistoryRecording.swift in Sources */ = {isa = PBXBuildFile; fileRef = D94EE5F98A74218FB9454676 /* MorningHistoryRecording.swift */; };
 		C6999738F33E8A1372DA1913 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 5D42489D03DDB37CB01C09C4 /* Supabase */; };
+		C77AD622B37AEE8122777D52 /* ShieldGoalLaunchRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB4857D94F19F96C1E34A9F5 /* ShieldGoalLaunchRouter.swift */; };
 		C8542A603D4859D294DF8960 /* BibleClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8DA8423EDF0DBC2CDFBDB71 /* BibleClient.swift */; };
 		CA847750F63FD0EBEC5D0612 /* EmergencyBypassView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F99E314604CBF15542E4EC9D /* EmergencyBypassView.swift */; };
 		CB5B6F2DF873C5A6F96095CE /* AppGroupKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8BEACADB730FBB9D415ECAD /* AppGroupKeys.swift */; };
@@ -95,6 +96,7 @@
 		E494CDC8424AAFE4FA7C5576 /* MGDebugFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49FCA280F824D62EFA63A793 /* MGDebugFlags.swift */; };
 		E6568041212C4AAE50FF02F0 /* BibleChapterMemoryCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = A410306757517A4CDA976C58 /* BibleChapterMemoryCache.swift */; };
 		E8D3A246548C943CA36BCFB5 /* OnboardingFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D099254BB94BFF52BD4A9281 /* OnboardingFlowView.swift */; };
+		E9E401B137D1F6A91CFB5AB4 /* MorningGuardCore in Frameworks */ = {isa = PBXBuildFile; productRef = 12FC2B371B5787B74D7CE0FF /* MorningGuardCore */; };
 		ECCCA70B63AC74FDC5C91C74 /* BibleReadingScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F80AF99F70C4EF5A0BCDC685 /* BibleReadingScreen.swift */; };
 		ED8F4174748E57E7C7BA71D0 /* EmergencyLockoutStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A017C1EF19E70A2DEBCBDE1 /* EmergencyLockoutStore.swift */; };
 		F81E2EFD8BD30A3FB59EF6E4 /* VerseHighlightBottomBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88239595064EEC5D2B56114D /* VerseHighlightBottomBar.swift */; };
@@ -153,7 +155,6 @@
 		20270B3D7E5FF2F9935AD9E7 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		22FAB501E558C2E954BFB647 /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
 		26F7B8A214D92CED4400BBB7 /* DeviceActivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DeviceActivity.framework; path = System/Library/Frameworks/DeviceActivity.framework; sourceTree = SDKROOT; };
-		3C4D5E6F708192A3B4C5D6E7 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		2932091C446ADB93A011071F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		29A7CEEEF8F8D24C4A71AE25 /* BiblePassageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BiblePassageView.swift; sourceTree = "<group>"; };
 		29FB39C52848C828709960F4 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
@@ -162,6 +163,7 @@
 		35FDAD2467D0F38365779874 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		38FFCDA7D42BBD179CBFEFBE /* PassphraseStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassphraseStore.swift; sourceTree = "<group>"; };
 		398B4A29A98C3C7B2D5190A1 /* LicensedSessionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicensedSessionCoordinator.swift; sourceTree = "<group>"; };
+		3BE5E14178FABF9124384677 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		40C5B7077965A3EEACF68ACA /* DeviceActivityScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceActivityScheduler.swift; sourceTree = "<group>"; };
 		42993978A265440269330EE9 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		457782675C4399E0F89F2078 /* BibleHighlightStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BibleHighlightStore.swift; sourceTree = "<group>"; };
@@ -228,9 +230,11 @@
 		E6EAB54E0E35F21038C811B0 /* SyncErrorReporting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncErrorReporting.swift; sourceTree = "<group>"; };
 		E8DA8423EDF0DBC2CDFBDB71 /* BibleClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BibleClient.swift; sourceTree = "<group>"; };
 		EA3D1D53827C693E22BF06B3 /* UserDataSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDataSyncService.swift; sourceTree = "<group>"; };
+		EB4857D94F19F96C1E34A9F5 /* ShieldGoalLaunchRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldGoalLaunchRouter.swift; sourceTree = "<group>"; };
 		F15C67224B3C4A39A1F32D19 /* MagicLinkRateLimitStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MagicLinkRateLimitStore.swift; sourceTree = "<group>"; };
 		F69BA02F702DF6ED2D863F3F /* AnalyticsTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsTracker.swift; sourceTree = "<group>"; };
 		F80AF99F70C4EF5A0BCDC685 /* BibleReadingScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BibleReadingScreen.swift; sourceTree = "<group>"; };
+		F92B8A930F79425438906106 /* SentryReportingPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SentryReportingPolicy.swift; sourceTree = "<group>"; };
 		F99E314604CBF15542E4EC9D /* EmergencyBypassView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmergencyBypassView.swift; sourceTree = "<group>"; };
 		FBE493E65A0A9FD8BEAC9040 /* MGTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MGTheme.swift; sourceTree = "<group>"; };
 		FCA7DF23AC0B033C91BBE43B /* ScreenshotDemoSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotDemoSeeder.swift; sourceTree = "<group>"; };
@@ -252,9 +256,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1F6E8D4C2B9A7035E4C1D892 /* MorningGuardCore in Frameworks */,
+				E9E401B137D1F6A91CFB5AB4 /* MorningGuardCore in Frameworks */,
 				19B8F5862FF1840CF64C3114 /* ManagedSettings.framework in Frameworks */,
-				2A8F1D3E5C7B9046D8E0F1A3 /* UserNotifications.framework in Frameworks */,
+				473146BDA3C4C8DAFF9765F6 /* UserNotifications.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -408,6 +412,7 @@
 				1F96B380EB294FC47BE3FBB1 /* ScreenshotGuideScene.swift */,
 				29FB39C52848C828709960F4 /* SettingsStore.swift */,
 				5025D8E16E133D5CA3244C86 /* ShieldController.swift */,
+				EB4857D94F19F96C1E34A9F5 /* ShieldGoalLaunchRouter.swift */,
 				5F48EC1F35BB651FBC71EBB6 /* SupabaseAuthService.swift */,
 				C0B8AA1262E1E8C6E594E9B1 /* SupabaseConfig.swift */,
 				E6EAB54E0E35F21038C811B0 /* SyncErrorReporting.swift */,
@@ -432,7 +437,7 @@
 				8AF6E1B1BFE23A7F394439DF /* FamilyControls.framework */,
 				E50DC86C7F1E9546E9949CBD /* ManagedSettings.framework */,
 				7B8A456134914D12B205E142 /* ManagedSettingsUI.framework */,
-				3C4D5E6F708192A3B4C5D6E7 /* UserNotifications.framework */,
+				3BE5E14178FABF9124384677 /* UserNotifications.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -454,6 +459,7 @@
 				4AF12FA7596EFAD759B7CC84 /* SentryConfig.swift */,
 				178431605567AC60B0149348 /* SentryErrorReporter.swift */,
 				8F4A4508E00B0AD8DE86EAD5 /* SentryPrivacyScrubber.swift */,
+				F92B8A930F79425438906106 /* SentryReportingPolicy.swift */,
 			);
 			path = Monitoring;
 			sourceTree = "<group>";
@@ -582,7 +588,7 @@
 			);
 			name = MorningGuardShieldAction;
 			packageProductDependencies = (
-				BF7C2A9A3017246CB2A2D276 /* MorningGuardCore */,
+				12FC2B371B5787B74D7CE0FF /* MorningGuardCore */,
 			);
 			productName = MorningGuardShieldAction;
 			productReference = 5C1541EC4FCF1EBB7468EFFE /* MorningGuardShieldAction.appex */;
@@ -739,11 +745,13 @@
 				AD070CF2759D4499AE24035F /* SentryConfig.swift in Sources */,
 				A1FEC9BB18B0AA4C3782FC90 /* SentryErrorReporter.swift in Sources */,
 				9829F55AA60286C88FDB99E0 /* SentryPrivacyScrubber.swift in Sources */,
+				B7F41C583D97D560AFDDB069 /* SentryReportingPolicy.swift in Sources */,
 				3A319C31AAC5B2708DE58039 /* SettingsFormStyles.swift in Sources */,
 				415043BA13D1B74C7CA486DE /* SettingsStore.swift in Sources */,
 				8BF92AD9C2DFB8AECD0986EE /* SettingsView.swift in Sources */,
 				E09C114977B410A62DB8F6C7 /* ShieldAppSelectionEditor.swift in Sources */,
 				0F1574FFEF474497BAEB1E59 /* ShieldController.swift in Sources */,
+				C77AD622B37AEE8122777D52 /* ShieldGoalLaunchRouter.swift in Sources */,
 				3565C54DDCD6F1138B7D7CCD /* StatsView.swift in Sources */,
 				FBE9FD43606D5A9E635E8C7C /* SupabaseAuthService.swift in Sources */,
 				A7B662924D6F2FAC559E43FE /* SupabaseConfig.swift in Sources */,
@@ -1142,6 +1150,10 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		12FC2B371B5787B74D7CE0FF /* MorningGuardCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MorningGuardCore;
+		};
 		5D42489D03DDB37CB01C09C4 /* Supabase */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 00BC57755DC11AF9227BCEBF /* XCRemoteSwiftPackageReference "supabase-swift" */;
@@ -1158,11 +1170,6 @@
 		};
 		FA7A96B39784BEDEE3F9FB3E /* MorningGuardCore */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = MorningGuardCore;
-		};
-		BF7C2A9A3017246CB2A2D276 /* MorningGuardCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = B503D95565CEA33883E7784A /* XCLocalSwiftPackageReference "MorningGuardCore" */;
 			productName = MorningGuardCore;
 		};
 /* End XCSwiftPackageProductDependency section */
