@@ -393,6 +393,11 @@ enum BibleProxyError: LocalizedError {
     case appAttestUnavailable
     case http(status: Int, body: String)
 
+    var httpStatus: Int? {
+        if case .http(let status, _) = self { return status }
+        return nil
+    }
+
     var errorDescription: String? {
         switch self {
         case .notConfigured:

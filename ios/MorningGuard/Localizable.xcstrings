@@ -243,6 +243,17 @@
         }
       }
     },
+    "a11y.bible.licensed_fallback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read this chapter in %1$@"
+          }
+        }
+      }
+    },
     "a11y.bible.load_error": {
       "extractionState": "manual",
       "localizations": {
@@ -1966,6 +1977,39 @@
           "stringUnit": {
             "state": "translated",
             "value": "Highlight removed"
+          }
+        }
+      }
+    },
+    "bible.licensed_fallback.format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read in %1$@"
+          }
+        }
+      }
+    },
+    "bible.licensed_fallback.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licensed text is unavailable right now. You can read the same chapter in an open translation:"
+          }
+        }
+      }
+    },
+    "bible.licensed_fallback.switched_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switched to %1$@. Loading chapter…"
           }
         }
       }
