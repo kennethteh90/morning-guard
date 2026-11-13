@@ -240,7 +240,7 @@ struct MorningGoalView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(bibleGoalTimerReady ? MGTheme.accent : MGTheme.disabledControl)
-                    .disabled(isCompletingGoal || progress?.isComplete == true)
+                    .disabled(isCompletingGoal)
                     .accessibilityLabel(L10n.tr("a11y.goal.complete"))
                     .accessibilityHint(L10n.tr("a11y.goal.complete.hint"))
                 } else {
