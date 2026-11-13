@@ -138,6 +138,7 @@ struct RecoveryPasswordBannerView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(MGTheme.accent)
+                .mgMinimumTapTarget(alignment: .leading)
                 .accessibilityLabel(L10n.tr("a11y.recovery.banner.set"))
             }
             .padding(14)

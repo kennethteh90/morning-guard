@@ -75,9 +75,10 @@ struct VerseHighlightBottomBar: View {
                 Image(systemName: "xmark")
                     .font(.body.weight(.semibold))
                     .foregroundStyle(.secondary)
-                    .frame(width: 32, height: 32)
+                    .frame(width: 36, height: 36)
                     .background(Color(.tertiarySystemFill), in: Circle())
             }
+            .mgMinimumTapTarget()
             .accessibilityLabel(L10n.tr("bible.highlight.clear_selection"))
             .accessibilityHint(L10n.tr("a11y.bible.highlight.dismiss"))
         }
@@ -97,6 +98,8 @@ struct VerseHighlightBottomBar: View {
                 onColorSelected(key)
                 state.colorKey = key
             }
+            .mgMinimumTapTarget()
+            .accessibilityAddTraits(.isButton)
             .accessibilityLabel(L10n.tr("bible.highlight.color_format", key))
     }
 
@@ -169,7 +172,8 @@ private struct HighlightBarAction: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.85)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 10)
+                .padding(.vertical, 12)
+                .frame(minHeight: MGAccessibility.minTapDimension)
         }
         .buttonStyle(.plain)
         .foregroundStyle(foregroundColor)
@@ -178,13 +182,13 @@ private struct HighlightBarAction: View {
     }
 
     private var foregroundColor: Color {
-        if destructive { return .red }
-        if prominent { return .white }
+        if destructive { return MGTheme.destructive }
+        if prominent { return MGTheme.onAccent }
         return .primary
     }
 
     private var backgroundColor: Color {
-        if destructive { return Color.red.opacity(0.12) }
+        if destructive { return MGTheme.destructiveBackground }
         if prominent { return MGTheme.accent }
         return Color(.tertiarySystemFill)
     }

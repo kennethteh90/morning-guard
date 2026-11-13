@@ -54,7 +54,7 @@ struct OnboardingStepHeader: View {
                 } else {
                     Text("\(index + 1)")
                         .font(.caption.bold())
-                        .foregroundStyle(isCurrent ? .white : .secondary)
+                        .foregroundStyle(isCurrent ? MGTheme.onAccent : .secondary)
                 }
             }
             Text(title)

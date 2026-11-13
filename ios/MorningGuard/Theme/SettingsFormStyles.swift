@@ -61,7 +61,7 @@ struct MGSettingsChecklistRow: View {
             if isComplete {
                 Image(systemName: "checkmark")
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(MGTheme.onAccent)
             } else {
                 Text("\(step)")
                     .font(.caption.weight(.semibold))
@@ -111,7 +111,7 @@ struct MGSettingsStatusBanner: View {
     private var foreground: Color {
         switch tone {
         case .ready: MGTheme.accent
-        case .actionNeeded: .orange
+        case .actionNeeded: MGTheme.warning
         case .neutral: .secondary
         }
     }
@@ -119,7 +119,7 @@ struct MGSettingsStatusBanner: View {
     private var background: Color {
         switch tone {
         case .ready: MGTheme.accent.opacity(0.12)
-        case .actionNeeded: Color.orange.opacity(0.12)
+        case .actionNeeded: MGTheme.warningBackground
         case .neutral: Color(.tertiarySystemFill)
         }
     }
@@ -135,10 +135,12 @@ struct MGSettingsPrimaryButton: View {
             Text(title)
                 .font(.body.weight(.semibold))
                 .frame(maxWidth: .infinity)
+                .padding(.vertical, 4)
         }
         .buttonStyle(.borderedProminent)
         .tint(MGTheme.accent)
         .disabled(disabled)
+        .mgMinimumTapTarget()
     }
 }
 
@@ -152,10 +154,12 @@ struct MGSettingsSecondaryButton: View {
             Text(title)
                 .font(.body.weight(.medium))
                 .frame(maxWidth: .infinity)
+                .padding(.vertical, 4)
         }
         .buttonStyle(.bordered)
         .tint(MGTheme.accent)
         .disabled(disabled)
+        .mgMinimumTapTarget()
     }
 }
 
@@ -180,7 +184,7 @@ struct MGSettingsInlineMessage: View {
         switch style {
         case .neutral: .secondary
         case .success: MGTheme.accent
-        case .error: .red
+        case .error: MGTheme.error
         }
     }
 }

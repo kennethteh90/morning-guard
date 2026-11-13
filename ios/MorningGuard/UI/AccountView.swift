@@ -19,6 +19,7 @@ struct AccountView: View {
     @State private var errorMessage: String?
     @State private var showDeleteConfirm = false
     @State private var isDeleting = false
+    @State private var isSigningOut = false
 
     var body: some View {
         Form {
@@ -46,7 +47,7 @@ struct AccountView: View {
                 Section {
                     Text(errorMessage)
                         .font(.subheadline)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(MGTheme.error)
                 }
             }
         }
@@ -63,6 +64,7 @@ struct AccountView: View {
                 try? await Task.sleep(for: .seconds(1))
             }
         }
+        .mgReadableDynamicType()
         .confirmationDialog(
             L10n.tr("account.delete_confirm.title"),
             isPresented: $showDeleteConfirm,
@@ -94,8 +96,14 @@ struct AccountView: View {
         Section {
             Label(user.email ?? L10n.tr("account.signed_in_label"), systemImage: "person.crop.circle")
             MGSettingsSectionIntro(text: L10n.tr("account.sync_enabled"))
-            MGSettingsSecondaryButton(title: L10n.tr("account.sign_out")) {
+            MGSettingsSecondaryButton(
+                title: L10n.tr("account.sign_out"),
+                disabled: isSigningOut || isDeleting
+            ) {
                 Task {
+                    guard !isSigningOut else { return }
+                    isSigningOut = true
+                    defer { isSigningOut = false }
                     await appState.signOut()
                     statusMessage = L10n.tr("account.signed_out")
                     errorMessage = nil
@@ -194,6 +202,7 @@ struct AccountView: View {
     }
 
     private func sendMagicLink(resend: Bool = false) async {
+        guard !isSending else { return }
         let normalized = (resend ? (pendingEmail ?? email) : email)
             .trimmingCharacters(in: .whitespacesAndNewlines)
         guard normalized.contains("@") else {
@@ -237,6 +246,7 @@ struct AccountView: View {
     }
 
     private func performDeleteAccount() async {
+        guard !isDeleting else { return }
         isDeleting = true
         errorMessage = nil
         do {

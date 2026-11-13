@@ -53,7 +53,9 @@ final class SupabaseAuthService {
         if wait > 0 {
             throw MagicLinkRateLimitedError(retryAfterSeconds: wait)
         }
-        let redirect = URL(string: SupabaseConfig.magicLinkRedirect)!
+        guard let redirect = URL(string: SupabaseConfig.magicLinkRedirect) else {
+            throw AuthServiceError.notConfigured
+        }
         do {
             try await client.auth.signInWithOTP(email: normalized, redirectTo: redirect)
             MagicLinkRateLimitStore.recordSent(email: normalized)

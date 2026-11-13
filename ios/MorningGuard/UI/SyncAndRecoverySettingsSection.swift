@@ -11,6 +11,7 @@ struct SyncAndRecoverySettingsSection: View {
     @State private var notesConfirmNewPassword = ""
     @State private var notesMessage: String?
     @State private var notesMessageStyle: MGSettingsInlineMessage.Style = .neutral
+    @State private var notesActionInFlight = false
 
     private var usesCloudSync: Bool {
         appState.settingsStore.userSettings.dataStorageMode == .cloudSync
@@ -125,7 +126,7 @@ struct SyncAndRecoverySettingsSection: View {
                     .textContentType(.password)
                 MGSettingsPrimaryButton(
                     title: L10n.tr("settings.notes.set_button"),
-                    disabled: notesPassword.count < 8 || notesConfirmPassword.count < 8,
+                    disabled: notesActionInFlight || notesPassword.count < 8 || notesConfirmPassword.count < 8,
                     action: setupNotesEncryption
                 )
                 .accessibilityLabel(L10n.tr("a11y.settings.set_notes_password"))
@@ -136,7 +137,7 @@ struct SyncAndRecoverySettingsSection: View {
                     .accessibilityLabel(L10n.tr("a11y.recovery.password"))
                 MGSettingsPrimaryButton(
                     title: L10n.tr("settings.notes.unlock_button"),
-                    disabled: notesPassword.count < 8,
+                    disabled: notesActionInFlight || notesPassword.count < 8,
                     action: unlockNotesEncryption
                 )
                 .accessibilityLabel(L10n.tr("a11y.settings.unlock_notes"))
@@ -150,7 +151,8 @@ struct SyncAndRecoverySettingsSection: View {
                     .textContentType(.password)
                 MGSettingsSecondaryButton(
                     title: L10n.tr("settings.notes.change_button"),
-                    disabled: notesPassword.count < 8
+                    disabled: notesActionInFlight
+                        || notesPassword.count < 8
                         || notesNewPassword.count < 8
                         || notesConfirmNewPassword.count < 8,
                     action: changeNotesPassword
@@ -165,6 +167,9 @@ struct SyncAndRecoverySettingsSection: View {
     }
 
     private func setupNotesEncryption() {
+        guard !notesActionInFlight else { return }
+        notesActionInFlight = true
+        defer { notesActionInFlight = false }
         if let validation = RecoveryPasswordRules.validate(password: notesPassword) {
             notesMessage = validation
             notesMessageStyle = .error
@@ -190,6 +195,9 @@ struct SyncAndRecoverySettingsSection: View {
     }
 
     private func unlockNotesEncryption() {
+        guard !notesActionInFlight else { return }
+        notesActionInFlight = true
+        defer { notesActionInFlight = false }
         do {
             try appState.noteEncryption.unlockWithPassword(notesPassword)
             notesPassword = ""
@@ -202,6 +210,9 @@ struct SyncAndRecoverySettingsSection: View {
     }
 
     private func changeNotesPassword() {
+        guard !notesActionInFlight else { return }
+        notesActionInFlight = true
+        defer { notesActionInFlight = false }
         if let validation = RecoveryPasswordRules.validate(password: notesNewPassword) {
             notesMessage = validation
             notesMessageStyle = .error

@@ -79,6 +79,7 @@ struct HighlightsView: View {
         .navigationDestination(isPresented: $openReader) {
             BibleReaderView()
         }
+        .mgReadableDynamicType()
     }
 
     private func openPassage(for highlight: BibleHighlight) {

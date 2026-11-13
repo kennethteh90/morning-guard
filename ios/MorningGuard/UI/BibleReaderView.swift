@@ -13,5 +13,6 @@ struct BibleReaderView: View {
             .navigationBarTitleDisplayMode(.inline)
             .accessibilityLabel(L10n.tr("a11y.bible.reader"))
             .accessibilityHint(L10n.tr("a11y.bible.reader.hint"))
+            .mgReadableDynamicType()
     }
 }

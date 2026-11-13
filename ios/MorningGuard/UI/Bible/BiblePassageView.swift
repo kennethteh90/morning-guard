@@ -163,5 +163,10 @@ private struct VerseLineView: View {
             }
         }
         .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(L10n.tr("a11y.bible.verse_number_format", verseNumber))
+        .accessibilityValue(text)
+        .accessibilityHint(L10n.tr("a11y.bible.verse.hint"))
+        .accessibilityAddTraits(.isButton)
     }
 }
