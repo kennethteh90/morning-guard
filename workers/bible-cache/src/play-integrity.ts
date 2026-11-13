@@ -11,6 +11,9 @@ export interface PlayIntegrityVerdict {
 export type DecodeIntegrityToken = (token: string, env: Env) => Promise<PlayIntegrityVerdict>;
 
 const DEFAULT_PACKAGE = "com.morningguard.app";
+/** Stay under the Worker subrequest budget; fail fast as 503 instead of CF 504. */
+const PLAY_INTEGRITY_FETCH_TIMEOUT_MS = 20_000;
+const GOOGLE_OAUTH_FETCH_TIMEOUT_MS = 10_000;
 
 export async function decodeIntegrityTokenWithGoogle(
   token: string,
@@ -30,6 +33,7 @@ export async function decodeIntegrityTokenWithGoogle(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ integrityToken: token }),
+    signal: AbortSignal.timeout(PLAY_INTEGRITY_FETCH_TIMEOUT_MS),
   });
   if (!response.ok) {
     const text = await response.text();
@@ -198,6 +202,7 @@ async function googleAccessToken(serviceAccountJson: string): Promise<string> {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`,
+    signal: AbortSignal.timeout(GOOGLE_OAUTH_FETCH_TIMEOUT_MS),
   });
   if (!tokenRes.ok) {
     throw new Error(`Google OAuth failed (${tokenRes.status})`);
