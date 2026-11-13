@@ -16,7 +16,8 @@ struct BibleChapterDiskCache: Sendable {
     private let directory: URL
 
     init() {
-        let base = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
+        let base = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first
+            ?? FileManager.default.temporaryDirectory
         directory = base.appendingPathComponent("bible-chapters", isDirectory: true)
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     }

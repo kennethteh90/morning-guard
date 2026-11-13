@@ -71,6 +71,7 @@ struct StatsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .accessibilityLabel(L10n.tr("a11y.stats.title"))
         .accessibilityHint(L10n.tr("a11y.stats.title.hint"))
+        .mgReadableDynamicType()
     }
 
     private func statCard(label: String, value: String) -> some View {
@@ -81,10 +82,14 @@ struct StatsView: View {
                     .foregroundStyle(.secondary)
                 Text(value)
                     .font(.title3.bold())
+                    .minimumScaleFactor(0.75)
+                    .lineLimit(2)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .accessibilityElement(children: .combine)
+        .accessibilityLabel(label)
+        .accessibilityValue(value)
     }
 
     private func historyRow(_ record: MorningDayRecord) -> some View {
@@ -116,6 +121,9 @@ struct StatsView: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(L10n.tr("a11y.stats.history_row"))
+        .accessibilityValue(
+            "\(record.dateKey). \(record.outcome == .goalCompleted ? L10n.tr("stats.outcome.completed") : L10n.tr("stats.outcome.bypass"))"
+        )
     }
 }
 

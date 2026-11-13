@@ -31,6 +31,7 @@ struct MGBannerOverlay: View {
                     if payload.showsUndo, let onUndo {
                         Button(L10n.tr("banner.undo"), action: onUndo)
                             .font(.subheadline.bold())
+                            .mgMinimumTapTarget()
                             .accessibilityLabel(L10n.tr("a11y.banner.undo"))
                     }
                 }
@@ -39,7 +40,7 @@ struct MGBannerOverlay: View {
                 .background {
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
                         .fill(.regularMaterial)
-                        .shadow(color: .black.opacity(0.15), radius: 10, y: 4)
+                        .shadow(color: Color.primary.opacity(0.12), radius: 10, y: 4)
                 }
                 .padding(.horizontal, MGTheme.standardPadding)
                 .padding(.top, 8)

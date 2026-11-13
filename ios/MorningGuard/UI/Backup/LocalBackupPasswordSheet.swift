@@ -36,7 +36,7 @@ struct LocalBackupPasswordSheet: View {
                     .accessibilityLabel(L10n.tr("a11y.backup.password"))
                 if let error {
                     Text(error)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(MGTheme.error)
                         .font(.caption)
                 }
             }

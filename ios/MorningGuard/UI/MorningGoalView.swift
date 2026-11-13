@@ -12,6 +12,8 @@ struct MorningGoalView: View {
     @State private var earlyCompleteNotice: String?
     @State private var earlyCompleteNoticeTask: Task<Void, Never>?
     @State private var bibleNavigationToolbarHidden = false
+    @State private var isCompletingGoal = false
+    @State private var stepsUnavailableMessage: String?
 
     private var config: MorningGoalConfig {
         appState.settingsStore.userSettings.morningGoal
@@ -38,10 +40,14 @@ struct MorningGoalView: View {
             if phase == .active {
                 appState.refreshGateAndShields()
                 startTickerIfNeeded()
+                if config.type == .stepCount {
+                    Task { await refreshSteps() }
+                }
             } else {
                 stopTicker()
             }
         }
+        .mgReadableDynamicType()
         .onChange(of: appState.gateService.evaluation) { _, _ in
             startTickerIfNeeded()
         }
@@ -182,11 +188,21 @@ struct MorningGoalView: View {
             if appState.healthKitStepReader.isAvailable {
                 Text(L10n.tr("goal.steps.today_format", todaySteps ?? 0, config.stepTarget))
                     .font(.title2.monospacedDigit())
+                    .minimumScaleFactor(0.8)
+                    .accessibilityLabel(L10n.tr("a11y.goal.progress"))
                 Button(L10n.tr("goal.steps.refresh")) {
                     Task { await refreshSteps() }
                 }
+                .disabled(isCompletingGoal)
+                .mgMinimumTapTarget()
                 .accessibilityLabel(L10n.tr("a11y.goal.refresh_steps"))
                 .accessibilityHint(L10n.tr("a11y.goal.refresh_steps.hint"))
+                if let stepsUnavailableMessage {
+                    Text(stepsUnavailableMessage)
+                        .font(.caption)
+                        .foregroundStyle(MGTheme.error)
+                        .accessibilityLabel(stepsUnavailableMessage)
+                }
             } else {
                 Text(L10n.tr("goal.steps.unavailable"))
                     .foregroundStyle(.secondary)
@@ -211,7 +227,7 @@ struct MorningGoalView: View {
                     if let earlyCompleteNotice {
                         Text(earlyCompleteNotice)
                             .font(.callout)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(MGTheme.error)
                             .multilineTextAlignment(.center)
                             .frame(maxWidth: .infinity)
                             .transition(.opacity)
@@ -223,7 +239,8 @@ struct MorningGoalView: View {
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
-                    .tint(bibleGoalTimerReady ? MGTheme.accent : Color(.systemGray3))
+                    .tint(bibleGoalTimerReady ? MGTheme.accent : MGTheme.disabledControl)
+                    .disabled(isCompletingGoal || progress?.isComplete == true)
                     .accessibilityLabel(L10n.tr("a11y.goal.complete"))
                     .accessibilityHint(L10n.tr("a11y.goal.complete.hint"))
                 } else {
@@ -240,6 +257,7 @@ struct MorningGoalView: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(MGTheme.accent)
+                        .disabled(isCompletingGoal)
                         .accessibilityLabel(L10n.tr("a11y.goal.complete"))
                         .accessibilityHint(L10n.tr("a11y.goal.complete.hint"))
                     } else {
@@ -291,6 +309,7 @@ struct MorningGoalView: View {
     }
 
     private func attemptCompleteGoal() {
+        guard !isCompletingGoal else { return }
         guard morningGoalCompletionAllowed else {
             showEarlyCompleteNotice(L10n.tr("goal.error.outside_morning_window"))
             MGHaptics.warning()
@@ -318,6 +337,10 @@ struct MorningGoalView: View {
     }
 
     private func completeGoalExplicitly() {
+        guard !isCompletingGoal else { return }
+        guard progress?.isComplete != true else { return }
+        isCompletingGoal = true
+        defer { isCompletingGoal = false }
         earlyCompleteNoticeTask?.cancel()
         earlyCompleteNotice = nil
         appState.gateService.markComplete()
@@ -404,13 +427,14 @@ struct MorningGoalView: View {
     }
 
     private func refreshSteps() async {
+        stepsUnavailableMessage = nil
         do {
             let steps = try await appState.healthKitStepReader.todayStepCount()
             todaySteps = steps
             appState.gateService.syncStepCount(steps)
             appState.shieldController.refreshShields()
         } catch {
-            // HealthKit errors are shown in step body when needed.
+            stepsUnavailableMessage = error.localizedDescription
         }
     }
 

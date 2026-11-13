@@ -15,6 +15,7 @@ struct ShieldAppSelectionEditor: View {
     var onSelectionChanged: (() -> Void)?
 
     @State private var isPickerPresented = false
+    @State private var selectionPersistTask: Task<Void, Never>?
 
     var body: some View {
         Group {
@@ -28,7 +29,17 @@ struct ShieldAppSelectionEditor: View {
         .familyActivityPicker(isPresented: $isPickerPresented, selection: $selection)
         .onChange(of: selection) { _, newValue in
             selection = newValue
-            onSelectionChanged?()
+            selectionPersistTask?.cancel()
+            selectionPersistTask = Task {
+                try? await Task.sleep(for: .milliseconds(350))
+                guard !Task.isCancelled else { return }
+                await MainActor.run {
+                    onSelectionChanged?()
+                }
+            }
+        }
+        .onDisappear {
+            selectionPersistTask?.cancel()
         }
     }
 
@@ -56,6 +67,7 @@ struct ShieldAppSelectionEditor: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(MGTheme.accent)
+                .mgMinimumTapTarget()
                 .accessibilityLabel(L10n.tr("a11y.onboarding.app_picker"))
                 .accessibilityHint(L10n.tr("onboarding.apps.choose.hint"))
             }
@@ -81,8 +93,10 @@ struct ShieldAppSelectionEditor: View {
                     .foregroundStyle(.tertiary)
             }
         }
+        .mgMinimumTapTarget(alignment: .leading)
         .accessibilityLabel(L10n.tr("a11y.settings.edit_shielded_apps"))
         .accessibilityHint(L10n.tr("settings.shields.edit_apps.hint"))
+        .accessibilityValue(Self.summary(for: selection))
     }
 }
 #endif

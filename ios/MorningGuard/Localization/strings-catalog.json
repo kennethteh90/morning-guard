@@ -464,6 +464,8 @@
   "a11y.bible.highlight.copy": "Copy selected verses",
   "a11y.bible.highlight.delete": "Remove highlight",
   "a11y.bible.highlight.dismiss": "Clear verse selection",
+  "a11y.bible.verse_number_format": "Verse %1$lld",
+  "a11y.bible.verse.hint": "Double tap to select or edit highlight",
   "a11y.bible.translation_row": "Bible translation option",
   "a11y.bible.book_row": "Bible book",
   "a11y.bible.chapter_row": "Chapter number",

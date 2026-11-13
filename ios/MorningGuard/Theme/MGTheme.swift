@@ -5,6 +5,16 @@ enum MGTheme {
     static let surface = Color(.secondarySystemGroupedBackground)
     static let background = Color(.systemGroupedBackground)
 
+    static let error = Color(.systemRed)
+    static let errorBackground = Color(.systemRed).opacity(0.12)
+    static let warning = Color(.systemOrange)
+    static let warningBackground = Color(.systemOrange).opacity(0.12)
+    static let destructive = Color(.systemRed)
+    static let destructiveBackground = Color(.systemRed).opacity(0.12)
+    /// Text/icon on filled accent or primary action backgrounds.
+    static let onAccent = Color.white
+    static let disabledControl = Color(.systemGray3)
+
     static let titleFont = Font.title2.weight(.semibold)
     static let bodyFont = Font.body
     static let captionFont = Font.subheadline
@@ -48,6 +58,25 @@ struct MGListNavigationRow: View {
     }
 }
 
+// MARK: - Accessibility
+
+enum MGAccessibility {
+    static let minTapDimension: CGFloat = 44
+}
+
+extension View {
+    /// Ensures a tappable control meets the 44×44 pt minimum.
+    func mgMinimumTapTarget(alignment: Alignment = .center) -> some View {
+        frame(minWidth: MGAccessibility.minTapDimension, minHeight: MGAccessibility.minTapDimension, alignment: alignment)
+            .contentShape(Rectangle())
+    }
+
+    /// Keeps layouts usable through the largest Dynamic Type sizes without unbounded growth on hero metrics.
+    func mgReadableDynamicType() -> some View {
+        dynamicTypeSize(.xSmall ... .accessibility3)
+    }
+}
+
 /// Full-width primary action cell inside an inset grouped list section.
 struct MGListPrimaryActionLabel: View {
     let title: String
@@ -55,7 +84,7 @@ struct MGListPrimaryActionLabel: View {
     var body: some View {
         Text(title)
             .font(.body.weight(.semibold))
-            .foregroundStyle(.white)
+            .foregroundStyle(MGTheme.onAccent)
             .frame(maxWidth: .infinity, alignment: .center)
             .padding(.vertical, 4)
     }

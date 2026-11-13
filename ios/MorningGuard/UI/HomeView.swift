@@ -3,6 +3,9 @@ import SwiftUI
 
 struct HomeView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.scenePhase) private var scenePhase
+
+    @State private var peaceActionInFlight = false
 
     let onOpenGoal: () -> Void
     let onOpenBibleReader: () -> Void
@@ -43,7 +46,7 @@ struct HomeView: View {
                         systemImage: "timer",
                         accessibilityLabel: L10n.tr("a11y.home.peace_break"),
                         accessibilityHint: L10n.tr("a11y.home.peace_break.hint"),
-                        action: { appState.startOrExtendPeaceSession() }
+                        action: { performPeaceAction { appState.startOrExtendPeaceSession() } }
                     )
                 }
             }
@@ -90,6 +93,7 @@ struct HomeView: View {
                 Button(action: onOpenAccount) {
                     Image(systemName: "person.crop.circle")
                 }
+                .mgMinimumTapTarget()
                 .accessibilityLabel(L10n.tr("a11y.home.account"))
                 .accessibilityHint(L10n.tr("a11y.home.account.hint"))
             }
@@ -97,6 +101,7 @@ struct HomeView: View {
                 Button(action: onOpenSettings) {
                     Image(systemName: "gearshape")
                 }
+                .mgMinimumTapTarget()
                 .accessibilityLabel(L10n.tr("a11y.home.settings"))
                 .accessibilityHint(L10n.tr("a11y.home.settings.hint"))
             }
@@ -104,6 +109,12 @@ struct HomeView: View {
         .onAppear {
             appState.refreshGateAndShields()
         }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                appState.refreshGateAndShields()
+            }
+        }
+        .mgReadableDynamicType()
     }
 
     private func listNavButton(
@@ -179,19 +190,23 @@ struct HomeView: View {
                     .foregroundStyle(.secondary)
                 HStack {
                     Button(L10n.tr("home.peace_break.end")) {
-                        appState.endPeaceSession()
+                        performPeaceAction { appState.endPeaceSession() }
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(.secondary)
+                    .disabled(peaceActionInFlight)
+                    .mgMinimumTapTarget()
                     .accessibilityLabel(L10n.tr("a11y.home.end_peace_break"))
                     .accessibilityHint(L10n.tr("a11y.home.end_peace_break.hint"))
                     Spacer()
                     Button(L10n.tr("home.peace_break.extend")) {
-                        appState.startOrExtendPeaceSession()
+                        performPeaceAction { appState.startOrExtendPeaceSession() }
                     }
                     .buttonStyle(.plain)
                     .font(.body.weight(.semibold))
                     .foregroundStyle(MGTheme.accent)
+                    .disabled(peaceActionInFlight)
+                    .mgMinimumTapTarget()
                     .accessibilityLabel(L10n.tr("a11y.home.extend_peace_break"))
                     .accessibilityHint(L10n.tr("a11y.home.extend_peace_break.hint"))
                 }
@@ -251,6 +266,16 @@ struct HomeView: View {
 
     private func nowMs() -> Int64 {
         Int64(Date().timeIntervalSince1970 * 1000)
+    }
+
+    private func performPeaceAction(_ action: () -> Void) {
+        guard !peaceActionInFlight else { return }
+        peaceActionInFlight = true
+        action()
+        Task {
+            try? await Task.sleep(for: .milliseconds(450))
+            await MainActor.run { peaceActionInFlight = false }
+        }
     }
 
     private var debugBuildBanner: some View {

@@ -38,5 +38,6 @@ struct PrivacyPolicyView: View {
         .navigationTitle(L10n.tr("privacy.title"))
         .navigationBarTitleDisplayMode(.inline)
         .accessibilityLabel(L10n.tr("a11y.privacy.title"))
+        .mgReadableDynamicType()
     }
 }

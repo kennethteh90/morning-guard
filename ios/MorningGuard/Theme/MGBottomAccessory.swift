@@ -10,7 +10,7 @@ struct MGBottomAccessory<Content: View>: View {
             .background {
                 UnevenRoundedRectangle(cornerRadii: .init(topLeading: 20, topTrailing: 20))
                     .fill(.regularMaterial)
-                    .shadow(color: .black.opacity(0.12), radius: 12, y: -4)
+                    .shadow(color: Color.primary.opacity(0.1), radius: 12, y: -4)
             }
     }
 }

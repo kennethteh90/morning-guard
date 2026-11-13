@@ -353,6 +353,28 @@
         }
       }
     },
+    "a11y.bible.verse.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Double tap to select or edit highlight"
+          }
+        }
+      }
+    },
+    "a11y.bible.verse_number_format": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verse %1$lld"
+          }
+        }
+      }
+    },
     "a11y.emergency.passphrase": {
       "extractionState": "manual",
       "localizations": {

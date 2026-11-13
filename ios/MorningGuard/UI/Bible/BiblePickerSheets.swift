@@ -204,7 +204,7 @@ struct BibleBookChapterPickerSheet: View {
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 10)
                                     .background(selected ? MGTheme.accent : Color(.tertiarySystemFill))
-                                    .foregroundStyle(selected ? Color.white : .primary)
+                                    .foregroundStyle(selected ? MGTheme.onAccent : .primary)
                                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                             }
                             .buttonStyle(.plain)
