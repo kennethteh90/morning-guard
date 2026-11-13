@@ -8,6 +8,9 @@ on:
       - ".github/workflows/ios.yml"
       - "version.properties"
 
+permissions:
+  contents: read
+
 concurrency:
   group: ios-${{ github.sha }}
   cancel-in-progress: true
@@ -19,7 +22,7 @@ jobs:
       run:
         working-directory: ios
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a # v4.3.1
 
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
