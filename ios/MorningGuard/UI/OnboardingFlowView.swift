@@ -10,6 +10,7 @@ struct OnboardingFlowView: View {
     @State private var step = 0
     @State private var authError: String?
     @State private var isRequestingAuth = false
+    @State private var shieldNotificationsDenied = false
 
     @State private var windowStart = Date()
     @State private var windowEnd = Date()
@@ -235,6 +236,10 @@ struct OnboardingFlowView: View {
                     Text(authError)
                         .foregroundStyle(.red)
                         .font(.callout)
+                }
+
+                if shieldNotificationsDenied {
+                    shieldNotificationsCallout
                 }
 
                 if !MGDebugFlags.relaxesShieldOnboarding {
@@ -609,6 +614,24 @@ struct OnboardingFlowView: View {
         appState.completeOnboarding()
     }
 
+    private var shieldNotificationsCallout: some View {
+        MGCard {
+            VStack(alignment: .leading, spacing: 10) {
+                Label(L10n.tr("shield.notifications.title"), systemImage: "bell.badge")
+                    .font(.headline)
+                Text(L10n.tr("shield.notifications.body"))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Button(L10n.tr("shield.notifications.enable")) {
+                    ShieldGoalLaunchRouter.shared.openAppNotificationSettings()
+                }
+                .buttonStyle(.bordered)
+                .accessibilityLabel(L10n.tr("a11y.shield.notifications.enable"))
+            }
+        }
+        .accessibilityElement(children: .contain)
+    }
+
     private func requestFamilyControls() async {
         isRequestingAuth = true
         authError = nil
@@ -616,7 +639,8 @@ struct OnboardingFlowView: View {
         do {
             try await appState.shieldController.requestAuthorization()
             appState.shieldController.refreshAuthorizationStatus()
-            _ = await ShieldGoalLaunchRouter.shared.requestAuthorizationIfNeeded()
+            let granted = await ShieldGoalLaunchRouter.shared.requestAuthorizationIfNeeded()
+            shieldNotificationsDenied = !granted
         } catch {
             authError = error.localizedDescription
         }

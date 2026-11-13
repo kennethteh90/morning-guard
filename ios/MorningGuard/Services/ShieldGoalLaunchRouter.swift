@@ -1,6 +1,9 @@
 import Foundation
 import MorningGuardCore
 import UserNotifications
+#if canImport(UIKit)
+import UIKit
+#endif
 
 enum ShieldGoalLaunchSource: String {
     case notification
@@ -37,6 +40,23 @@ final class ShieldGoalLaunchRouter: NSObject, UNUserNotificationCenterDelegate {
         default:
             return false
         }
+    }
+
+    func shieldNotificationsEnabled() async -> Bool {
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        switch settings.authorizationStatus {
+        case .authorized, .provisional, .ephemeral:
+            return true
+        default:
+            return false
+        }
+    }
+
+    func openAppNotificationSettings() {
+        #if canImport(UIKit)
+        guard let url = URL(string: UIApplication.openNotificationSettingsURLString) else { return }
+        UIApplication.shared.open(url)
+        #endif
     }
 
     func consumePendingAppGroupLaunch() {
