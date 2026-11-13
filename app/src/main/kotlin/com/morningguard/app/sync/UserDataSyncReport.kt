@@ -1,5 +1,7 @@
 package com.morningguard.app.sync
 
+import io.github.jan.supabase.exceptions.RestException
+
 /**
  * Outcome of one pull/push step. [Skipped] is an expected no-op (unsigned, nothing local, etc.).
  */
@@ -32,6 +34,23 @@ data class UserDataSyncReport(
             is SyncPhaseOutcome.Ok -> "${outcome.phase}: ok (${outcome.detail})"
             is SyncPhaseOutcome.Skipped -> "${outcome.phase}: skipped (${outcome.reason})"
             is SyncPhaseOutcome.Failed -> "${outcome.phase}: failed (${SyncLog.messageFor(outcome.error)})"
+        }
+    }
+
+    /** Compact summary for Sentry breadcrumbs — no REST bodies or free-form server text. */
+    fun sentrySummary(): String = outcomes.joinToString("; ") { outcome ->
+        when (outcome) {
+            is SyncPhaseOutcome.Ok -> "${outcome.phase}: ok"
+            is SyncPhaseOutcome.Skipped -> "${outcome.phase}: skipped"
+            is SyncPhaseOutcome.Failed -> {
+                val err = outcome.error
+                val status = (err as? RestException)?.statusCode
+                if (status != null) {
+                    "${outcome.phase}: failed (HTTP $status, ${err.javaClass.simpleName})"
+                } else {
+                    "${outcome.phase}: failed (${err.javaClass.simpleName})"
+                }
+            }
         }
     }
 
