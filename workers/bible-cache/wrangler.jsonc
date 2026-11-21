@@ -9,5 +9,24 @@
       "binding": "BIBLE_CACHE",
       "id": "b962ddd033954d75957cb66da13d1a01"
     }
+  ],
+  // Rate Limiting bindings — pick unused namespace_id values for this Cloudflare account
+  // (see Workers Rate Limiting docs). Limits match the former KV counters in src/rate-limit.ts.
+  "ratelimits": [
+    {
+      "name": "RATE_LIMIT_CHAPTER",
+      "namespace_id": "9201",
+      "simple": { "limit": 60, "period": 60 }
+    },
+    {
+      "name": "RATE_LIMIT_CHALLENGE",
+      "namespace_id": "9202",
+      "simple": { "limit": 30, "period": 60 }
+    },
+    {
+      "name": "RATE_LIMIT_SESSION",
+      "namespace_id": "9203",
+      "simple": { "limit": 20, "period": 60 }
+    }
   ]
 }

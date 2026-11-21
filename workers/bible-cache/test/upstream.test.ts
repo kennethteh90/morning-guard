@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, it, mock } from "node:test";
 import { LicensedTranslationBlockedError } from "../src/licensed";
 import { fetchChapterFromUpstream, type Env } from "../src/upstream";
+import { mockRateLimiters } from "./helpers";
 
 const API_BIBLE_HOST = "api.scripture.api.bible";
 const OPEN_BIBLE_HOST = "bible-api.com";
@@ -24,6 +25,7 @@ function mockKv(): KVNamespace {
 function baseEnv(overrides: Partial<Env> = {}): Env {
   return {
     BIBLE_CACHE: mockKv(),
+    ...mockRateLimiters(),
     API_BIBLE_KEY: "test-api-key",
     ...overrides,
   };

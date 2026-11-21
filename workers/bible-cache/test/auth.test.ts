@@ -10,21 +10,7 @@ import {
 import { issueChallenge } from "../src/challenge";
 import { SESSION_HEADER } from "../src/session-token";
 import type { Env } from "../src/upstream";
-
-function mockKv(): KVNamespace {
-  const store = new Map<string, string>();
-  return {
-    get: async (key: string) => store.get(key) ?? null,
-    put: async (key: string, value: string) => {
-      store.set(key, value);
-    },
-    delete: async (key: string) => {
-      store.delete(key);
-    },
-    list: async () => ({ keys: [], list_complete: true, cacheStatus: null }),
-    getWithMetadata: async (key: string) => ({ value: store.get(key) ?? null, metadata: null, cacheStatus: null }),
-  } as unknown as KVNamespace;
-}
+import { baseEnv, mockKv } from "./helpers";
 
 describe("proxy auth helpers", () => {
   it("tokensMatch is constant-time on equal length", () => {
@@ -36,7 +22,7 @@ describe("proxy auth helpers", () => {
 
 describe("licensed chapter auth", () => {
   it("accepts legacy token when configured", async () => {
-    const env: Env = { BIBLE_CACHE: mockKv(), API_BIBLE_KEY: "k", BIBLE_PROXY_TOKEN: "secret" };
+    const env: Env = baseEnv({ API_BIBLE_KEY: "k", BIBLE_PROXY_TOKEN: "secret" });
     const req = new Request("https://example.com/v1/chapter?translation=niv", {
       headers: { "X-Morning-Guard-Token": "secret" },
     });
@@ -44,7 +30,7 @@ describe("licensed chapter auth", () => {
   });
 
   it("rejects wrong legacy token", async () => {
-    const env: Env = { BIBLE_CACHE: mockKv(), API_BIBLE_KEY: "k", BIBLE_PROXY_TOKEN: "secret" };
+    const env: Env = baseEnv({ API_BIBLE_KEY: "k", BIBLE_PROXY_TOKEN: "secret" });
     const req = new Request("https://example.com/v1/chapter?translation=niv", {
       headers: { "X-Morning-Guard-Token": "wrong" },
     });
@@ -56,14 +42,15 @@ describe("licensed chapter auth", () => {
   it("rejects reused nonce after attestation", async () => {
     const kv = mockKv();
     const playCertB64url = "No9Ytde5U4WlIF9SDEgt4i2_rfhxfgnvtCQ8syfzk0A";
-    const env: Env = {
+    const env: Env = baseEnv({
       BIBLE_CACHE: kv,
       API_BIBLE_KEY: "k",
       BIBLE_PROXY_LEGACY_TOKEN_DISABLED: "true",
+      BIBLE_PROXY_SESSION_HMAC_SECRET: "test-session-hmac-secret-value",
       PLAY_APP_SIGNING_CERT_SHA256:
         "36:8F:58:B5:D7:B9:53:85:A5:20:5F:52:0C:48:2D:E2:2D:BF:AD:F8:71:7E:09:EF:B4:24:3C:B3:27:F3:93:40",
-    };
-    const { nonce } = await issueChallenge(kv);
+    });
+    const { nonce } = await issueChallenge(env);
     setLicensedAuthTestHooks({
       decodeIntegrityToken: async () => ({
         requestPackageName: "com.morningguard.app",
@@ -89,15 +76,15 @@ describe("licensed chapter auth", () => {
   it("accepts a short-lived session token without re-attestation", async () => {
     const kv = mockKv();
     const playCertB64url = "No9Ytde5U4WlIF9SDEgt4i2_rfhxfgnvtCQ8syfzk0A";
-    const env: Env = {
+    const env: Env = baseEnv({
       BIBLE_CACHE: kv,
       API_BIBLE_KEY: "k",
       BIBLE_PROXY_LEGACY_TOKEN_DISABLED: "true",
       BIBLE_PROXY_SESSION_HMAC_SECRET: "test-session-hmac-secret-value",
       PLAY_APP_SIGNING_CERT_SHA256:
         "36:8F:58:B5:D7:B9:53:85:A5:20:5F:52:0C:48:2D:E2:2D:BF:AD:F8:71:7E:09:EF:B4:24:3C:B3:27:F3:93:40",
-    };
-    const { nonce } = await issueChallenge(kv);
+    });
+    const { nonce } = await issueChallenge(env);
     setLicensedAuthTestHooks({
       decodeIntegrityToken: async () => ({
         requestPackageName: "com.morningguard.app",
@@ -130,13 +117,13 @@ describe("licensed chapter auth", () => {
 
   it("returns 503 when Play Integrity decode fails on session exchange", async () => {
     const kv = mockKv();
-    const env: Env = {
+    const env: Env = baseEnv({
       BIBLE_CACHE: kv,
       API_BIBLE_KEY: "k",
       BIBLE_PROXY_LEGACY_TOKEN_DISABLED: "true",
       BIBLE_PROXY_SESSION_HMAC_SECRET: "test-session-hmac-secret-value",
-    };
-    const { nonce } = await issueChallenge(kv);
+    });
+    const { nonce } = await issueChallenge(env);
     setLicensedAuthTestHooks({
       decodeIntegrityToken: async () => {
         throw new Error("Google internal error");
@@ -157,7 +144,7 @@ describe("licensed chapter auth", () => {
   });
 
   it("keeps legacy token behaviour unchanged when session secret is unset", async () => {
-    const env: Env = { BIBLE_CACHE: mockKv(), API_BIBLE_KEY: "k", BIBLE_PROXY_TOKEN: "secret" };
+    const env: Env = baseEnv({ API_BIBLE_KEY: "k", BIBLE_PROXY_TOKEN: "secret" });
     const req = new Request("https://example.com/v1/chapter?translation=niv", {
       headers: { "X-Morning-Guard-Token": "secret" },
     });

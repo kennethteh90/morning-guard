@@ -11,7 +11,7 @@ Edge proxy for Bible chapters. The Android app and iOS app call this worker when
 
 Licensed requests use a one-time challenge, then prefer a short-lived session:
 
-1. Client `POST /v1/challenge` → `{ "nonce": "…" }` (KV TTL 2 minutes).
+1. Client `POST /v1/challenge` → `{ "nonce": "…" }` (HMAC-signed, ~2 minute lifetime when session HMAC is configured).
 2. Client `POST /v1/session` with that nonce plus attestation headers → `{ "sessionToken", "expiresAt" }` (HMAC, ~1 hour). Requires worker secret `BIBLE_PROXY_SESSION_HMAC_SECRET`. If Google Play Integrity decode is temporarily unavailable, the worker returns **503** (not 401) so clients can retry with backoff.
 3. Client calls `GET /v1/chapter?translation=niv&…` with `X-Morning-Guard-Session` (re-attest only when the session expires or the worker returns 401).
 4. Fresh attestation on `/v1/chapter` still works (legacy clients / fallback). Worker consumes the nonce on first successful attestation.
@@ -24,7 +24,7 @@ Licensed requests use a one-time challenge, then prefer a short-lived session:
 
 `GET /health` stays public.
 
-**Rate limit:** 60 requests / minute / IP (`CF-Connecting-IP`), KV-backed → **429** when exceeded.
+**Rate limits** (per `CF-Connecting-IP`, Workers Rate Limiting bindings — not KV): chapter **60**/min, challenge **30**/min, session **20**/min → **429** when exceeded.
 
 ## One-time Cloudflare setup
 
