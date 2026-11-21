@@ -3,7 +3,8 @@ import {
   authorizeLicensedChapterRequest,
   issueLicensedSessionResponse,
 } from "./licensed-auth";
-import { cacheControlHeader, LICENSED_KV_TTL_SEC } from "./cache-policy";
+import { readChapterFromEdgeCache, writeChapterToEdgeCache } from "./chapter-cache";
+import { cacheControlHeader } from "./cache-policy";
 import { LicensedTranslationBlockedError, licensedContentAllowed } from "./licensed";
 import { isRateLimited, isRateLimitedForBucket } from "./rate-limit";
 import { SESSION_HEADER } from "./session-token";
@@ -30,7 +31,7 @@ export default {
       if (await isRateLimitedForBucket(request, env, "challenge")) {
         return cors(json({ error: "Rate limit exceeded" }, 429));
       }
-      const { nonce } = await issueChallenge(env.BIBLE_CACHE);
+      const { nonce } = await issueChallenge(env);
       return cors(json({ nonce }));
     }
 
@@ -76,7 +77,8 @@ export default {
     const cacheKey = `${CACHE_VERSION}/${translation}/${bookKeySegment(book)}/${chapter}.json`;
     const cacheControl = cacheControlHeader(licensed);
 
-    const cached = await env.BIBLE_CACHE.get(cacheKey);
+    const cached =
+      (await readChapterFromEdgeCache(cacheKey)) ?? (await env.BIBLE_CACHE.get(cacheKey));
     if (cached) {
       const headers = new Headers({
         "Content-Type": "application/json; charset=utf-8",
@@ -93,11 +95,7 @@ export default {
         body: payload.body,
         blocks: payload.blocks,
       });
-      if (licensed) {
-        await env.BIBLE_CACHE.put(cacheKey, body, { expirationTtl: LICENSED_KV_TTL_SEC });
-      } else {
-        await env.BIBLE_CACHE.put(cacheKey, body);
-      }
+      await writeChapterToEdgeCache(cacheKey, body, cacheControl);
       return cors(
         jsonResponse(body, {
           "X-Cache": "MISS",

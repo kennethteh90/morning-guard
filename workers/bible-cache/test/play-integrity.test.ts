@@ -8,6 +8,7 @@ import {
   type PlayIntegrityVerdict,
 } from "../src/play-integrity";
 import type { Env } from "../src/upstream";
+import { mockRateLimiters } from "./helpers";
 
 /** Production Play app signing SHA-256 (public fingerprint). */
 const COLON_HEX =
@@ -29,6 +30,7 @@ function mockKv(): KVNamespace {
 function envWithCert(cert: string | undefined): Env {
   return {
     BIBLE_CACHE: mockKv(),
+    ...mockRateLimiters(),
     API_BIBLE_KEY: "k",
     PLAY_APP_SIGNING_CERT_SHA256: cert,
   };

@@ -6,6 +6,7 @@ import {
   verifySessionToken,
 } from "../src/session-token";
 import type { Env } from "../src/upstream";
+import { mockRateLimiters } from "./helpers";
 
 function mockKv(): KVNamespace {
   return {
@@ -20,6 +21,7 @@ function mockKv(): KVNamespace {
 function envWithSecret(secret: string | undefined): Env {
   return {
     BIBLE_CACHE: mockKv(),
+    ...mockRateLimiters(),
     API_BIBLE_KEY: "k",
     BIBLE_PROXY_SESSION_HMAC_SECRET: secret,
   };

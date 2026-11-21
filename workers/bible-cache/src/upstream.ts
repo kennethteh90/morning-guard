@@ -1,4 +1,6 @@
 import { licensedContentAllowed, LicensedTranslationBlockedError } from "./licensed";
+import { kvPutBestEffort } from "./kv-safe";
+import type { RateLimit } from "./rate-limit-binding";
 import { chapterUsfmId } from "./usfm";
 import { findTranslation, isLicensedApiBibleTranslation } from "./translations";
 
@@ -12,7 +14,15 @@ export interface ChapterPayload {
 
 export interface Env {
   BIBLE_CACHE: KVNamespace;
+  RATE_LIMIT_CHAPTER: RateLimit;
+  RATE_LIMIT_CHALLENGE: RateLimit;
+  RATE_LIMIT_SESSION: RateLimit;
   API_BIBLE_KEY: string;
+  /**
+   * Optional dedicated HMAC secret for stateless challenge nonces (min 16 chars).
+   * When unset, `BIBLE_PROXY_SESSION_HMAC_SECRET` is used when available.
+   */
+  CHALLENGE_HMAC_SECRET?: string;
   /** Legacy shared token for licensed chapters during app rollout. */
   BIBLE_PROXY_TOKEN?: string;
   /** When true/1/yes, licensed requests no longer accept the legacy token. */
@@ -72,7 +82,7 @@ async function loadResolvedIdsFromCache(env: Env): Promise<void> {
 
 async function persistResolvedIds(env: Env): Promise<void> {
   const payload = JSON.stringify(Object.fromEntries(resolvedBibleIds));
-  await env.BIBLE_CACHE.put("meta/api-bible-ids.json", payload);
+  await kvPutBestEffort(env.BIBLE_CACHE, "meta/api-bible-ids.json", payload);
 }
 
 function matchesAbbrev(summary: Record<string, string>, abbrev: string): boolean {

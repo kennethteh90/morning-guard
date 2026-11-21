@@ -2,32 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, it, mock } from "node:test";
 import worker from "../src/index";
 import { clearLicensedAuthTestHooks, setLicensedAuthTestHooks } from "../src/licensed-auth";
-import type { Env } from "../src/upstream";
-
-function mockKv(): KVNamespace {
-  const store = new Map<string, string>();
-  return {
-    get: async (key: string) => store.get(key) ?? null,
-    put: async (key: string, value: string) => {
-      store.set(key, value);
-    },
-    delete: async (key: string) => {
-      store.delete(key);
-    },
-    list: async () => ({ keys: [], list_complete: true, cacheStatus: null }),
-    getWithMetadata: async (key: string) => ({ value: store.get(key) ?? null, metadata: null, cacheStatus: null }),
-  } as unknown as KVNamespace;
-}
-
-function baseEnv(overrides: Partial<Env> = {}): Env {
-  return {
-    BIBLE_CACHE: mockKv(),
-    API_BIBLE_KEY: "test-api-key",
-    API_BIBLE_LICENSED_ENABLED: "true",
-    BIBLE_PROXY_TOKEN: "test-proxy-token",
-    ...overrides,
-  };
-}
+import { baseEnv, mockKv } from "./helpers";
 
 describe("worker fetch", () => {
   let originalFetch: typeof fetch;
@@ -220,7 +195,11 @@ describe("worker fetch", () => {
     const kv = mockKv();
     const challengeRes = await worker.fetch(
       new Request("https://example.com/v1/challenge", { method: "POST" }),
-      baseEnv({ BIBLE_CACHE: kv, BIBLE_PROXY_LEGACY_TOKEN_DISABLED: "true" }),
+      baseEnv({
+        BIBLE_CACHE: kv,
+        BIBLE_PROXY_LEGACY_TOKEN_DISABLED: "true",
+        BIBLE_PROXY_SESSION_HMAC_SECRET: "test-session-hmac-secret-value",
+      }),
     );
     const { nonce } = (await challengeRes.json()) as { nonce: string };
 
@@ -272,6 +251,7 @@ describe("worker fetch", () => {
       baseEnv({
         BIBLE_CACHE: kv,
         BIBLE_PROXY_LEGACY_TOKEN_DISABLED: "true",
+        BIBLE_PROXY_SESSION_HMAC_SECRET: "test-session-hmac-secret-value",
         API_BIBLE_NIV_ID: "test-niv-bible-id",
         PLAY_APP_SIGNING_CERT_SHA256:
           "36:8F:58:B5:D7:B9:53:85:A5:20:5F:52:0C:48:2D:E2:2D:BF:AD:F8:71:7E:09:EF:B4:24:3C:B3:27:F3:93:40",

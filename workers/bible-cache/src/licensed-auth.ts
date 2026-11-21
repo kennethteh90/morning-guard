@@ -106,7 +106,7 @@ async function verifyFreshAttestation(
     return { ok: false, reason: "upstream" };
   }
   if (playCheck.status === "ok") {
-    const consumed = await consumeChallenge(env.BIBLE_CACHE, nonce);
+    const consumed = await consumeChallenge(env, nonce);
     if (!consumed) return { ok: false, reason: "invalid" };
     const pkg =
       playCheck.verdict.requestPackageName ||
@@ -123,7 +123,7 @@ async function verifyFreshAttestation(
   const iosOk = await appAttestFn(request, nonce, env);
   if (!iosOk) return { ok: false, reason: "invalid" };
 
-  const consumed = await consumeChallenge(env.BIBLE_CACHE, nonce);
+  const consumed = await consumeChallenge(env, nonce);
   if (!consumed) return { ok: false, reason: "invalid" };
   const pkg = env.APPLE_APP_ATTEST_BUNDLE_ID?.trim() || "com.morningguard.app";
   return { ok: true, pkg, plat: "ios" };
