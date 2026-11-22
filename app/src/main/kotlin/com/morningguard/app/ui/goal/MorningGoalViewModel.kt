@@ -7,7 +7,7 @@ import com.morningguard.app.di.ApplicationScope
 import com.morningguard.app.sensors.HealthConnectStepReader
 import com.morningguard.app.sensors.StepCounterProvider
 import java.time.Instant
-import java.time.LocalDate
+import com.morningguard.domain.time.LocalDayClock
 import com.morningguard.data.analytics.AnalyticsTracker
 import com.morningguard.app.sync.UserDataSyncService
 import com.morningguard.data.bible.BibleHighlightColorStore
@@ -431,7 +431,7 @@ class MorningGoalViewModel @Inject constructor(
         val settings = settingsRepository.currentSettings()
         if (!browseOnly.value && settings.morningGoal.type != GoalType.BIBLE_CHAPTER) return
         val store = settingsRepository.currentGoalStore()
-        val dateKey = store.progress?.dateKey ?: LocalDate.now().toString()
+        val dateKey = store.progress?.dateKey ?: LocalDayClock.todayDateKey()
         val current = store.bibleReadingSecondsByDate[dateKey] ?: 0
         settingsRepository.recordBibleReadingSeconds(dateKey, current + 1)
     }

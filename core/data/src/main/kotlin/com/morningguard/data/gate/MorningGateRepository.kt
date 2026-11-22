@@ -14,8 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import java.time.LocalDate
-import java.time.ZoneId
+import com.morningguard.domain.time.LocalDayClock
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -25,7 +24,6 @@ class MorningGateRepository @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val evaluator: MorningGateEvaluator,
     private val completionVerifier: GoalCompletionVerifier,
-    private val zoneId: ZoneId = ZoneId.systemDefault(),
 ) {
     private val goalProgressMutex = Mutex()
     val gateEvaluation: Flow<GateEvaluation> = combine(
@@ -61,7 +59,7 @@ class MorningGateRepository @Inject constructor(
 
     suspend fun startGoalIfNeeded(): MorningGoalProgress = goalProgressMutex.withLock {
         val settings = settingsRepository.currentSettings()
-        val dateKey = LocalDate.now(zoneId).toString()
+        val dateKey = LocalDayClock.todayDateKey()
         val store = settingsRepository.currentGoalStore()
         val existing = store.progress
         if (existing?.dateKey == dateKey) {
@@ -121,7 +119,7 @@ class MorningGateRepository @Inject constructor(
     }
 
     private suspend fun startGoalIfNeededUnlocked(settings: UserSettings): MorningGoalProgress {
-        val dateKey = LocalDate.now(zoneId).toString()
+        val dateKey = LocalDayClock.todayDateKey()
         val store = settingsRepository.currentGoalStore()
         val existing = store.progress
         if (existing?.dateKey == dateKey) {

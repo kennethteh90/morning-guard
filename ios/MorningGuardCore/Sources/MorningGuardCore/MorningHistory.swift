@@ -49,13 +49,12 @@ public enum MorningStreakCalculator {
         let completedDays = Set(
             history.filter { $0.outcome == .goalCompleted }.map(\.dateKey)
         )
-        guard let today = parseDateKey(todayKey) else { return 0 }
+        guard let today = LocalDayCalendar.parseDateKey(todayKey) else { return 0 }
         var streak = 0
         var day = today
-        let formatter = dateKeyFormatter
-        while completedDays.contains(formatter.string(from: day)) {
+        while completedDays.contains(LocalDayCalendar.dateKey(for: day)) {
             streak += 1
-            guard let previous = Calendar.current.date(byAdding: .day, value: -1, to: day) else { break }
+            guard let previous = LocalDayCalendar.previousDay(before: day) else { break }
             day = previous
         }
         return streak
@@ -64,12 +63,12 @@ public enum MorningStreakCalculator {
     public static func bestCompletedStreak(history: [MorningDayRecord]) -> Int {
         let completed = Set(history.filter { $0.outcome == .goalCompleted }.map(\.dateKey))
         if completed.isEmpty { return 0 }
-        let sorted = completed.compactMap(parseDateKey).sorted()
+        let sorted = completed.compactMap(LocalDayCalendar.parseDateKey).sorted()
         var best = 0
         var run = 0
         var prev: Date?
         for day in sorted {
-            if let prev, Calendar.current.date(byAdding: .day, value: 1, to: prev) == day {
+            if let prev, LocalDayCalendar.isNextCalendarDay(after: prev, day) {
                 run += 1
             } else {
                 run = 1
@@ -121,18 +120,6 @@ public enum MorningStreakCalculator {
         return merged.values.reduce(0, +)
     }
 
-    private static let dateKeyFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.calendar = Calendar(identifier: .gregorian)
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.timeZone = .current
-        f.dateFormat = "yyyy-MM-dd"
-        return f
-    }()
-
-    private static func parseDateKey(_ key: String) -> Date? {
-        dateKeyFormatter.date(from: key)
-    }
 }
 
 public enum MorningHistoryMerge {

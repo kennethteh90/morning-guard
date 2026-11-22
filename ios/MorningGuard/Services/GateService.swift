@@ -8,15 +8,11 @@ final class GateService {
     private let settingsStore: SettingsStore
     private let evaluator = MorningGateEvaluator()
     private let completionVerifier = GoalCompletionVerifier()
-    private let calendar: Calendar
 
     var evaluation: GateEvaluation
 
-    init(settingsStore: SettingsStore, timeZone: TimeZone = .current) {
+    init(settingsStore: SettingsStore) {
         self.settingsStore = settingsStore
-        var cal = Calendar(identifier: .gregorian)
-        cal.timeZone = timeZone
-        self.calendar = cal
         self.evaluation = Self.evaluate(settingsStore: settingsStore, evaluator: evaluator)
     }
 
@@ -45,7 +41,7 @@ final class GateService {
     }
 
     func startGoalIfNeeded() -> MorningGoalProgress {
-        let dateKey = Self.dateKey(for: Date(), calendar: calendar)
+        let dateKey = LocalDayCalendar.dateKey(for: Date())
         let store = settingsStore.goalProgressStore
         if let existing = store.progress, existing.dateKey == dateKey {
             let synced = syncProgressWithSettings(existing)
@@ -162,10 +158,6 @@ final class GateService {
             emergencyBypassActiveUntilEpochMs: settingsStore.goalProgressStore.emergencyBypassUntilEpochMs,
             peaceSessionUntilEpochMs: peaceUntil
         )
-    }
-
-    private static func dateKey(for date: Date, calendar: Calendar) -> String {
-        MorningGateEvaluator.dateKey(for: date, calendar: calendar)
     }
 
     private static func nowMs() -> Int64 {

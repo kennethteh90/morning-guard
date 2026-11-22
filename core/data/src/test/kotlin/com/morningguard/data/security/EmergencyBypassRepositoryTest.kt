@@ -6,7 +6,6 @@ import com.morningguard.domain.security.EmergencyBypassPolicy
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import java.time.ZoneId
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -20,7 +19,6 @@ class EmergencyBypassRepositoryTest {
         settingsRepository,
         hasher,
         EmergencyBypassPolicy(bypassDurationMs = 3_600_000L),
-        ZoneId.of("UTC"),
     )
 
     @Test

@@ -21,7 +21,7 @@ final class MorningGateEvaluatorTests: XCTestCase {
 
     func testUnlockWhenGoalCompleteToday() {
         let sampleInstant = date(year: 2026, month: 10, day: 13, hour: 7, minute: 0)
-        let evaluator = MorningGateEvaluator(timeZone: timeZone) { sampleInstant }
+        let evaluator = MorningGateEvaluator(timeZone: { self.timeZone }) { sampleInstant }
         let progress = MorningGoalProgress(
             dateKey: "2026-10-13",
             config: MorningGoalConfig(type: .timedFocus),
@@ -33,7 +33,7 @@ final class MorningGateEvaluatorTests: XCTestCase {
 
     func testLockedOvernightWindowBeforeGoalComplete() {
         let earlyMorning = date(year: 2026, month: 10, day: 13, hour: 2, minute: 30)
-        let evaluator = MorningGateEvaluator(timeZone: timeZone) { earlyMorning }
+        let evaluator = MorningGateEvaluator(timeZone: { self.timeZone }) { earlyMorning }
         let result = evaluator.evaluate(
             window: MorningWindow(startHour: 1, endHour: 10),
             progress: MorningGoalProgress(
@@ -47,7 +47,7 @@ final class MorningGateEvaluatorTests: XCTestCase {
 
     func testLockedDuringMorningWindowWithoutCompletion() {
         let sampleInstant = date(year: 2026, month: 10, day: 13, hour: 7, minute: 0)
-        let evaluator = MorningGateEvaluator(timeZone: timeZone) { sampleInstant }
+        let evaluator = MorningGateEvaluator(timeZone: { self.timeZone }) { sampleInstant }
         let result = evaluator.evaluate(
             window: MorningWindow(startHour: 6, endHour: 9),
             progress: MorningGoalProgress(
@@ -62,7 +62,7 @@ final class MorningGateEvaluatorTests: XCTestCase {
     func testPeaceSessionLocksEvenWhenGoalComplete() {
         let sampleInstant = date(year: 2026, month: 10, day: 13, hour: 7, minute: 0)
         let sampleMs = Int64(sampleInstant.timeIntervalSince1970 * 1000)
-        let evaluator = MorningGateEvaluator(timeZone: timeZone) { sampleInstant }
+        let evaluator = MorningGateEvaluator(timeZone: { self.timeZone }) { sampleInstant }
         let progress = MorningGoalProgress(
             dateKey: "2026-10-13",
             config: MorningGoalConfig(type: .bibleChapter),
@@ -81,7 +81,7 @@ final class MorningGateEvaluatorTests: XCTestCase {
     func testPeaceSessionLocksOutsideMorningWindow() {
         let afternoon = date(year: 2026, month: 10, day: 13, hour: 14, minute: 0)
         let afternoonMs = Int64(afternoon.timeIntervalSince1970 * 1000)
-        let evaluator = MorningGateEvaluator(timeZone: timeZone) { afternoon }
+        let evaluator = MorningGateEvaluator(timeZone: { self.timeZone }) { afternoon }
         let result = evaluator.evaluate(
             window: MorningWindow(startHour: 6, endHour: 9),
             progress: nil,
@@ -95,7 +95,7 @@ final class MorningGateEvaluatorTests: XCTestCase {
     func testEmergencyBypassUnlocks() {
         let sampleInstant = date(year: 2026, month: 10, day: 13, hour: 7, minute: 0)
         let sampleMs = Int64(sampleInstant.timeIntervalSince1970 * 1000)
-        let evaluator = MorningGateEvaluator(timeZone: timeZone) { sampleInstant }
+        let evaluator = MorningGateEvaluator(timeZone: { self.timeZone }) { sampleInstant }
         let result = evaluator.evaluate(
             window: MorningWindow(startHour: 6, endHour: 9),
             progress: nil,

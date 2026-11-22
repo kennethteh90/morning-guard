@@ -4,8 +4,7 @@ import com.morningguard.data.settings.SettingsRepository
 import com.morningguard.domain.history.MorningDayOutcome
 import com.morningguard.domain.model.GoalType
 import com.morningguard.domain.security.EmergencyBypassPolicy
-import java.time.LocalDate
-import java.time.ZoneId
+import com.morningguard.domain.time.LocalDayClock
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -14,7 +13,6 @@ class EmergencyBypassRepository @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val hasher: PassphraseHasher,
     private val policy: EmergencyBypassPolicy,
-    private val zoneId: ZoneId,
 ) {
     suspend fun hasPassphraseConfigured(): Boolean {
         val hash = settingsRepository.currentGoalStore().emergencyPassphraseHash
@@ -68,7 +66,7 @@ class EmergencyBypassRepository @Inject constructor(
                 lockedUntilEpochMs = clearedLock,
             )
         }
-        val dateKey = LocalDate.now(zoneId).toString()
+        val dateKey = LocalDayClock.todayDateKey()
         val trackGoalTime = settingsRepository.currentSettings().morningGoal.type != GoalType.STEP_COUNT
         settingsRepository.recordMorningOutcome(
             dateKey,

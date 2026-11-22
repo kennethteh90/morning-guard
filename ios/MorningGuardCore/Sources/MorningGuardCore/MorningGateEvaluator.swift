@@ -19,10 +19,13 @@ public struct GateEvaluation: Codable, Sendable, Equatable {
 }
 
 public struct MorningGateEvaluator: Sendable {
-    private let timeZone: TimeZone
-    private let now: () -> Date
+    private let timeZone: @Sendable () -> TimeZone
+    private let now: @Sendable () -> Date
 
-    public init(timeZone: TimeZone = .current, now: @escaping () -> Date = Date.init) {
+    public init(
+        timeZone: @escaping @Sendable () -> TimeZone = { .current },
+        now: @escaping @Sendable () -> Date = Date.init
+    ) {
         self.timeZone = timeZone
         self.now = now
     }
@@ -35,7 +38,7 @@ public struct MorningGateEvaluator: Sendable {
     ) -> GateEvaluation {
         let nowDate = now()
         let nowMs = Int64(nowDate.timeIntervalSince1970 * 1000)
-        let calendar = Self.calendar(for: timeZone)
+        let calendar = Self.calendar(for: timeZone())
         let dateKey = Self.dateKey(for: nowDate, calendar: calendar)
 
         if let bypassUntil = emergencyBypassActiveUntilEpochMs, nowMs < bypassUntil {
