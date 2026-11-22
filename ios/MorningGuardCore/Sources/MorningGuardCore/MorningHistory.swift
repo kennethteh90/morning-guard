@@ -63,7 +63,7 @@ public enum MorningStreakCalculator {
     public static func bestCompletedStreak(history: [MorningDayRecord]) -> Int {
         let completed = Set(history.filter { $0.outcome == .goalCompleted }.map(\.dateKey))
         if completed.isEmpty { return 0 }
-        let sorted = completed.compactMap(LocalDayCalendar.parseDateKey).sorted()
+        let sorted = completed.compactMap { LocalDayCalendar.parseDateKey($0) }.sorted()
         var best = 0
         var run = 0
         var prev: Date?
