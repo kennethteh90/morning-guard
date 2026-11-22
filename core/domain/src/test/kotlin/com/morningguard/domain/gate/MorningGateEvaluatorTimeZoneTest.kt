@@ -39,4 +39,22 @@ class MorningGateEvaluatorTimeZoneTest {
         zone = ZoneId.of("Europe/Vienna")
         assertEquals("2026-11-21", evaluator.evaluate(window, null, null, null).dateKey)
     }
+
+    @Test
+    fun viennaEvening_triggersGateWhenWallClockUsesSetupZone_KennethRepro() {
+        // 18:00 CET == 01:00 Singapore; default MorningWindow is 01:00–10:00.
+        val eveningInVienna = ZonedDateTime.of(2026, 11, 22, 18, 0, 0, 0, ZoneId.of("Europe/Vienna"))
+        val defaultWindow = MorningWindow()
+        var zone = ZoneId.of("Asia/Singapore")
+        val evaluator = MorningGateEvaluator(zoneIdProvider = { zone }) { eveningInVienna.toInstant().toEpochMilli() }
+
+        val mistaken = evaluator.evaluate(defaultWindow, null, null, null)
+        assertEquals(GateState.LOCKED, mistaken.state)
+        assertEquals("morning_window", mistaken.reason)
+
+        zone = ZoneId.of("Europe/Vienna")
+        val corrected = evaluator.evaluate(defaultWindow, null, null, null)
+        assertEquals(GateState.INACTIVE, corrected.state)
+        assertEquals("outside_window", corrected.reason)
+    }
 }

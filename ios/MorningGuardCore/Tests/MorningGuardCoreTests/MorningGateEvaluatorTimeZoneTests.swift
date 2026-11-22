@@ -25,4 +25,34 @@ final class MorningGateEvaluatorTimeZoneTests: XCTestCase {
         XCTAssertEqual(travel.dateKey, "2026-11-22")
         XCTAssertEqual(travel.reason, "morning_window")
     }
+
+    func testViennaEveningTriggersGateWhenWallClockUsesSingapore_KennethRepro() {
+        let singapore = TimeZone(identifier: "Asia/Singapore")!
+        let vienna = TimeZone(identifier: "Europe/Vienna")!
+        var viennaCalendar = Calendar(identifier: .gregorian)
+        viennaCalendar.timeZone = vienna
+        let eveningInVienna = viennaCalendar.date(
+            from: DateComponents(year: 2026, month: 11, day: 22, hour: 18, minute: 0)
+        )!
+        var currentZone: TimeZone = singapore
+        let evaluator = MorningGateEvaluator(timeZone: { currentZone }) { eveningInVienna }
+        let defaultWindow = MorningWindow()
+
+        let mistaken = evaluator.evaluate(
+            window: defaultWindow,
+            progress: nil,
+            emergencyBypassActiveUntilEpochMs: nil
+        )
+        XCTAssertEqual(mistaken.state, .locked)
+        XCTAssertEqual(mistaken.reason, "morning_window")
+
+        currentZone = vienna
+        let corrected = evaluator.evaluate(
+            window: defaultWindow,
+            progress: nil,
+            emergencyBypassActiveUntilEpochMs: nil
+        )
+        XCTAssertEqual(corrected.state, .inactive)
+        XCTAssertEqual(corrected.reason, "outside_window")
+    }
 }
