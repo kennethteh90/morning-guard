@@ -26,8 +26,7 @@ if git diff --name-only -- MorningGuard.xcodeproj 2>/dev/null | grep -qv 'xcshar
 fi
 
 noise=$(git diff -- MorningGuard.xcodeproj/xcshareddata/xcschemes 2>/dev/null \
-  | grep -E '^[+-]' \
-  | grep -v '^[+-]{3}' \
+  | grep -E '^[+-][^+-]' \
   | grep -v 'shouldAutocreateTestPlan' \
   | grep -v 'shouldUseLaunchSchemeArgsEnv' \
   | grep -v 'onlyGenerateCoverageForSpecifiedTargets' \
