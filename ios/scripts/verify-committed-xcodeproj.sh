@@ -25,14 +25,11 @@ if git diff --name-only -- MorningGuard.xcodeproj 2>/dev/null | grep -qv 'xcshar
   exit 1
 fi
 
+# Ignore scheme XML attribute churn (reorder / optional TestAction attrs from XcodeGen 2.47).
 noise=$(git diff -- MorningGuard.xcodeproj/xcshareddata/xcschemes 2>/dev/null \
   | grep -E '^[+-][^+-]' \
-  | grep -v 'shouldAutocreateTestPlan' \
-  | grep -v 'shouldUseLaunchSchemeArgsEnv' \
-  | grep -v 'onlyGenerateCoverageForSpecifiedTargets' \
-  | grep -v 'selectedDebuggerIdentifier' \
-  | grep -v 'selectedLauncherIdentifier' \
-  | grep -v 'buildConfiguration' || true)
+  | grep -vE '^[+-][[:space:]]+[A-Za-z_]+[[:space:]]*=' \
+  || true)
 
 if [ -z "$noise" ]; then
   echo "MorningGuard.xcodeproj matches XcodeGen (ignoring scheme TestAction attribute drift)."
