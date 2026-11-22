@@ -1,6 +1,1 @@
-Peace Break now saves WhatsApp and other alerts to your digest more reliably.
-Bible readings fall back to WEB or KJV when your licensed translation fails to load.
-Smoother sign-in and fewer double-tap glitches.
-Better TalkBack, VoiceOver, and dark mode support.
-On iPhone, Shield Continue reliably opens your morning goal.
-Security hardening throughout the app.
+Morning Guard now follows your phone's current time zone when you travel, so the morning window, alarm, and streaks use local time.
