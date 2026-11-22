@@ -1,6 +1,8 @@
 name: MorningGuard
 options:
   bundleIdPrefix: com.morningguard
+  # Pin so CI XcodeGen 2.x (default xcodeVersion 16.0) matches committed LastUpgradeCheck 1430.
+  xcodeVersion: "14.3"
   deploymentTarget:
     iOS: "17.0"
   createIntermediateGroups: true

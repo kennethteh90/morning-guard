@@ -12,8 +12,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import java.time.LocalDate
-import java.time.ZoneId
+import com.morningguard.domain.time.LocalDayClock
 import javax.inject.Inject
 
 data class StatsUiState(
@@ -35,14 +34,13 @@ data class StatsUiState(
 @HiltViewModel
 class StatsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
-    private val zoneId: ZoneId,
 ) : ViewModel() {
 
     val uiState: StateFlow<StatsUiState> = combine(
         settingsRepository.settings,
         settingsRepository.goalProgressStore,
     ) { settings, store ->
-        val todayKey = LocalDate.now(zoneId).toString()
+        val todayKey = LocalDayClock.todayDateKey()
         val history = store.morningHistory
         val progress = store.progress
         val goalType = settings.morningGoal.type

@@ -27,7 +27,6 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 import javax.inject.Named
 import javax.inject.Singleton
@@ -134,10 +133,6 @@ object DataModule {
     @Provides
     @Singleton
     fun provideEmergencyBypassPolicy(): EmergencyBypassPolicy = EmergencyBypassPolicy()
-
-    @Provides
-    @Singleton
-    fun provideZoneId(): ZoneId = ZoneId.systemDefault()
 
     @Provides
     @Singleton

@@ -21,7 +21,7 @@ data class GateEvaluation(
 )
 
 class MorningGateEvaluator(
-    private val zoneId: ZoneId = ZoneId.systemDefault(),
+    private val zoneIdProvider: () -> ZoneId = { ZoneId.systemDefault() },
     private val nowProvider: () -> Long = { System.currentTimeMillis() },
 ) {
     fun evaluate(
@@ -31,7 +31,7 @@ class MorningGateEvaluator(
         peaceSessionUntilEpochMs: Long? = null,
     ): GateEvaluation {
         val nowMs = nowProvider()
-        val zonedNow = Instant.ofEpochMilli(nowMs).atZone(zoneId)
+        val zonedNow = Instant.ofEpochMilli(nowMs).atZone(zoneIdProvider())
         val dateKey = zonedNow.toLocalDate().toString()
 
         if (emergencyBypassActiveUntilEpochMs != null && nowMs < emergencyBypassActiveUntilEpochMs) {

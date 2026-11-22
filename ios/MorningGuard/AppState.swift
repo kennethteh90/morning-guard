@@ -1,6 +1,7 @@
 import Foundation
 import MorningGuardCore
 import Observation
+import UIKit
 
 @MainActor
 @Observable
@@ -23,6 +24,7 @@ final class AppState {
 
     private let emergencyPolicy = EmergencyBypassPolicy()
     private var gateRefreshTask: Task<Void, Never>?
+    private var localTimeObservers: [NSObjectProtocol] = []
 
     var deepLinkGoalPending = false
 
@@ -77,6 +79,7 @@ final class AppState {
             settingsStore: settings,
             highlightStore: bibleHighlightStore
         )
+        registerLocalTimeEnvironmentObservers()
     }
 
     var screenshotGuideScene: String? {
@@ -117,6 +120,30 @@ final class AppState {
         gateService.refresh()
         shieldController.refreshAuthorizationStatus()
         shieldController.refreshShields()
+    }
+
+    private func registerLocalTimeEnvironmentObservers() {
+        let center = NotificationCenter.default
+        localTimeObservers.append(
+            center.addObserver(forName: .NSSystemTimeZoneDidChange, object: nil, queue: .main) { [weak self] _ in
+                Task { @MainActor in self?.handleLocalTimeEnvironmentChange() }
+            }
+        )
+        localTimeObservers.append(
+            center.addObserver(
+                forName: UIApplication.significantTimeChangeNotification,
+                object: nil,
+                queue: .main
+            ) { [weak self] _ in
+                Task { @MainActor in self?.handleLocalTimeEnvironmentChange() }
+            }
+        )
+    }
+
+    private func handleLocalTimeEnvironmentChange() {
+        refreshGateAndShields()
+        deviceActivityScheduler.reschedule(for: settingsStore.userSettings.morningWindow)
+        Task { await alarmScheduler.apply(alarm: settingsStore.userSettings.alarm) }
     }
 
     func startOrExtendPeaceSession() {
@@ -217,7 +244,7 @@ final class AppState {
     }
 
     func incrementBibleReadingSecond() {
-        let dateKey = MorningGateEvaluator.dateKey(for: Date(), calendar: .current)
+        let dateKey = LocalDayCalendar.dateKey(for: Date())
         let current = settingsStore.goalProgressStore.bibleReadingSecondsByDate[dateKey] ?? 0
         settingsStore.recordBibleReadingSeconds(dateKey: dateKey, seconds: current + 1)
     }
@@ -277,7 +304,7 @@ final class AppState {
             return copy
         }
         gateService.activateEmergencyBypass(expiresAtMs: expires)
-        let dateKey = MorningGateEvaluator.dateKey(for: Date(), calendar: Calendar.current)
+        let dateKey = LocalDayCalendar.dateKey(for: Date())
         let trackGoalTime = settingsStore.userSettings.morningGoal.type != .stepCount
         settingsStore.recordMorningOutcome(
             dateKey: dateKey,

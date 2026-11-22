@@ -32,9 +32,6 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
-      - name: Generate Xcode project
-        run: ./scripts/generate-xcodeproj.sh
-
       - name: Verify committed xcodeproj matches XcodeGen
         run: ./scripts/verify-committed-xcodeproj.sh
 

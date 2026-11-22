@@ -150,7 +150,7 @@ private struct StatsUiState {
     }
 
     static func make(settings: UserSettings, goalStore: GoalProgressStore) -> StatsUiState {
-        let todayKey = MorningGateEvaluator.dateKey(for: Date(), calendar: .current)
+        let todayKey = LocalDayCalendar.dateKey(for: Date())
         let history = goalStore.morningHistory
         let progress = goalStore.progress
         let goalType = settings.morningGoal.type

@@ -17,7 +17,7 @@ class MorningGateEvaluatorTest {
 
     @Test
     fun `unlock when goal complete today`() {
-        val evaluator = MorningGateEvaluator(zoneId = zoneId) { sampleInstant }
+        val evaluator = MorningGateEvaluator(zoneIdProvider = { zoneId }) { sampleInstant }
         val progress = MorningGoalProgress(
             dateKey = dateKey,
             config = MorningGoalConfig(type = GoalType.TIMED_FOCUS),
@@ -30,7 +30,7 @@ class MorningGateEvaluatorTest {
     @Test
     fun `locked overnight window before goal complete`() {
         val earlyMorning = ZonedDateTime.of(2026, 10, 13, 2, 30, 0, 0, zoneId).toInstant().toEpochMilli()
-        val evaluator = MorningGateEvaluator(zoneId = zoneId) { earlyMorning }
+        val evaluator = MorningGateEvaluator(zoneIdProvider = { zoneId }) { earlyMorning }
         val result = evaluator.evaluate(
             MorningWindow(startHour = 1, endHour = 10),
             MorningGoalProgress(dateKey = dateKey, config = MorningGoalConfig(type = GoalType.TIMED_FOCUS)),
@@ -41,7 +41,7 @@ class MorningGateEvaluatorTest {
 
     @Test
     fun `locked during morning window without completion`() {
-        val evaluator = MorningGateEvaluator(zoneId = zoneId) { sampleInstant }
+        val evaluator = MorningGateEvaluator(zoneIdProvider = { zoneId }) { sampleInstant }
         val result = evaluator.evaluate(
             MorningWindow(startHour = 6, endHour = 9),
             MorningGoalProgress(dateKey = dateKey, config = MorningGoalConfig(type = GoalType.TIMED_FOCUS)),
@@ -52,7 +52,7 @@ class MorningGateEvaluatorTest {
 
     @Test
     fun `emergency bypass unlocks`() {
-        val evaluator = MorningGateEvaluator(zoneId = zoneId) { sampleInstant }
+        val evaluator = MorningGateEvaluator(zoneIdProvider = { zoneId }) { sampleInstant }
         val result = evaluator.evaluate(
             MorningWindow(startHour = 6, endHour = 9),
             null,
@@ -63,7 +63,7 @@ class MorningGateEvaluatorTest {
 
     @Test
     fun `peace session locks even when goal already complete today`() {
-        val evaluator = MorningGateEvaluator(zoneId = zoneId) { sampleInstant }
+        val evaluator = MorningGateEvaluator(zoneIdProvider = { zoneId }) { sampleInstant }
         val progress = MorningGoalProgress(
             dateKey = dateKey,
             config = MorningGoalConfig(type = GoalType.BIBLE_CHAPTER),
@@ -82,7 +82,7 @@ class MorningGateEvaluatorTest {
     @Test
     fun `peace session locks outside morning window`() {
         val afternoon = ZonedDateTime.of(2026, 10, 13, 14, 0, 0, 0, zoneId).toInstant().toEpochMilli()
-        val evaluator = MorningGateEvaluator(zoneId = zoneId) { afternoon }
+        val evaluator = MorningGateEvaluator(zoneIdProvider = { zoneId }) { afternoon }
         val result = evaluator.evaluate(
             MorningWindow(startHour = 6, endHour = 9),
             null,
